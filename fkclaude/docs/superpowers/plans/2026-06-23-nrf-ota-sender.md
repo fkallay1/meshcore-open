@@ -43,36 +43,18 @@ send order (default 'hend'): chunks…, then META, then SIG, then (optional) APP
 ### Task 1: Scaffold the fork, branch, deps, docs
 
 **Files:**
-- Clone: FK's fork of `meshcore-open` → `D:\FkDev\FkProj\VSC\mc_fotanrf_flutterapp`
 - Modify: `pubspec.yaml` (add 2 deps)
 - Modify: `README.md` (derivative note)
-- Move: existing `docs/specs/…` + `docs/plans/…` → `docs/fotanrf/`
 
 **Interfaces:**
 - Produces: a working fork checkout on branch `feature/nrf-ota-sender`, `upstream` remote set, deps resolvable.
 
-- [ ] **Step 1: Clone FK fork into the target dir**
+- [x] **Step 1–2: Clone + branch + docs (DONE 2026-06-23)**
 
-The dir currently holds only our `docs/`. Clone to a temp path, then graft.
-
-```bash
-cd /d/FkDev/FkProj/VSC
-mv mc_fotanrf_flutterapp _fotanrf_docs_tmp           # park our docs
-git clone <FK_FORK_URL> mc_fotanrf_flutterapp        # FK provides the URL of his fork
-cd mc_fotanrf_flutterapp
-git remote add upstream https://github.com/zjs81/meshcore-open.git
-git remote -v
-```
-
-- [ ] **Step 2: Create our working branch + relocate docs under the repo**
-
-```bash
-git checkout -b feature/nrf-ota-sender
-mkdir -p docs/fotanrf
-cp -r ../_fotanrf_docs_tmp/docs/specs docs/fotanrf/
-cp -r ../_fotanrf_docs_tmp/docs/plans docs/fotanrf/
-rm -rf ../_fotanrf_docs_tmp
-```
+Done in the scaffold session: cloned `fkallay1/meshcore-open` → `D:\FkDev\FkProj\VSC\meshcore-open`,
+added `upstream = zjs81/meshcore-open`, created branch `feature/nrf-ota-sender` (pushed). Spec + plan
+live at `fkclaude/docs/superpowers/specs|plans/` (helper-docs convention — NOT `docs/`). CLAUDE.md
+fork section + `fkclaude/fcl_readme_nrf-ota-flutterapp.md` + project memory created.
 
 - [ ] **Step 3: Add the two new dependencies**
 
@@ -1392,7 +1374,7 @@ git commit -m "feat(fotanrf): OTA screen (pick .otapkg, send/apply, progress) + 
 
 **Files:**
 - Modify: `lib/screens/repeater_cli_screen.dart` (extend `_quickCommands`)
-- Create: `docs/fotanrf/e2e-checklist.md`
+- Create: `fkclaude/docs/e2e-checklist.md`
 
 **Interfaces:**
 - Consumes: existing `_quickCommands` / `RepeaterCommandService` (no API change).
@@ -1406,7 +1388,7 @@ git commit -m "feat(fotanrf): OTA screen (pick .otapkg, send/apply, progress) + 
 
 (If the list renders labels via l10n keys, add `otaStatus`/`otaVerify` to the ARB files, or use the literal command string as label — match how the existing entries resolve `labelKey`.)
 
-- [ ] **Step 2: Write the E2E checklist** (`docs/fotanrf/e2e-checklist.md`)
+- [ ] **Step 2: Write the E2E checklist** (`fkclaude/docs/e2e-checklist.md`)
 
 ```markdown
 # nRF-OTA Flutter — on-device E2E checklist
@@ -1433,7 +1415,7 @@ built on PC via `ota_export_pkg.py`.
 Run: `flutter analyze` → clean.
 
 ```bash
-git add lib/screens/repeater_cli_screen.dart docs/fotanrf/e2e-checklist.md
+git add lib/screens/repeater_cli_screen.dart fkclaude/docs/e2e-checklist.md
 git commit -m "feat(fotanrf): OTA admin quick-commands + on-device E2E checklist"
 ```
 

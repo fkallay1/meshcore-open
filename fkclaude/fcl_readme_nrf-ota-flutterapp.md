@@ -22,8 +22,8 @@ textových príkazov do repeatera — reuse `repeater_cli_screen`).
 
 | | |
 |---|---|
-| **Spec** | `docs/fotanrf/specs/2026-06-23-mc-fotanrf-flutterapp-design.md` |
-| **Plán** (task-by-task, TDD) | `docs/fotanrf/plans/2026-06-23-nrf-ota-sender.md` |
+| **Spec** | `fkclaude/docs/superpowers/specs/2026-06-23-mc-fotanrf-flutterapp-design.md` |
+| **Plán** (task-by-task, TDD) | `fkclaude/docs/superpowers/plans/2026-06-23-nrf-ota-sender.md` |
 | **Konvencie + cross-ref** | `CLAUDE.md` → sekcia „FK fork — nRF-OTA sender" |
 | **Firmvér / wire formát** | `../MeshCore` (súrodenec na disku) |
 
@@ -79,7 +79,8 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
-- **2026-06-23** — Brainstorming → spec → plán hotové (v `docs/fotanrf/`). Rozhodnutia: fork
+- **2026-06-23** — Brainstorming → spec → plán hotové (v `fkclaude/docs/superpowers/`; pôvodne
+  omylom v `docs/fotanrf/`, opravené per konvencia). Rozhodnutia: fork
   meshcore-open; transporty BLE/USB/WiFi (reuse); `.otapkg` pre-signed+raw; Ed25519 cez pointycastle;
   fáza B = FFI hdiff neskôr. **Naklonované** `fkallay1/meshcore-open` → `D:\FkDev\FkProj\VSC\meshcore-open`,
   `upstream=zjs81/meshcore-open`, vetva `feature/nrf-ota-sender`. CLAUDE.md naviazaná, fkclaude/ +

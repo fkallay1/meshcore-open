@@ -351,8 +351,8 @@ PWA scaffold present but boilerplate (`manifest.json` and `index.html` are unmod
 - **`fkclaude/`** holds the maintainer's working docs, prefixed `fcl_*`. **Read `fcl_*` files at
   the start of a session** when touching their subject area. Primary: `fkclaude/fcl_readme_nrf-ota-flutterapp.md`.
 - **Design spec + implementation plan** for the OTA feature:
-  - `docs/fotanrf/specs/2026-06-23-mc-fotanrf-flutterapp-design.md`
-  - `docs/fotanrf/plans/2026-06-23-nrf-ota-sender.md`  ← task-by-task, TDD, byte-exact.
+  - `fkclaude/docs/superpowers/specs/2026-06-23-mc-fotanrf-flutterapp-design.md`
+  - `fkclaude/docs/superpowers/plans/2026-06-23-nrf-ota-sender.md`  ← task-by-task, TDD, byte-exact.
 
 ## OTA reference lives in the sibling MeshCore firmware repo
 
@@ -372,8 +372,9 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
 ## Conventions (this fork)
 
 - **Communicate in Slovak** with the maintainer.
-- **fkclaude/docs/** (or `docs/fotanrf/`) for helper/Claude-generated docs — never pollute the
-  upstream `docs/` tree or repo root with fork-helper material.
+- **fkclaude/docs/** for ALL helper/Claude-generated docs — specs/plans go to
+  `fkclaude/docs/superpowers/specs|plans/`. NEVER use the upstream `docs/` tree or repo root for
+  fork-helper material.
 - **Autonomous commits** on the feature branch (commit/push milestones without asking; OneDrive
   history hygiene). Never commit to `dev`/`main` directly. Co-Author trailer per global rules.
 - **Save the work log:** keep `fkclaude/fcl_readme_nrf-ota-flutterapp.md` updated with what was
