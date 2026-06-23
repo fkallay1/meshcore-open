@@ -84,8 +84,44 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
   meshcore-open; transporty BLE/USB/WiFi (reuse); `.otapkg` pre-signed+raw; Ed25519 cez pointycastle;
   fáza B = FFI hdiff neskôr. **Naklonované** `fkallay1/meshcore-open` → `D:\FkDev\FkProj\VSC\meshcore-open`,
   `upstream=zjs81/meshcore-open`, vetva `feature/nrf-ota-sender`. CLAUDE.md naviazaná, fkclaude/ +
-  tieto poznámky + pamäť nastavené. **Ďalší krok:** nainštalovať portable Flutter (`flutter doctor`
-  zelený), potom exekúcia plánu (Task 1→11, subagent-driven), testy reálne pobežia.
+  tieto poznámky + pamäť nastavené.
+
+- **2026-06-23 (exekúcia plánu Task 1→11)** — Flutter STÁLE nenainštalovaný → Dart kód napísaný,
+  ale `flutter pub get/test/analyze` ODLOŽENÉ. Čo prebehlo:
+  - **Task 1** ✓ pubspec +`file_picker ^8.1.2`,`flutter_secure_storage ^9.2.2` (po pointycastle);
+    README derivative note. (`pub get`/`analyze` odložené.)
+  - **Task 2** ✓ **REÁLNE OVERENÉ** — `emit_ota_golden.py` (v MeshCore `test_nrf-ota/tools/`) spustený
+    cez **PlatformIO penv** (`D:\FkDev\.platformio\penv\Scripts\python.exe`, má pycryptodome 3.23.0).
+    `test/fixtures/ota_golden.json` (META=102B, SIG=99B, chunk=157B, APPLY=33B) + `test_ed25519_seed.hex`.
+    Byte-skontrolované: META `1000`+patch_size LE, SIG `1300`, frame `3e0100a007`+ts+META.
+  - **Task 3–8** ✓ kód napísaný: `lib/ota/ota_types.dart` (CRC16, OtaJob, konšt.),
+    CMD62 builder v `meshcore_protocol.dart`, `ota_payload_builder.dart`, `otapkg.dart`,
+    `ota_sender.dart`, `lib/services/ota_key_store.dart` + testy. Testy ZATIAĽ NESPUSTENÉ.
+  - **Task 9** ✓ **REÁLNE OVERENÉ** — `ota_export_pkg.py` (MeshCore) + pytest roundtrip
+    `test_export_pkg.py` **PASSED** (hdiffi.exe prítomný).
+  - **Task 10** ✓ `ota_screen.dart` + hub dlaždica (v `isAdmin` bloku, index 5) + smoke test.
+  - **Task 11** ✓ OTA quick-commands `ota status`/`ota verify` v `repeater_cli_screen.dart`
+    (cez `default: return key` fallback, žiadne ARB zmeny) + `fkclaude/docs/e2e-checklist.md`.
+  - **Odchýlky od plánu (overené proti upstream kódu):**
+    1. `Contact` má `.name`, NIE `.advName` → `ota_screen` používa `repeater.name`.
+    2. `MeshCoreConnector` NEMÁ `setChannel(idx,name,psk)` → adapter `_ConnectorOtaSink.setChannel`
+       posiela `c.sendFrame(buildSetChannelFrame(idx,name,psk))`.
+    3. otapkg_test „corrupted hash" test prepísaný: poškodzuje deklarovaný `patch_sha256`
+       (trafí `OtaPkgException`), nie `patch_len` (ten by hodil `TypeError`).
+  - **Commity:** meshcore-open 9 commitov na `feature/nrf-ota-sender`; MeshCore 2 commity
+    (emitter + export tool). Pushnuté: pozri §6 ďalší riadok po push.
+
+## 6b. ODLOŽENÁ VERIFIKÁCIA (spustiť po inštalácii Fluttera) — DÔLEŽITÉ
+
+Stroj NEMÁ Flutter/Dart/pub cache (overené). Po setupe portable Flutter (§5) spusti v poradí:
+1. `flutter pub get` — over rozlíšenie `file_picker ^8.1.2` + `flutter_secure_storage ^9.2.2`.
+2. `flutter test` — VŠETKY testy v `test/ota/`. Kľúčový GATE: `ota_payload_builder_test.dart`
+   test **`buildSig`** = či **pointycastle Ed25519 == pycryptodome rfc8032** (golden `sig_hex`).
+   Ak zlyhá LEN buildSig → uprav 3 riadky v `OtaPayloadBuilder.signMeta` (názvy tried
+   `Ed25519Signer`/`Ed25519PrivateKey`/`PrivateKeyParameter` v pointycastle ^4.0.0 NEOVERENÉ),
+   NEMEŇ byte layout. Ostatné testy (CRC16, META, chunk, APPLY, frame, otapkg, sender, keystore)
+   sú čisté porty overené proti golden a mali by prejsť.
+3. `flutter analyze` — over, či nezostali nové chyby.
 
 ## 7. Otvorené / pozor
 
