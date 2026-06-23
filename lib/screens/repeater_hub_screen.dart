@@ -13,6 +13,7 @@ import 'repeater_cli_screen.dart';
 import 'repeater_settings_screen.dart';
 import 'telemetry_screen.dart';
 import 'neighbors_screen.dart';
+import 'ota_screen.dart';
 
 class RepeaterHubScreen extends StatelessWidget {
   final Contact repeater;
@@ -262,6 +263,23 @@ class RepeaterHubScreen extends StatelessWidget {
                         repeater: repeater,
                         password: password,
                       ),
+                    ),
+                  );
+                },
+              ),
+              _HubActionTile(
+                index: 5,
+                icon: Icons.system_update,
+                title: 'OTA update',
+                subtitle: 'LoRa delta-patch firmware update',
+                accentColor: MeshPalette.blue,
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          OtaScreen(repeater: repeater, password: password),
                     ),
                   );
                 },
