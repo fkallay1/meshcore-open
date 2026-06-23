@@ -270,7 +270,7 @@ class RepeaterHubScreen extends StatelessWidget {
               _HubActionTile(
                 index: 5,
                 icon: Icons.system_update,
-                title: 'OTA update',
+                title: 'Setup FOTA Update',
                 subtitle: 'LoRa delta-patch firmware update',
                 accentColor: MeshPalette.blue,
                 onTap: () {
@@ -279,7 +279,7 @@ class RepeaterHubScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          OtaScreen(repeater: repeater, password: password),
+                          OtaScreen(headerTarget: repeater.name),
                     ),
                   );
                 },

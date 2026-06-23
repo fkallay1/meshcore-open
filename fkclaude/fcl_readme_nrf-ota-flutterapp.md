@@ -79,6 +79,28 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-23 (UI: FOTA Broadcast + reuse OTA obrazovky + send-mode/timing voľby)** — OTA sa dá
+  spustiť aj BEZ prihlásenia na repeater. Zmeny (verified: `flutter analyze lib` clean,
+  `flutter test test/ota` 16/16, `flutter build web` OK):
+  - **`ota_screen.dart` refaktor** — konštruktor `OtaScreen({required String headerTarget})`
+    namiesto `repeater`+`password` (password sa aj tak nikde v tele nepoužíval; OTA je channel
+    GRP_DATA broadcast, login netreba). Hlavička = `FOTA → <headerTarget>`. Obrazovka + celý send
+    flow je teraz reusnutý pre oba vstupy, líši sa len header.
+  - **Nové send-mode voľby** (mirror `ota_sender.py` CLI): scope dropdown **ZeroHop (default) /
+    Flood / Direct(+path hex)**; pri `direct` sa zobrazí path TextField. Pri načítaní balíka sa
+    prevezme `pkg.scope`/`pkg.pathHex` (default zerohop), user môže prepísať.
+  - **Časovanie paketov** (mirror py): `delayMs` (--delay), `cycles` (--cycles, fire-and-forget
+    opakovanie celého broadcastu, prijímač kumuluje), `headerEvery` (--header-every, redundancia
+    META+SIG po N chunkoch). Pridané do `OtaSendConfig` + `OtaSender.send` (spätne kompatibilné:
+    defaulty cycles=1/headerEvery=0 → identické správanie, staré testy prešli). `cycleDelayMs` tiež.
+  - **Vstupy:** (1) repeater admin hub — dlaždica premenovaná `OTA update` → **`Setup FOTA Update`**,
+    header `FOTA → <repeater.name>`. (2) **Settings → nová sekcia `FOTA Broadcast` za ACTIONS**,
+    položka **`Setup FOTA Broadcast`**, header `FOTA → Broadcast`.
+  - **Dotknuté súbory:** `lib/ota/ota_sender.dart` (+timing), `lib/screens/ota_screen.dart` (reuse+UI),
+    `lib/screens/repeater_hub_screen.dart` (tile rename+call), `lib/screens/settings_screen.dart`
+    (+sekcia+import), `test/ota/ota_screen_smoke_test.dart` (+Broadcast test), `test/ota/ota_sender_test.dart`
+    (+cycles/headerEvery testy). Žiadne ARB zmeny (UI stringy literály ako zvyšok OTA modulu).
+
 - **2026-06-23 (E2E na HW — OTA cez appku FUNGUJE)** — Toolchain nainštalovaný (pozri §6b).
   Companion firmvér nahraný na Xiao nRF52840 (`Xiao_nrf52_companion_radio_usb`, COM3); pôvodne tam bol
   repeater/bridge text-CLI firmvér. Appka beží ako **web** (`flutter build web` → statický server

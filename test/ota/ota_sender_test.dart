@@ -88,4 +88,57 @@ void main() {
     expect(sink.frames.length, total + 3); // + APPLY
     expect(sink.freqVal, null); // applyRadio false → no setRadio
   });
+
+  test('cycles=N repeats the whole broadcast N times', () async {
+    final pkg = OtaPkg.fromJsonString(File('test/fixtures/sample.otapkg.json').readAsStringSync());
+    final sink = _FakeSink();
+    final total = (pkg.patch.length / kOtaChunkData).ceil();
+    await OtaSender(sink).send(
+        pkg.toJob(),
+        OtaSendConfig(
+            channelName: pkg.channelName,
+            channelIdx: pkg.channelIdx,
+            freqMHz: pkg.freqMHz,
+            bwKHz: pkg.bwKHz,
+            sf: pkg.sf,
+            cr: pkg.cr,
+            scope: pkg.scope,
+            pathHex: pkg.pathHex,
+            delayMs: 0,
+            cycleDelayMs: 0,
+            cycles: 3,
+            applyRadio: false,
+            tsBase: 1,
+            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+    // 3 cycles, each = chunks + META + SIG (no APPLY)
+    expect(sink.frames.length, 3 * (total + 2));
+    // setChannel only happens once (setup is outside the cycle loop)
+    expect(sink.chName, '#fkotanrf');
+  });
+
+  test('headerEvery resends META+SIG every N chunks', () async {
+    final pkg = OtaPkg.fromJsonString(File('test/fixtures/sample.otapkg.json').readAsStringSync());
+    final sink = _FakeSink();
+    final total = (pkg.patch.length / kOtaChunkData).ceil();
+    const every = 2;
+    await OtaSender(sink).send(
+        pkg.toJob(),
+        OtaSendConfig(
+            channelName: pkg.channelName,
+            channelIdx: pkg.channelIdx,
+            freqMHz: pkg.freqMHz,
+            bwKHz: pkg.bwKHz,
+            sf: pkg.sf,
+            cr: pkg.cr,
+            scope: pkg.scope,
+            pathHex: pkg.pathHex,
+            delayMs: 0,
+            headerEvery: every,
+            applyRadio: false,
+            tsBase: 1,
+            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+    // chunks + (total ~/ every) redundancy header pairs + final META + SIG
+    final redundant = (total ~/ every) * 2;
+    expect(sink.frames.length, total + redundant + 2);
+  });
 }

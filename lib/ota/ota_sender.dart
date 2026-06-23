@@ -19,6 +19,11 @@ class OtaSendConfig {
   final String pathHex;
   final bool applyAfter, applyRadio;
   final int delayMs, tsBase;
+  // Timing / redundancy knobs mirroring ota_sender.py:
+  //   headerEvery  → --header-every : resend META+SIG every N chunks (0 = off)
+  //   cycles       → --cycles       : repeat the whole broadcast N times (fire-and-forget)
+  //   cycleDelayMs → --cycle-delay  : pause between cycles
+  final int headerEvery, cycles, cycleDelayMs;
   final Uint8List? seed32; // Ed25519 seed for raw signing; null → zero sig
   OtaSendConfig({
     required this.channelName,
@@ -32,6 +37,9 @@ class OtaSendConfig {
     this.applyAfter = false,
     this.applyRadio = false,
     this.delayMs = 300,
+    this.headerEvery = 0,
+    this.cycles = 1,
+    this.cycleDelayMs = 2000,
     this.tsBase = 0,
     this.seed32,
   });
@@ -84,29 +92,49 @@ class OtaSender {
     final total = (patch.length / kOtaChunkData).ceil();
     final oldPrefix = job.oldSha256.sublist(0, 4);
 
-    // chunks (hend order: chunks first)
-    for (int i = 0; i < total; i++) {
-      final start = i * kOtaChunkData;
-      final end = (start + kOtaChunkData).clamp(0, patch.length);
-      await snd(_b.buildChunk(
-          i, Uint8List.sublistView(patch, start, end), job.oldFwSize, oldPrefix));
-      onProgress?.call(OtaProgress(OtaPhase.chunks, i + 1, total));
-    }
-
-    // header = META + SIG
-    onProgress?.call(OtaProgress(OtaPhase.header, total, total));
+    // header = META + SIG (built once, reused across cycles / redundancy resends)
     final patchSha = OtaPayloadBuilder.sha256(patch);
     final meta = job.presignedMeta ??
         _b.buildMeta(patch.length, patchSha, job.newSha256, job.oldSha256);
     final sig = job.presignedSig ?? _b.buildSig(meta, cfg.seed32, job.keyId);
-    await snd(meta);
-    await snd(sig);
-
-    if (cfg.applyAfter) {
-      onProgress?.call(OtaProgress(OtaPhase.apply, total, total));
-      await snd(_b.buildApply(patchSha));
+    Future<void> sendHeader() async {
+      await snd(meta);
+      await snd(sig);
     }
-    onProgress?.call(OtaProgress(OtaPhase.done, total, total));
+
+    final cycles = cfg.cycles < 1 ? 1 : cfg.cycles;
+    final grandTotal = total * cycles;
+    int doneChunks = 0;
+
+    for (int cycle = 0; cycle < cycles; cycle++) {
+      // chunks (hend order: chunks first)
+      for (int i = 0; i < total; i++) {
+        final start = i * kOtaChunkData;
+        final end = (start + kOtaChunkData).clamp(0, patch.length);
+        await snd(_b.buildChunk(
+            i, Uint8List.sublistView(patch, start, end), job.oldFwSize, oldPrefix));
+        doneChunks++;
+        onProgress?.call(OtaProgress(OtaPhase.chunks, doneChunks, grandTotal));
+        // HEADER redundancy: META+SIG is the single critical packet (total=0
+        // blocks everything) and has no accumulation advantage like chunks.
+        if (cfg.headerEvery > 0 && (i + 1) % cfg.headerEvery == 0) {
+          await sendHeader();
+        }
+      }
+
+      onProgress?.call(OtaProgress(OtaPhase.header, doneChunks, grandTotal));
+      await sendHeader();
+
+      if (cfg.applyAfter) {
+        onProgress?.call(OtaProgress(OtaPhase.apply, doneChunks, grandTotal));
+        await snd(_b.buildApply(patchSha));
+      }
+
+      if (cycle < cycles - 1 && cfg.cycleDelayMs > 0) {
+        await Future.delayed(Duration(milliseconds: cfg.cycleDelayMs));
+      }
+    }
+    onProgress?.call(OtaProgress(OtaPhase.done, grandTotal, grandTotal));
   }
 
   (int, Uint8List) _scopePath(OtaScope scope, String pathHex) {
