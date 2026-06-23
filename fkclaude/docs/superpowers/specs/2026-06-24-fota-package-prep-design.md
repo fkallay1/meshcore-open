@@ -17,7 +17,13 @@ from the PC tool (`ota_export_pkg.py`). Two input paths:
   dynamically from `github.com/meshcore-dev/MeshCore`, then download + generate.
 
 The selection UI sits **at the top of the `FOTA → …` screen, above the existing `.otapkg.json`
-file-picker**, which stays as a third (manual) input path.
+file-picker**, which **stays** as a third (manual) input path.
+
+**Unified "selected package" model.** All three input paths — (a) local bins, (b) GitHub, and
+(c) the existing manual `.otapkg.json` picker — feed the *same* selected-package slot that drives
+the send flow. After `Create FOTA package` (a or b), the generated package appears in that slot
+**under its generated filename**, exactly as if it had been chosen with the manual picker — ready
+to send, with no extra step.
 
 This spec covers **path (b)** end-to-end plus the shared generation pipeline. Path (a) reuses the
 same generation pipeline with locally-picked bins. Delivered in two build steps:
