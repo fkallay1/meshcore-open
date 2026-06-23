@@ -214,6 +214,7 @@ const int cmdSendAnonReq = 57;
 const int cmdSetAutoAddConfig = 58;
 const int cmdGetAutoAddConfig = 59;
 const int cmdSetPathHashMode = 61;
+const int cmdSendChannelData = 62;
 
 // Text message types
 const int txtTypePlain = 0;
@@ -667,6 +668,20 @@ Uint8List buildSetChannelFrame(int channelIndex, String name, Uint8List psk) {
     pskPadded[i] = psk[i];
   }
   writer.writeBytes(pskPadded);
+  return writer.toBytes();
+}
+
+/// CMD_SEND_CHANNEL_DATA (62): [62][channelIndex][pathLen][path][dataType u16le][data].
+/// Mirrors test_nrf-ota/ota_sender_mcpy.py companion_chan_data_frame.
+Uint8List buildSendChannelDataFrame(
+    int channelIndex, int pathLen, Uint8List path, int dataType, Uint8List data) {
+  final writer = BufferWriter();
+  writer.writeByte(cmdSendChannelData);
+  writer.writeByte(channelIndex & 0xFF);
+  writer.writeByte(pathLen & 0xFF);
+  writer.writeBytes(path);
+  writer.writeUInt16LE(dataType);
+  writer.writeBytes(data);
   return writer.toBytes();
 }
 
