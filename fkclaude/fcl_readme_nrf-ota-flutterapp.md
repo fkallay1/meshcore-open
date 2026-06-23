@@ -79,6 +79,28 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-23 (E2E na HW — OTA cez appku FUNGUJE)** — Toolchain nainštalovaný (pozri §6b).
+  Companion firmvér nahraný na Xiao nRF52840 (`Xiao_nrf52_companion_radio_usb`, COM3); pôvodne tam bol
+  repeater/bridge text-CLI firmvér. Appka beží ako **web** (`flutter build web` → statický server
+  `localhost:8085`, Web Serial v Chrome — náš kód má `usb_serial_service_web.dart`). **Connect na
+  companion cez appku ide, OTA odoslanie cez appku FUNGUJE** (užívateľ potvrdil). E2E overené aj
+  cez `ota_sender_mcpy.py` (companion-relay = byte-exact to isté čo appka): chunky+META+SIG dorazia
+  na repeater (COM5, RSSI −18), CRC OK.
+  - **KĽÚČOVÉ: mesh beží na `869.618/SF8`** (default firmvéru), NIE 869.525/SF7 — `.otapkg` musí mať
+    tieto rádio params (appka podľa nich nastaví companion). `fw.otapkg.json` aj `fw_reverse.otapkg.json`
+    v `../MeshCore/test_nrf-ota/` regenerované na 869.618/SF8.
+  - **base-FW kontrola repeatera funguje správne:** forward patch (base=lora_old C24A73E0) repeater
+    odmietol, lebo beží `lora_new` (B10CF39F) → `CHYBA=0x7`. Pre úspešný apply slúži **reverzný**
+    patch `fw_reverse.otapkg.json` (base=lora_new=čo beží).
+  - **Companion z PC (build env):** `Xiao_nrf52_companion_radio_usb`; flash `pio run -e ... -t upload
+    --upload-port COM3` (1200-touch → bootloader COM6 → DFU, auto). Web app test = užívateľ klikne v
+    prehliadači (Web Serial gesto), ja browser neriadim.
+  - **ZNÁMY FIRMVÉROVÝ BUG (rieš v MeshCore session, NIE tu):** po `ota clear` + opätovnom odoslaní sa
+    pakety nespracujú cez OTA logiku, zobrazia sa len ako RAW. Firmvér: `../MeshCore/examples/simple_repeater/`
+    — gate `MyMesh.cpp:883–887` (`if dtype!=OTA_MAGIC return`), `ota clear` v `nrfota/OtaMesh.cpp:52`,
+    receiver `nrfota/OtaReceiver.cpp`, stav `nrfota/OtaState.h`. Hypotéza: `ota clear` odregistruje OTA
+    kanál / zhodí armed flag → GRP_DATA sa nematchne na kanál → RAW. Oprava: bezstavový OTA routing.
+
 - **2026-06-23** — Brainstorming → spec → plán hotové (v `fkclaude/docs/superpowers/`; pôvodne
   omylom v `docs/fotanrf/`, opravené per konvencia). Rozhodnutia: fork
   meshcore-open; transporty BLE/USB/WiFi (reuse); `.otapkg` pre-signed+raw; Ed25519 cez pointycastle;
