@@ -45,6 +45,8 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
     {'labelKey': 'version', 'command': 'ver'},
     {'labelKey': 'clock', 'command': 'clock'},
     {'labelKey': 'clock sync', 'command': 'clock sync'},
+    {'labelKey': 'ota status', 'command': 'ota status'},
+    {'labelKey': 'ota verify', 'command': 'ota verify'},
   ];
 
   @override
