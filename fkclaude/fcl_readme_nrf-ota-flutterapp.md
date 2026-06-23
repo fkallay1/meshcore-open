@@ -111,17 +111,34 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
   - **Commity:** meshcore-open 9 commitov na `feature/nrf-ota-sender`; MeshCore 2 commity
     (emitter + export tool). Pushnuté: pozri §6 ďalší riadok po push.
 
-## 6b. ODLOŽENÁ VERIFIKÁCIA (spustiť po inštalácii Fluttera) — DÔLEŽITÉ
+## 6b. VERIFIKÁCIA — HOTOVÁ A ZELENÁ (2026-06-23)
 
-Stroj NEMÁ Flutter/Dart/pub cache (overené). Po setupe portable Flutter (§5) spusti v poradí:
-1. `flutter pub get` — over rozlíšenie `file_picker ^8.1.2` + `flutter_secure_storage ^9.2.2`.
-2. `flutter test` — VŠETKY testy v `test/ota/`. Kľúčový GATE: `ota_payload_builder_test.dart`
-   test **`buildSig`** = či **pointycastle Ed25519 == pycryptodome rfc8032** (golden `sig_hex`).
-   Ak zlyhá LEN buildSig → uprav 3 riadky v `OtaPayloadBuilder.signMeta` (názvy tried
-   `Ed25519Signer`/`Ed25519PrivateKey`/`PrivateKeyParameter` v pointycastle ^4.0.0 NEOVERENÉ),
-   NEMEŇ byte layout. Ostatné testy (CRC16, META, chunk, APPLY, frame, otapkg, sender, keystore)
-   sú čisté porty overené proti golden a mali by prejsť.
-3. `flutter analyze` — over, či nezostali nové chyby.
+Portable Flutter **nainštalovaný** pod `D:\FkDev\Tools` (Flutter 3.44.3 / Dart 3.12.2, JDK 17,
+android-sdk: platform-36, build-tools 36.0.0, NDK 29.0.14206865). Výsledky:
+- **`flutter test test/ota` → 13/13 PASS.** Vrátane **golden-gate `buildSig`**: Ed25519 podpis
+  z **pinenacl** je byte-identický s pycryptodome `rfc8032` (golden `sig_hex`). ✅
+- **`flutter analyze` (OTA súbory) → No issues found.** ✅
+
+### Zmeny deps oproti pôvodnému plánu (predpoklady plánu boli mylné — odhalil `pub get`/test)
+- **Ed25519:** `pointycastle 4.0.0` Ed25519 VÔBEC NEMÁ (len OID v databáze). → `OtaPayloadBuilder.signMeta`
+  prepísané na **`pinenacl ^0.6.0`** (TweetNaCl, synchrónne, Dart3). `ed25519_edwards` zamietnuté
+  (SDK `<3.0.0`). API: `nacl.SigningKey(seed: seed32).sign(meta).signature`.
+- **Výber súboru:** `file_picker` (každá verzia → `win32 ^5`) koliduje s upstream `package_info_plus`
+  (`win32 ^6`). win32 override rozbil `file_picker_windows` (HRESULT). → **`file_selector ^1.1.0`**
+  (`file_selector_android` endorsed; `file_selector_windows` win32 nepoužíva). Override ODSTRÁNENÝ.
+  `ota_screen._pickPkg` teraz `openFile(acceptedTypeGroups:[XTypeGroup(extensions:['json','otapkg'])])`.
+- **Secure storage:** `flutter_secure_storage ^9.2.2 → ^10.3.1` (10.x ťahá `fss_windows 4.2.x` =
+  `win32 ^6`, kompatibilné). API `read/write/delete` rovnaké.
+- `pubspec.lock` je **gitignored**. Desktop `generated_plugin_registrant.*` sa regenerovali (nové pluginy).
+
+### Toolchain fakty (aby som znova nehľadal)
+- **Python s pycryptodome = PlatformIO penv:** `D:\FkDev\.platformio\penv\Scripts\python.exe`
+  (pycryptodome 3.23.0). Default `python` (platformio python3) NEMÁ pip.
+- **Flutter portable:** `D:\FkDev\Tools\flutter\bin`. Aktivácia session: `. "$env:DEV_ROOT\Tools\flutter-env.ps1"`.
+  VS Code: `D:\FkDev\VSCode\data\user-data\User\settings.json` má `dart.flutterSdkPath` +
+  `terminal.integrated.env.windows` (cez `${env:DEV_ROOT}`).
+- **APK build vyžaduje Windows „Developer Mode"** (symlink support pre pluginy) — `start ms-settings:developers`.
+  Bez neho `flutter build apk`/`run` zlyhá; `flutter test` (pure Dart) beží aj bez neho.
 
 ## 7. Otvorené / pozor
 
