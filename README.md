@@ -2,6 +2,11 @@
 
 Open-source Flutter client for MeshCore LoRa mesh networking devices.
 
+> **mc_fotanrf_flutterapp** — a derivative of [zjs81/meshcore-open](https://github.com/zjs81/meshcore-open) (MIT)
+> adding an nRF52840 LoRa delta-patch **OTA sender** and OTA admin quick-commands.
+> Upstream is tracked as the `upstream` git remote. App identity (`meshcore_open`) is kept
+> unchanged so upstream changes merge cleanly. © 2026 Fedor Kallay; original © 2025 zjs81.
+
 ## Overview
 
 MeshCore Open is a cross-platform mobile application for communicating with MeshCore LoRa mesh network devices via Bluetooth Low Energy (BLE). The app enables long-range, off-grid communication through peer-to-peer messaging, public channels, and mesh networking capabilities.
