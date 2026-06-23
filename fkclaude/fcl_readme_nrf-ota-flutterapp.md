@@ -95,11 +95,18 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
   - **Companion z PC (build env):** `Xiao_nrf52_companion_radio_usb`; flash `pio run -e ... -t upload
     --upload-port COM3` (1200-touch → bootloader COM6 → DFU, auto). Web app test = užívateľ klikne v
     prehliadači (Web Serial gesto), ja browser neriadim.
-  - **ZNÁMY FIRMVÉROVÝ BUG (rieš v MeshCore session, NIE tu):** po `ota clear` + opätovnom odoslaní sa
-    pakety nespracujú cez OTA logiku, zobrazia sa len ako RAW. Firmvér: `../MeshCore/examples/simple_repeater/`
-    — gate `MyMesh.cpp:883–887` (`if dtype!=OTA_MAGIC return`), `ota clear` v `nrfota/OtaMesh.cpp:52`,
-    receiver `nrfota/OtaReceiver.cpp`, stav `nrfota/OtaState.h`. Hypotéza: `ota clear` odregistruje OTA
-    kanál / zhodí armed flag → GRP_DATA sa nematchne na kanál → RAW. Oprava: bezstavový OTA routing.
+  - **VYRIEŠENÉ (2026-06-23) — bol to bug TEJTO appky, NIE firmvéru:** po `ota clear` + re-sende sa
+    pakety zobrazili len ako RAW. Root cause: `ota_screen.dart` volal `OtaSender.send` BEZ `tsBase` →
+    default `0` (`lib/ota/ota_sender.dart:35`). Sender robí `ts += 1` per paket, takže každá session
+    štartovala ts od nuly (1,2,3,…). Pre nezmenený patch je `ota_payload` identický → šifrovaný plaintext
+    `[ts4][ota_payload]` byte-identický pri každej session → rovnaký `packet_hash` (SHA256 typ‖payload,
+    `MeshCore/src/Packet.cpp:41`) → MeshCore seen-table (160 položiek, `src/helpers/SimpleMeshTables.h`)
+    to zahodí ako duplikát v `Mesh.cpp:227` ešte pred `onGroupDataRecv` → `logRxRaw` vypíše len `[OTA] RAW`.
+    `ota clear` čistí len OTA receiver, NIE seen-table. Pôvodná hypotéza („`ota clear` odregistruje kanál")
+    bola NESPRÁVNA — `_ota_ready` ostáva true, `searchChannelsByHash`/`MACThenDecrypt` bezstavové; firmware
+    dedup robí korektne svoju prácu (dostáva reálne identické pakety). **Fix:** `ota_screen.dart` →
+    `tsBase: DateTime.now().millisecondsSinceEpoch ~/ 1000` (epoch sekundy, uint32, ako `int(time.time())`
+    v py senderoch). Stačí wall-clock, lebo rozostup re-sendov je ≥1 s. Firmvér nezmenený.
 
 - **2026-06-23** — Brainstorming → spec → plán hotové (v `fkclaude/docs/superpowers/`; pôvodne
   omylom v `docs/fotanrf/`, opravené per konvencia). Rozhodnutia: fork

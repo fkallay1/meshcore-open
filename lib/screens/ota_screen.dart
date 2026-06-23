@@ -85,6 +85,13 @@ class _OtaScreenState extends State<OtaScreen> {
           applyAfter: apply,
           applyRadio: _applyRadio,
           delayMs: 300,
+          // ts base = wall-clock epoch seconds (like python senders' int(time.time())).
+          // Without this it defaulted to 0, so every send replayed the SAME ts
+          // sequence (1,2,3,...). For an unchanged patch the packets were then
+          // byte-identical → same packet_hash → MeshCore's seen-table dedup dropped
+          // the re-send as duplicates (repeater showed only RAW). Re-sends are >=1s
+          // apart so a fresh epoch base keeps every session's packets unique.
+          tsBase: DateTime.now().millisecondsSinceEpoch ~/ 1000,
           seed32: seed,
         ),
         onProgress: (p) => setState(() {
