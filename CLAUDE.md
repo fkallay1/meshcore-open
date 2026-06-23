@@ -335,3 +335,53 @@ PWA scaffold present but boilerplate (`manifest.json` and `index.html` are unmod
 | `lib/storage/prefs_manager.dart` | SharedPreferences singleton initialized in `main()` |
 | `lib/screens/scanner_screen.dart` | Home screen — BLE scan and connect |
 | `pubspec.yaml` | Dependencies and project metadata (current version `9.5.0+13`) |
+
+---
+
+# FK fork — nRF-OTA sender (Fedor Kallay)
+
+> Everything below is **fork-specific** (not upstream `zjs81/meshcore-open`). It is appended at
+> the end so `git pull upstream` rarely conflicts here. This fork (`fkallay1/meshcore-open`,
+> branch `feature/nrf-ota-sender`) adds an **nRF52840 LoRa delta-patch OTA sender** + OTA admin
+> quick-commands. Keep the app identity (`name: meshcore_open`, title `MeshCore Open`) UNCHANGED
+> so upstream merges stay clean.
+
+## Read first each session
+
+- **`fkclaude/`** holds the maintainer's working docs, prefixed `fcl_*`. **Read `fcl_*` files at
+  the start of a session** when touching their subject area. Primary: `fkclaude/fcl_readme_nrf-ota-flutterapp.md`.
+- **Design spec + implementation plan** for the OTA feature:
+  - `docs/fotanrf/specs/2026-06-23-mc-fotanrf-flutterapp-design.md`
+  - `docs/fotanrf/plans/2026-06-23-nrf-ota-sender.md`  ← task-by-task, TDD, byte-exact.
+
+## OTA reference lives in the sibling MeshCore firmware repo
+
+The firmware + the authoritative wire format are in **`../MeshCore`** (sibling on disk,
+`D:\FkDev\FkProj\VSC\MeshCore`). Read these by absolute path when implementing OTA:
+
+| What | Path |
+|------|------|
+| **Authoritative wire format** (META/SIG/chunk/APPLY, CRC16, framing) | `../MeshCore/test_nrf-ota/ota_sender.py` |
+| Companion-relay variant we mirror | `../MeshCore/test_nrf-ota/ota_sender_mcpy.py` |
+| Companion `CMD_*` codes + RESP codes | `../MeshCore/examples/companion_radio/MyMesh.cpp` |
+| Protocol reference impl (same frames) | `D:\FkDev\FkProj\VSC\meshcore_py` |
+| OTA system deep-dive | `../MeshCore/fkclaude/fcl_readme_tech_nrf-ota.md` |
+| Golden-vector emitter (run on PC) | `../MeshCore/test_nrf-ota/tools/emit_ota_golden.py` |
+| PC `.otapkg.json` export tool | `../MeshCore/test_nrf-ota/ota_export_pkg.py` |
+
+## Conventions (this fork)
+
+- **Communicate in Slovak** with the maintainer.
+- **fkclaude/docs/** (or `docs/fotanrf/`) for helper/Claude-generated docs — never pollute the
+  upstream `docs/` tree or repo root with fork-helper material.
+- **Autonomous commits** on the feature branch (commit/push milestones without asking; OneDrive
+  history hygiene). Never commit to `dev`/`main` directly. Co-Author trailer per global rules.
+- **Save the work log:** keep `fkclaude/fcl_readme_nrf-ota-flutterapp.md` updated with what was
+  advised, done, and why (so context survives a Reload Window / new session).
+- **Isolation discipline:** OTA logic in NEW files (`lib/ota/`, `lib/screens/ota_screen.dart`,
+  `lib/services/ota_key_store.dart`). Touch upstream files minimally (only `meshcore_protocol.dart`
+  +1 builder, `repeater_cli_screen.dart` quick-cmds, `repeater_hub_screen.dart` one nav tile).
+- **Byte-exactness mandatory:** OTA output must equal `ota_sender.py` byte-for-byte (golden vectors
+  in `test/fixtures/ota_golden.json`).
+- **Portable Flutter:** upstream CLAUDE.md uses `~/flutter/bin/flutter` (portable SDK). Set up
+  Flutter zip + Android cmdline-tools + JDK per `fkclaude/fcl_readme_nrf-ota-flutterapp.md`.
