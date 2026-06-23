@@ -51,8 +51,9 @@ dependencies:
   flutter_local_notifications: ^22.0.0
   crypto: ^3.0.3
   pointycastle: ^4.0.0
-  file_picker: ^8.1.2
-  flutter_secure_storage: ^9.2.2
+  pinenacl: ^0.6.0          # Ed25519 (RFC 8032) pre OTA podpis — pointycastle 4.0.0 ho nema
+  file_selector: ^1.1.0     # vyber .otapkg suboru (file_picker konfliktoval na win32 ^5)
+  flutter_secure_storage: ^10.3.1
   http: ^1.2.0
   cached_network_image: ^3.4.1
   flutter_cache_manager: ^3.4.1

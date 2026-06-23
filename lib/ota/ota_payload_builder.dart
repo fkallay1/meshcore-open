@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
-import 'package:pointycastle/export.dart' as pc;
+import 'package:pinenacl/ed25519.dart' as nacl;
 import 'ota_types.dart';
 
 class OtaPayloadBuilder {
@@ -22,16 +22,13 @@ class OtaPayloadBuilder {
 
   /// RFC8032 Ed25519 signature of [meta] (64B). Zeros if [seed32] is null.
   ///
-  /// NOTE: the exact pointycastle Ed25519 class names below are confirmed by the
-  /// golden-vector test (ota_payload_builder_test.dart `buildSig`). If
-  /// pointycastle ^4.0.0 exposes different names, adjust ONLY these three lines
-  /// until buildSig matches `sig_hex`; do not change the byte layout.
+  /// Uses pinenacl (TweetNaCl) — pointycastle 4.0.0 has no Ed25519. Ed25519 is
+  /// deterministic, so this matches pycryptodome `eddsa 'rfc8032'` byte-for-byte
+  /// (verified by the golden-vector test `buildSig`).
   Uint8List signMeta(Uint8List meta, Uint8List? seed32) {
     if (seed32 == null) return Uint8List(64);
-    final signer = pc.Ed25519Signer();
-    final sk = pc.Ed25519PrivateKey(seed32);
-    signer.init(true, pc.PrivateKeyParameter<pc.Ed25519PrivateKey>(sk));
-    return signer.generateSignature(meta).bytes;
+    final sk = nacl.SigningKey(seed: seed32);
+    return Uint8List.fromList(sk.sign(meta).signature);
   }
 
   Uint8List buildSig(Uint8List meta, Uint8List? seed32, int keyId) {

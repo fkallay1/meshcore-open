@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../connector/meshcore_connector.dart';
@@ -41,12 +41,14 @@ class _OtaScreenState extends State<OtaScreen> {
   void _append(String s) => setState(() => _log = '$_log$s\n');
 
   Future<void> _pickPkg() async {
-    final res = await FilePicker.platform.pickFiles(withData: true, type: FileType.any);
-    if (res == null || res.files.single.bytes == null) return;
+    const group = XTypeGroup(label: 'otapkg', extensions: ['json', 'otapkg']);
+    final file = await openFile(acceptedTypeGroups: [group]);
+    if (file == null) return;
     try {
-      final pkg = OtaPkg.fromJsonString(String.fromCharCodes(res.files.single.bytes!));
+      final bytes = await file.readAsBytes();
+      final pkg = OtaPkg.fromJsonString(String.fromCharCodes(bytes));
       setState(() => _pkg = pkg);
-      _append('Loaded ${res.files.single.name}: '
+      _append('Loaded ${file.name}: '
           'patch=${pkg.patchLen}B chunks=${(pkg.patchLen / kOtaChunkData).ceil()} '
           'signed=${pkg.meta != null}');
     } catch (e) {
