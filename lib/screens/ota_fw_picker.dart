@@ -118,8 +118,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     ));
   }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildStateWidget(BuildContext context) {
     if (_loading) {
       return const Padding(
         padding: EdgeInsets.all(8),
@@ -150,16 +149,6 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     final currentAsset =
         (_device != null && _current != null) ? cat.assetFor(_device!, _current!) : null;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      TextField(
-        controller: _repoController,
-        decoration: const InputDecoration(
-          labelText: 'GitHub repo (owner/repo)',
-          border: OutlineInputBorder(),
-          isDense: true,
-        ),
-        onSubmitted: (_) => _load(),
-      ),
-      const SizedBox(height: 8),
       DropdownButtonFormField<OtaFwRole>(
         initialValue: _role,
         decoration: const InputDecoration(
@@ -234,6 +223,23 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
         'Target:  ${targetAsset?.name ?? '— (žiadny vhodný asset)'}',
         style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
       ),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      TextField(
+        controller: _repoController,
+        decoration: const InputDecoration(
+          labelText: 'GitHub repo (owner/repo)',
+          border: OutlineInputBorder(),
+          isDense: true,
+        ),
+        onSubmitted: (_) => _load(),
+      ),
+      const SizedBox(height: 8),
+      _buildStateWidget(context),
     ]);
   }
 }

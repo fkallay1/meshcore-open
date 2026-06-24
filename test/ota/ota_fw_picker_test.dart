@@ -42,9 +42,9 @@ void main() {
     expect(sel!.currentVersion, '1.16.0');
     expect(sel!.packageFileName,
         'ProMicro_repeater_v1.16.0_to_v1.17.0.otapkg.json');
+    expect(find.text('ProMicro'), findsWidgets);            // device dropdown rendered
     // the custom-repo field is present, defaulting to meshcore-dev/MeshCore
     // (widgetWithText finds TextField ancestors of EditableText in Flutter 3.44+)
     expect(find.widgetWithText(TextField, 'meshcore-dev/MeshCore'), findsOneWidget);
-    expect(find.text('meshcore-dev/MeshCore'), findsWidgets);
   });
 }
