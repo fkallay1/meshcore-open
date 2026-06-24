@@ -21,4 +21,12 @@ void main() {
     ));
     expect(find.text('FOTA → Broadcast'), findsOneWidget);
   });
+
+  testWidgets('FOTA screen shows the GitHub prepare section', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: OtaScreen(headerTarget: 'Broadcast'),
+    ));
+    expect(find.text('Priprav z GitHubu'), findsOneWidget);
+    expect(find.text('Vyber .otapkg.json'), findsOneWidget);
+  });
 }

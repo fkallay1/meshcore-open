@@ -129,7 +129,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
         (_device != null && _target != null) ? cat.assetFor(_device!, _target!) : null;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       DropdownButtonFormField<OtaFwRole>(
-        value: _role,
+        initialValue: _role,
         decoration: const InputDecoration(
             labelText: 'Rola firmvéru', border: OutlineInputBorder(), isDense: true),
         items: const [
@@ -144,7 +144,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
       ),
       const SizedBox(height: 8),
       DropdownButtonFormField<String>(
-        value: _device,
+        initialValue: _device,
         isExpanded: true,
         decoration: const InputDecoration(
             labelText: 'Zariadenie', border: OutlineInputBorder(), isDense: true),
@@ -160,7 +160,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
       Row(children: [
         Expanded(
           child: DropdownButtonFormField<String>(
-            value: _current,
+            initialValue: _current,
             isExpanded: true,
             decoration: const InputDecoration(
                 labelText: 'Current FW',
@@ -179,7 +179,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
         const SizedBox(width: 8),
         Expanded(
           child: DropdownButtonFormField<String>(
-            value: _target,
+            initialValue: _target,
             isExpanded: true,
             decoration: const InputDecoration(
                 labelText: 'Target FW',

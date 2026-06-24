@@ -6,8 +6,10 @@ import '../connector/meshcore_connector.dart';
 import '../connector/meshcore_protocol.dart';
 import '../ota/ota_sender.dart';
 import '../ota/ota_types.dart';
+import '../ota/ota_github_source.dart';
 import '../ota/otapkg.dart';
 import '../services/ota_key_store.dart';
+import 'ota_fw_picker.dart';
 
 class _ConnectorOtaSink implements OtaFrameSink {
   final MeshCoreConnector c;
@@ -38,6 +40,8 @@ class OtaScreen extends StatefulWidget {
 
 class _OtaScreenState extends State<OtaScreen> {
   OtaPkg? _pkg;
+  final OtaGithubSource _ghSource = OtaGithubSource();
+  OtaFwSelection? _fwSelection;
   String _log = '';
   double _progress = 0;
   bool _busy = false;
@@ -153,6 +157,30 @@ class _OtaScreenState extends State<OtaScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: const EdgeInsets.only(bottom: 8),
+            title: const Text('Priprav z GitHubu'),
+            children: [
+              OtaFwPicker(
+                source: _ghSource,
+                onSelection: (s) => setState(() => _fwSelection = s),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  // Wired in Step 2 (download + generate). Disabled for now.
+                  onPressed: null,
+                  icon: const Icon(Icons.build),
+                  label: Text(_fwSelection == null
+                      ? 'Create FOTA package'
+                      : 'Create FOTA package: ${_fwSelection!.packageFileName}'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: _busy ? null : _pickPkg,
             icon: const Icon(Icons.folder_open),
