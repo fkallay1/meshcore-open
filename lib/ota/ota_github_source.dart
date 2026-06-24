@@ -1,15 +1,19 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'ota_fw_catalog.dart';
+import 'ota_fw_source.dart';
 
 /// Fetches MeshCore firmware releases + nRF variant definitions from GitHub and
 /// builds an [OtaFwCatalog]. Pure-IO; all parsing/selection lives in the catalog.
-class OtaGithubSource {
-  static const _repo = 'meshcore-dev/MeshCore';
-  static const _branch = 'main';
-
+class OtaGithubSource implements OtaFwSource {
+  final String repo;
+  final String branch;
   final http.Client _client;
-  OtaGithubSource({http.Client? client}) : _client = client ?? http.Client();
+  OtaGithubSource({
+    this.repo = 'meshcore-dev/MeshCore',
+    this.branch = 'main',
+    http.Client? client,
+  }) : _client = client ?? http.Client();
 
   List<OtaRelease>? _releases;
   Set<String>? _nrf;
@@ -42,7 +46,7 @@ class OtaGithubSource {
   Future<List<OtaRelease>> fetchReleases({bool refresh = false}) async {
     if (_releases != null && !refresh) return _releases!;
     final body = await _getApi(
-        'https://api.github.com/repos/$_repo/releases?per_page=100');
+        'https://api.github.com/repos/$repo/releases?per_page=100');
     final list = (jsonDecode(body) as List).cast<Map<String, dynamic>>();
     final out = <OtaRelease>[];
     for (final r in list) {
@@ -67,7 +71,7 @@ class OtaGithubSource {
   Future<Set<String>> fetchNrfBoardNamesLower({bool refresh = false}) async {
     if (_nrf != null && !refresh) return _nrf!;
     final treesBody = await _getApi(
-        'https://api.github.com/repos/$_repo/git/trees/$_branch?recursive=1');
+        'https://api.github.com/repos/$repo/git/trees/$branch?recursive=1');
     final tree = (jsonDecode(treesBody)['tree'] as List).cast<Map<String, dynamic>>();
     final re = RegExp(r'^variants/([^/]+)/platformio\.ini$');
     final futures = <Future<String?>>[];
@@ -76,7 +80,7 @@ class OtaGithubSource {
       if (m == null) continue;
       final board = m.group(1)!.toLowerCase();
       futures.add(_getRaw(
-              'https://raw.githubusercontent.com/$_repo/$_branch/${node['path']}')
+              'https://raw.githubusercontent.com/$repo/$branch/${node['path']}')
           .then((ini) => platformioIsNrf(ini) ? board : null));
     }
     final results = await Future.wait(futures);
@@ -84,6 +88,7 @@ class OtaGithubSource {
     return _nrf = names;
   }
 
+  @override
   Future<OtaFwCatalog> loadCatalog(OtaFwRole role, {bool refresh = false}) async {
     final releases = await fetchReleases(refresh: refresh);
     final nrf = await fetchNrfBoardNamesLower(refresh: refresh);

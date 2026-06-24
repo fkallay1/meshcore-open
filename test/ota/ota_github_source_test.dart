@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:meshcore_open/ota/ota_fw_catalog.dart';
+import 'package:meshcore_open/ota/ota_fw_source.dart';
 import 'package:meshcore_open/ota/ota_github_source.dart';
 
 http.Client _fake(Map<String, String> routes) {
@@ -112,5 +113,33 @@ void main() {
     final src = OtaGithubSource(
         client: MockClient((_) async => http.Response('nope', 404)));
     expect(() => src.fetchReleases(), throwsA(isA<OtaGithubException>()));
+  });
+
+  test('OtaGithubSource is an OtaFwSource and targets a custom repo', () async {
+    String? seenReleasesUrl;
+    final src = OtaGithubSource(
+      repo: 'myfork/MeshCore',
+      client: MockClient((req) async {
+        final u = req.url.toString();
+        if (u.contains('/releases')) {
+          seenReleasesUrl = u;
+          return http.Response('[]', 200);
+        }
+        return http.Response('[]', 200);
+      }),
+    );
+    expect(src, isA<OtaFwSource>());
+    await src.fetchReleases();
+    expect(seenReleasesUrl, contains('myfork/MeshCore'));
+  });
+
+  test('defaults to meshcore-dev/MeshCore when repo not given', () async {
+    String? seenUrl;
+    final src = OtaGithubSource(client: MockClient((req) async {
+      seenUrl = req.url.toString();
+      return http.Response('[]', 200);
+    }));
+    await src.fetchReleases();
+    expect(seenUrl, contains('meshcore-dev/MeshCore'));
   });
 }
