@@ -1,0 +1,7 @@
+name: hpatchlite_dart
+description: Pure-Dart create/apply for HPatchLite inplace-lite delta patches.
+version: 0.1.0
+environment:
+  sdk: ^3.9.0
+dev_dependencies:
+  test: ^1.25.0
