@@ -44,11 +44,11 @@ class OtaScreen extends StatefulWidget {
 
 class _OtaScreenState extends State<OtaScreen> {
   OtaPkg? _pkg;
+  String? _pkgLabel; // názov načítaného balíka (zobrazený na tlačidle výberu)
   OtaFwSelection? _fwSelection;
   String _log = '';
   double _progress = 0;
   bool _busy = false;
-  bool _applyRadio = true;
 
   // Send-mode / timing options (mirror ota_sender.py CLI flags).
   OtaScope _scope = OtaScope.zerohop; // --scope (ZeroHop default)
@@ -91,6 +91,7 @@ class _OtaScreenState extends State<OtaScreen> {
     final pkg = OtaPkg.fromJsonString(json);
     setState(() {
       _pkg = pkg;
+      _pkgLabel = label;
       _scope = pkg.scope;
       _pathController.text = pkg.pathHex;
     });
@@ -215,6 +216,7 @@ class _OtaScreenState extends State<OtaScreen> {
       final pkg = OtaPkg.fromJsonString(String.fromCharCodes(bytes));
       setState(() {
         _pkg = pkg;
+        _pkgLabel = file.name;
         // Adopt the package's recommended scope (defaults to zerohop) and path,
         // but the controls below let the user override them per send.
         _scope = pkg.scope;
@@ -259,7 +261,7 @@ class _OtaScreenState extends State<OtaScreen> {
           scope: _scope,
           pathHex: _pathController.text.trim(),
           applyAfter: apply,
-          applyRadio: _applyRadio,
+          applyRadio: true,
           delayMs: _intField(_delayController, 300),
           cycles: _intField(_cyclesController, 1, min: 1),
           headerEvery: _intField(_headerEveryController, 0),
@@ -344,7 +346,7 @@ class _OtaScreenState extends State<OtaScreen> {
           ElevatedButton.icon(
             onPressed: _busy ? null : _pickPkg,
             icon: const Icon(Icons.folder_open),
-            label: const Text('Vyber .otapkg.json'),
+            label: Text(_pkgLabel ?? 'Vyber .otapkg.json'),
           ),
           if (pkg != null) ...[
             const SizedBox(height: 8),
@@ -417,13 +419,6 @@ class _OtaScreenState extends State<OtaScreen> {
                   'Header každých N chunkov',
                   'Redundancia HEADER-a (META+SIG) po každých N chunkoch '
                       '(--header-every; 0 = vyp).',
-                ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: _applyRadio,
-                  onChanged: _busy ? null : (v) => setState(() => _applyRadio = v),
-                  title: const Text('Nastaviť rádio companionu podľa balíka'),
                 ),
                 const SizedBox(height: 8),
                 Row(children: [

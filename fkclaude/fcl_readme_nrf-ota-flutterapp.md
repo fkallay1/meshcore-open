@@ -79,6 +79,16 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-25 (UX drobnosti v OTA obrazovke)** — tri malé úpravy v `lib/screens/ota_screen.dart`
+  (verified: `flutter analyze lib/screens/ota_screen.dart` clean, `flutter test test/ota` **49/49**):
+  - **Zrušený prepínač „Nastaviť rádio companionu podľa balíka"** (`SwitchListTile` + pole
+    `_applyRadio`). Rádio sa teraz nastavuje **vždy** podľa balíka (`applyRadio: true` napevno v
+    `_send`). `OtaSendConfig.applyRadio` parameter ostal (sender testy nedotknuté).
+  - **Tlačidlo „Vyber .otapkg.json" zobrazuje názov načítaného balíka** — nové pole `_pkgLabel`
+    sa nastaví pri každom načítaní balíka (GitHub/lokálne biny → `label` z `_loadGeneratedPkg`,
+    pick `.otapkg.json` → `file.name`). Label tlačidla = `_pkgLabel ?? 'Vyber .otapkg.json'`.
+    Smoke test (`find.text('Vyber .otapkg.json')`) ostal zelený — initial stav má `_pkgLabel==null`.
+
 - **2026-06-24 (HW E2E na TELEFÓNE cez BLE — doručenie OTA FUNGUJE; nájdený firmware APPLY bug)** —
   Debug APK (`flutter build apk --debug`) nainštalované cez adb na Android 13 (arm64). BLE companion
   flashnutý na Xiao (`Xiao_nrf52_companion_radio_ble`, COM3, **BLE PIN 123456**). Testovacie balíky
