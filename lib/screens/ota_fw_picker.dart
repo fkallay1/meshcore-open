@@ -122,7 +122,8 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
         ]),
       );
     }
-    final cat = _cat!;
+    final cat = _cat;
+    if (cat == null) return const SizedBox.shrink();
     final versions = cat.releases.map((r) => r.version).toList();
     final targetAsset =
         (_device != null && _target != null) ? cat.assetFor(_device!, _target!) : null;
