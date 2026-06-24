@@ -76,6 +76,7 @@ dependencies:
   ml_dataframe: ^1.0.0
   llamadart: ^0.8.0
   flutter_langdetect: ^0.0.1
+  archive: ^4.0.0
   hpatchlite_dart:
     path: packages/hpatchlite_dart
 
