@@ -79,6 +79,32 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-24 (HW E2E na TELEFÓNE cez BLE — doručenie OTA FUNGUJE; nájdený firmware APPLY bug)** —
+  Debug APK (`flutter build apk --debug`) nainštalované cez adb na Android 13 (arm64). BLE companion
+  flashnutý na Xiao (`Xiao_nrf52_companion_radio_ble`, COM3, **BLE PIN 123456**). Testovacie balíky
+  pushnuté na `/sdcard/Download/` (`fw.otapkg.json` forward, `fw_reverse.otapkg.json` reverse).
+  - **VÝSLEDOK (overené živým COM5 logom repeatera):** **telefón → BLE → companion → LoRa → repeater
+    funguje.** Dorazia chunky 0–3 (CRC OK), META aj SIG, správny kanál (`#fkotanrf`/A4), rádio
+    869.618/SF8, **base FW sedí** (B10CF39F=`lora_new`). Forward patch správne **odmietnutý**
+    (`err=0x7` base mismatch). Keď sa session kompletizuje načerstvo a príde APPLY → **flash prebehol**.
+  - **FIRMWARE BUG (NIE appka) — APPLY na už-VERIFIED session sa ignoruje:** keď najprv „Odoslať patch"
+    (session sa skompletizuje + VERIFIED) a potom „Odoslať + APPLY", chunky/META/SIG (DUP) dorazia, ale
+    **APPLY už neflashne**. Appka APPLY posiela správne (samostatný GRP_DATA paket `0x12`+sha32,
+    `buildApply`, vždy pri applyAfter, vlastný rastúci ts → anti-dedup). Príčina je na repeateri:
+    `../MeshCore/.../nrfota/OtaReceiver.cpp` — `try_verify_header()` má `if (total_chunks>0) return;`
+    (už promované) + DUP chunky zrejme zhodia `OTA_ST_VERIFIED` a re-verify sa preskočí → `ota_apply()`
+    odmietne (nie je VERIFIED). **Fix patrí do FW repa** (hand-off pripravený). App-strana je hotová,
+    netreba meniť.
+  - **Toolchain fakty (HW test):** adb je `D:\FkDev\00_Downloads\scrcpy-win64-v4.0\adb.exe` (nie v PATH);
+    `flutter devices` vidí telefón (id `f161f715`). pio = `D:\FkDev\.platformio\penv\Scripts\pio.exe`;
+    flash BLE: `pio run -d ../MeshCore -e Xiao_nrf52_companion_radio_ble -t upload --upload-port COM3`
+    (pozor: ak Web Serial v Chrome drží COM3 → `Access denied`, najprv Disconnect). **COM3=companion,
+    COM5=repeater.** Pri čítaní COM5 **DTR musí byť ON** (DTR off potlačí CDC výstup zariadenia).
+    Repeater serial CLI má quirk: line terminátor necháva `\r` v args, takže `ota status` cez raw serial
+    je nespoľahlivé (lepšie cez mesh admin CLI alebo to čítať z heartbeatu/živého logu).
+  - **CORS na mobile:** neplatí (natívna appka nie je prehliadač) → auto-download z GitHubu na telefóne
+    pôjde priamo (na webe treba „Stiahni FW" browser-download + pick). Mobil = reálna platforma.
+
 - **2026-06-24 (po-2b ladenie: device list, triedenie/hľadanie, CORS web flow)** — Po HW teste na webe:
   - **Device list bol takmer prázdny — FIX:** `platformioIsNrf` hľadal len doslovný `NRF52_PLATFORM`,
     ktorý je v `[nrf52_base]` v KOREŇOVOM `platformio.ini`, nie v súboroch variantov. **34 nRF variantov**

@@ -94,3 +94,6 @@ keystore.properties
 
 # Claude Code local working dir (worktrees, jobs, settings)
 .claude/
+
+# Subagent-driven-development scratch (ledger/briefs/reports/diffs)
+.superpowers/
