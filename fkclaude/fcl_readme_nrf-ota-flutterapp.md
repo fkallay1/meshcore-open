@@ -79,6 +79,28 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-24 (FOTA package gen — STEP 2b hotový: source abstrakcia + download + wire)** —
+  „Create FOTA package" zapojené → celá in-app príprava `.otapkg.json` HOTOVÁ. Subagent-driven TDD,
+  4 tasky. Verified: `flutter test test/ota` **48/48**, `flutter analyze lib` clean, **`flutter build
+  web` BUILDS**. Final whole-branch review (opus) = **Ready to merge: Yes** (žiadne Critical/Important).
+  - **`OtaFwSource` interface** (`lib/ota/ota_fw_source.dart`) + `OtaGithubSource implements OtaFwSource`
+    s **voliteľným `repo`** parametrom (default `meshcore-dev/MeshCore`, prepisateľný). Picker
+    (`ota_fw_picker.dart`) konzumuje interface cez `sourceFactory(repo)` + **vždy viditeľné** custom-repo
+    pole (funguje aj v error stave → typo v repo sa dá opraviť). Device-centric model ODLOŽENÝ.
+  - **Downloader** (`lib/ota/ota_asset_download.dart`): `downloadFirmwareBin(url)` → GET; `.zip` → vnútorný
+    **non-merged `.bin`** (cez `archive`); CORS/HTTP/zlý-zip → `OtaDownloadException`. Web-safe (žiadne
+    `dart:io`).
+  - **Wire** (`ota_screen.dart`): „Create FOTA package" (GitHub: stiahne current+target → builder →
+    `_pkg` slot) + „Vyrob z lokálnych .bin" (2 lokálne `.bin`, vždy dostupné = web fallback pri CORS).
+    Orientácia **current→target = old→new** (forward update) overená end-to-end. Zjednotený slot = rovnaký
+    send flow ako manuálny picker.
+  - **Build params generovaného balíka:** `#fkotanrf` idx1, `869.618/62.5/SF8/CR5`, scope/path z UI
+    (rádio konfigurovateľnosť = future).
+  - **HARD GATE (stále platí):** on-device `ota verify` (dry-run) na reálnom reverse-FW páre pred prvým
+    `ota flash` — jediný non-Dart dekód encoder framingu. Manuálny HW krok.
+  - **Follow-up (Minor, 2a-scope):** `buildOtaPkgJson` volá `createInplaceLiteDiff` 2× (self-check +
+    staging) — pre veľký FW na UI isolate by stálo za dedup + `compute()` offload.
+
 - **2026-06-24 (FOTA package gen — STEP 2a hotový: pure-Dart hpatchlite engine + builder)** —
   Generovanie `.otapkg.json` priamo v Darte (web/Android/iPhone, bez servera, device strana
   NETKNUTÁ). Subagent-driven TDD, 5 taskov. Verified: `flutter test test/ota` **41/41**,
