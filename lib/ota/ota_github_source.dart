@@ -70,15 +70,17 @@ class OtaGithubSource {
         'https://api.github.com/repos/$_repo/git/trees/$_branch?recursive=1');
     final tree = (jsonDecode(treesBody)['tree'] as List).cast<Map<String, dynamic>>();
     final re = RegExp(r'^variants/([^/]+)/platformio\.ini$');
-    final names = <String>{};
+    final futures = <Future<String?>>[];
     for (final node in tree) {
-      final path = node['path'] as String? ?? '';
-      final m = re.firstMatch(path);
+      final m = re.firstMatch(node['path'] as String? ?? '');
       if (m == null) continue;
-      final ini = await _getRaw(
-          'https://raw.githubusercontent.com/$_repo/$_branch/$path');
-      if (platformioIsNrf(ini)) names.add(m.group(1)!.toLowerCase());
+      final board = m.group(1)!.toLowerCase();
+      futures.add(_getRaw(
+              'https://raw.githubusercontent.com/$_repo/$_branch/${node['path']}')
+          .then((ini) => platformioIsNrf(ini) ? board : null));
     }
+    final results = await Future.wait(futures);
+    final names = results.whereType<String>().toSet();
     return _nrf = names;
   }
 

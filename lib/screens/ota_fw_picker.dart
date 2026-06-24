@@ -127,6 +127,8 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     final versions = cat.releases.map((r) => r.version).toList();
     final targetAsset =
         (_device != null && _target != null) ? cat.assetFor(_device!, _target!) : null;
+    final currentAsset =
+        (_device != null && _current != null) ? cat.assetFor(_device!, _current!) : null;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       DropdownButtonFormField<OtaFwRole>(
         initialValue: _role,
@@ -198,9 +200,8 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
       ]),
       const SizedBox(height: 6),
       Text(
-        targetAsset == null
-            ? 'Pre toto zariadenie/verziu nie je vhodný asset (bin/zip).'
-            : 'Asset: ${targetAsset.name}',
+        'Current: ${currentAsset?.name ?? '— (žiadny vhodný asset)'}\n'
+        'Target:  ${targetAsset?.name ?? '— (žiadny vhodný asset)'}',
         style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
       ),
     ]);
