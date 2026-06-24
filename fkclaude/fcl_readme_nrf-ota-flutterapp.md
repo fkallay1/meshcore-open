@@ -79,6 +79,31 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-24 (FOTA package prep — STEP 1 hotový: výber FW z GitHubu)** — Príprava `.otapkg.json`
+  priamo v appke, cez subagent-driven TDD (spec + plán v `fkclaude/docs/superpowers/`). Step 1 =
+  výberové UI; Step 2 (download + hdiff port + generovanie json) je samostatný plán. Verified:
+  `flutter test test/ota` **36/36**, `flutter analyze lib` clean. Final whole-branch review (opus) =
+  **Ready to merge: Yes.**
+  - **Nové súbory:** `lib/ota/ota_fw_catalog.dart` (pure: parse názvov assetov, výber bin>zip>nič
+    (nikdy uf2/merged), filename `<device>_<role>_v<cur>_to_v<tgt>.otapkg.json`, version sort, nRF
+    detekcia `NRF52_PLATFORM`, `buildOtaCatalog`), `lib/ota/ota_github_source.dart` (IO: releases cez
+    `api.github.com`, variant `platformio.ini` cez `raw.githubusercontent.com`, injectable
+    `http.Client`, in-memory cache, `_getApi`/`_getRaw` split, anchored tag regex
+    `^(?:repeater|room-server)-v(.+)$`), `lib/screens/ota_fw_picker.dart` (StatefulWidget: 4 dropdowny
+    Rola/Zariadenie/Current/Target, defaulty role=Repeater, device=`promicro`, target=najnovší,
+    current=predposledný; preview current+target assetu; injektovaný source).
+  - **Zmena:** `lib/screens/ota_screen.dart` — navrch ExpansionTile „Priprav z GitHubu" s pickerom +
+    tlačidlo „Create FOTA package" (zatiaľ `onPressed: null`, drží `_fwSelection` pre Step 2).
+  - **Pre Step 2 (menované, nezabudnúť):**
+    1. Zapojiť „Create FOTA package": download current+target assetu (`.zip` → vnútorný non-merged
+       `.bin`), generovať `.otapkg.json`, načítať do zjednoteného „selected package" slotu.
+    2. Port hdiffi/HPatchLite inplace delta (pure-Dart vs wasm vs FFI vs service — rozhodnúť).
+    3. Web binárny download CORS mitigácia (api/objects.githubusercontent.com neposiela CORS).
+    4. Perzistentný (SharedPreferences) cache katalógu + explicitné Refresh tlačidlo.
+    5. Dep `archive` na zip extrakciu. Overiť že `.zip` reálne obsahuje raw `.bin` (nie len uf2).
+    6. (review nice-to-have) bounded concurrency pri fetchovaní variant `platformio.ini` ak by
+       `Future.wait` všetkých naraz robil problém; `_getRaw` 404 test; case-insensitive dedup zariadení.
+
 - **2026-06-23 (UI: FOTA Broadcast + reuse OTA obrazovky + send-mode/timing voľby)** — OTA sa dá
   spustiť aj BEZ prihlásenia na repeater. Zmeny (verified: `flutter analyze lib` clean,
   `flutter test test/ota` 16/16, `flutter build web` OK):
