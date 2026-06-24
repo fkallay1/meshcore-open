@@ -151,6 +151,7 @@ OtaFwCatalog buildOtaCatalog({
       devices.add(info.device);
     }
   }
-  final sorted = devices.toList()..sort();
+  final sorted = devices.toList()
+    ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
   return OtaFwCatalog(role: role, releases: forRole, devices: sorted);
 }

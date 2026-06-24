@@ -178,15 +178,24 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
         },
       ),
       const SizedBox(height: 8),
-      DropdownButtonFormField<String>(
-        initialValue: _device,
-        isExpanded: true,
-        decoration: const InputDecoration(
-            labelText: 'Zariadenie', border: OutlineInputBorder(), isDense: true),
-        items: [
-          for (final d in cat.devices) DropdownMenuItem(value: d, child: Text(d)),
+      // Searchable device picker: type to filter (34+ nRF boards). Keyed on the
+      // device list so it resets its shown selection when the catalog reloads
+      // (role/repo change) and re-applies the promicro default.
+      DropdownMenu<String>(
+        key: ValueKey('dev-$_role-${cat.devices.join('|').hashCode}'),
+        initialSelection: _device,
+        enableFilter: true,
+        requestFocusOnTap: true,
+        expandedInsets: EdgeInsets.zero,
+        menuHeight: 360,
+        label: const Text('Zariadenie (píš pre vyhľadanie)'),
+        inputDecorationTheme: const InputDecorationTheme(
+            border: OutlineInputBorder(), isDense: true),
+        dropdownMenuEntries: [
+          for (final d in cat.devices) DropdownMenuEntry(value: d, label: d),
         ],
-        onChanged: (v) {
+        onSelected: (v) {
+          if (v == null) return;
           setState(() => _device = v);
           _emit();
         },
