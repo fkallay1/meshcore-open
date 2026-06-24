@@ -118,19 +118,24 @@ class _OtaScreenState extends State<OtaScreen> {
     }
   }
 
+  // A picked firmware file may be a raw .bin or a release .zip (browser-download
+  // path on web, which sidesteps the GitHub binary-host CORS block).
+  Uint8List _binFromPicked(String name, Uint8List bytes) =>
+      name.toLowerCase().endsWith('.zip') ? extractFirmwareBinFromZip(bytes) : bytes;
+
   Future<void> _createFromLocalBins() async {
-    const group = XTypeGroup(label: 'firmware', extensions: ['bin']);
-    _append('Vyber STARÝ (current) .bin…');
+    const group = XTypeGroup(label: 'firmware', extensions: ['bin', 'zip']);
+    _append('Vyber STARÝ (current) .bin/.zip…');
     final oldFile = await openFile(acceptedTypeGroups: [group]);
     if (oldFile == null) return;
-    _append('Vyber NOVÝ (target) .bin…');
+    _append('Vyber NOVÝ (target) .bin/.zip…');
     final newFile = await openFile(acceptedTypeGroups: [group]);
     if (newFile == null) return;
     // _busy gates only the compute (read + patch gen), not the file dialogs.
     setState(() => _busy = true);
     try {
-      final oldFw = await oldFile.readAsBytes();
-      final newFw = await newFile.readAsBytes();
+      final oldFw = _binFromPicked(oldFile.name, await oldFile.readAsBytes());
+      final newFw = _binFromPicked(newFile.name, await newFile.readAsBytes());
       await _loadGeneratedPkg(oldFw, newFw, '${oldFile.name} → ${newFile.name}');
     } catch (e) {
       _append('ERROR: $e');
@@ -253,7 +258,7 @@ class _OtaScreenState extends State<OtaScreen> {
             child: OutlinedButton.icon(
               onPressed: _busy ? null : _createFromLocalBins,
               icon: const Icon(Icons.folder_zip),
-              label: const Text('Vyrob z lokálnych .bin'),
+              label: const Text('Vyrob z lokálnych .bin/.zip'),
             ),
           ),
           const SizedBox(height: 8),

@@ -37,6 +37,6 @@ void main() {
     await tester.pumpWidget(const MaterialApp(
       home: OtaScreen(headerTarget: 'Broadcast'),
     ));
-    expect(find.text('Vyrob z lokálnych .bin'), findsOneWidget);
+    expect(find.text('Vyrob z lokálnych .bin/.zip'), findsOneWidget);
   });
 }
