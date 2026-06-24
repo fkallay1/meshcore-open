@@ -79,6 +79,36 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-24 (FOTA package gen — STEP 2a hotový: pure-Dart hpatchlite engine + builder)** —
+  Generovanie `.otapkg.json` priamo v Darte (web/Android/iPhone, bez servera, device strana
+  NETKNUTÁ). Subagent-driven TDD, 5 taskov. Verified: `flutter test test/ota` **41/41**,
+  package `dart test` 12/12, `flutter analyze lib` clean, **`flutter build web` BUILDS**. Final
+  whole-branch review (opus) = **Ready to merge: Yes** (žiadne Critical/Important).
+  - **Nová reusable knižnica `packages/hpatchlite_dart/`** (pure Dart, **zero runtime deps**,
+    publikovateľná). API: `createInplaceLiteDiff(old,new,{maxExtraSafeSize=0x4000})` +
+    `applyInplaceLiteDiff(diff,old)`. Súbory: `src/codec.dart` (varint MSB-first + inplace header
+    `hI`/compressType/packed/extraBytes, LE veľkosti, version code 2), `src/applier.dart` (port
+    device `hpatch_lite.c`; device-verný `newPosBack==newSize`, podporuje aj sub-diff covery),
+    `src/encoder.dart` (rolling-hash matcher, **pure-copy covery + literálne medzery**, terminálny
+    zero-length cover, `extraSafeSize=max(0,max(newPos-oldPos))`, match len ak `newPos-oldPos≤budget`).
+  - **App glue `lib/ota/ota_pkg_builder.dart`:** raw diff → DEFLATE (raw, **512 B okno**) → staged
+    `['ZLIB'][uncomp u32le][newFw u32le][deflate]` (byte-layout ako `ota_sender.py`) → `.otapkg.json`
+    (reuse `OtaPkg` schémy), so self-checkom `apply(diff,old)==new` pred emitnutím. Dep `archive`.
+  - **Web-safe DEFLATE (dôležité):** `dart:io` NESMIE byť vo web import grafe → conditional export
+    `ota_deflate.dart` → `_io.dart` (native `dart:io ZLibCodec(windowBits:9)`) / `_web.dart`
+    (`archive Deflate(windowBits:9)`). **Overené že `archive Deflate(windowBits:9)` reálne capuje
+    okno na 512** (max distance ≤250 podľa archive-4.0.9 zdroja; round-trip cez 512-window dekodér
+    v `test/ota/ota_deflate_web_test.dart`). Vzor `if (dart.library.js_interop)` ako TCP/USB v projekte.
+  - **Verifikačný reťazec (nie kruhový):** golden patch z `hdiffi.exe` cvičí sub-diff path (ktorý
+    encoder NEemituje) → kotví applier proti C toolchainu; encoder round-trip používa ten overený
+    applier ako oracle + in-place safety sim. `hdiffi.exe` v1.0.2 berie len `-inplace` (= inplace
+    formát, version 2, extraSafeSize=0), nie `-inplaceB` — `ota_sender.py` má rovnaký fallback.
+  - **HARD GATE pre 2b (pred prvým reálnym flashom):** on-device `ota verify` (dry-run) — jediný
+    check, ktorý zatvorí poslednú medzeru (encoder framing dekódovaný NON-Dart dekodérom). Voliteľne
+    aj PC cross-check: encoder-vyrobený diff cez referenčné `hpatchi`/`hdiffi.exe` (spec §6.3).
+  - **Drobnosti do 2b (Minor):** `buildOtaPkgJson` volá `createInplaceLiteDiff` 2× (dá sa dedupnúť
+    keď sa builder dotýka pri wire-i); matcher cap 8 kandidátov/hash = kompresia, nie korektnosť.
+
 - **2026-06-24 (FOTA package prep — STEP 1 hotový: výber FW z GitHubu)** — Príprava `.otapkg.json`
   priamo v appke, cez subagent-driven TDD (spec + plán v `fkclaude/docs/superpowers/`). Step 1 =
   výberové UI; Step 2 (download + hdiff port + generovanie json) je samostatný plán. Verified:
