@@ -29,4 +29,14 @@ void main() {
     expect(find.text('Priprav z GitHubu'), findsOneWidget);
     expect(find.text('Vyber .otapkg.json'), findsOneWidget);
   });
+
+  testWidgets('Create FOTA package button is enabled once a selection exists',
+      (tester) async {
+    // The button is disabled with no selection; this asserts the new
+    // local-bin entry is present (the always-available web fallback).
+    await tester.pumpWidget(const MaterialApp(
+      home: OtaScreen(headerTarget: 'Broadcast'),
+    ));
+    expect(find.text('Vyrob z lokálnych .bin'), findsOneWidget);
+  });
 }

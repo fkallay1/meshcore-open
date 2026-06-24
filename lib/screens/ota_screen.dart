@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../connector/meshcore_connector.dart';
 import '../connector/meshcore_protocol.dart';
+import '../ota/ota_asset_download.dart';
+import '../ota/ota_pkg_builder.dart';
 import '../ota/ota_sender.dart';
 import '../ota/ota_types.dart';
 import '../ota/ota_github_source.dart';
@@ -68,6 +70,72 @@ class _OtaScreenState extends State<OtaScreen> {
     final v = int.tryParse(c.text.trim());
     if (v == null || v < min) return fallback;
     return v;
+  }
+
+  OtaBuildParams _buildParams() => OtaBuildParams(
+        channelName: '#fkotanrf',
+        channelIdx: 1,
+        freqMHz: 869.618,
+        bwKHz: 62.5,
+        sf: 8,
+        cr: 5,
+        scope: _scope.name,
+        path: _pathController.text.trim(),
+      );
+
+  Future<void> _loadGeneratedPkg(Uint8List oldFw, Uint8List newFw, String label) async {
+    _append('Generujem patch ($label)…');
+    final json = buildOtaPkgJson(oldFw: oldFw, newFw: newFw, p: _buildParams());
+    final pkg = OtaPkg.fromJsonString(json);
+    setState(() {
+      _pkg = pkg;
+      _scope = pkg.scope;
+      _pathController.text = pkg.pathHex;
+    });
+    _append('Hotovo: patch=${pkg.patchLen}B '
+        'chunkov=${(pkg.patchLen / kOtaChunkData).ceil()}');
+  }
+
+  Future<void> _createFromGithub() async {
+    final sel = _fwSelection;
+    if (sel == null) return;
+    final cur = sel.currentAsset, tgt = sel.targetAsset;
+    if (cur == null || tgt == null) {
+      _append('ERROR: chýba asset pre current alebo target.');
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      _append('Sťahujem current: ${cur.name}…');
+      final oldFw = await downloadFirmwareBin(cur.downloadUrl);
+      _append('Sťahujem target: ${tgt.name}…');
+      final newFw = await downloadFirmwareBin(tgt.downloadUrl);
+      await _loadGeneratedPkg(oldFw, newFw, sel.packageFileName);
+    } catch (e) {
+      _append('ERROR: $e');
+    } finally {
+      setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _createFromLocalBins() async {
+    setState(() => _busy = true);
+    try {
+      const group = XTypeGroup(label: 'firmware', extensions: ['bin']);
+      _append('Vyber STARÝ (current) .bin…');
+      final oldFile = await openFile(acceptedTypeGroups: [group]);
+      if (oldFile == null) return;
+      _append('Vyber NOVÝ (target) .bin…');
+      final newFile = await openFile(acceptedTypeGroups: [group]);
+      if (newFile == null) return;
+      final oldFw = await oldFile.readAsBytes();
+      final newFw = await newFile.readAsBytes();
+      await _loadGeneratedPkg(oldFw, newFw, '${oldFile.name} → ${newFile.name}');
+    } catch (e) {
+      _append('ERROR: $e');
+    } finally {
+      setState(() => _busy = false);
+    }
   }
 
   Future<void> _pickPkg() async {
@@ -169,8 +237,7 @@ class _OtaScreenState extends State<OtaScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  // Wired in Step 2 (download + generate). Disabled for now.
-                  onPressed: null,
+                  onPressed: (_busy || _fwSelection == null) ? null : _createFromGithub,
                   icon: const Icon(Icons.build),
                   label: Text(_fwSelection == null
                       ? 'Create FOTA package'
@@ -178,6 +245,12 @@ class _OtaScreenState extends State<OtaScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _createFromLocalBins,
+            icon: const Icon(Icons.folder_zip),
+            label: const Text('Vyrob z lokálnych .bin'),
           ),
           const SizedBox(height: 8),
           ElevatedButton.icon(
