@@ -68,9 +68,17 @@ void main() {
   });
 
   group('nRF detection', () {
-    test('platformioIsNrf detects the NRF52_PLATFORM token', () {
+    test('platformioIsNrf detects nRF variants (extends nrf52_base or literal define)', () {
+      // promicro-style: extends the shared nRF base; NRF52_PLATFORM lives in that
+      // base in the ROOT platformio.ini, not in the variant file.
+      expect(
+          platformioIsNrf('[Promicro]\nextends = nrf52_base\n'
+              'board = promicro_nrf52840\nbuild_flags = \${nrf52_base.build_flags}'),
+          true);
+      // a variant that repeats the define directly
       expect(platformioIsNrf('build_flags = -D NRF52_PLATFORM\n  -D X'), true);
-      expect(platformioIsNrf('build_flags = -D ESP32_PLATFORM'), false);
+      // esp32 variant extends a different base → not nRF
+      expect(platformioIsNrf('[X]\nextends = esp32_base\nboard = esp32dev'), false);
     });
     test('deviceIsNrf matches a board-name prefix, case-insensitively', () {
       final nrf = {'promicro', 'ikoka_nano_nrf', 'xiao_nrf52'};

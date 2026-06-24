@@ -86,7 +86,13 @@ int compareOtaVersionsDesc(String a, String b) {
   return 0;
 }
 
-bool platformioIsNrf(String iniContent) => iniContent.contains('NRF52_PLATFORM');
+/// A PlatformIO variant is nRF52 if it extends the shared `nrf52_base` — every
+/// nRF variant does, and the `NRF52_PLATFORM` define lives in that base in the
+/// ROOT platformio.ini, not in each variant file (so checking only the variant
+/// file for the define misses almost all of them, e.g. promicro). Also accept a
+/// literal define for the few variants that repeat it directly.
+bool platformioIsNrf(String iniContent) =>
+    iniContent.contains('nrf52_base') || iniContent.contains('NRF52_PLATFORM');
 
 bool deviceIsNrf(String device, Set<String> nrfBoardNamesLower) {
   final d = device.toLowerCase();
