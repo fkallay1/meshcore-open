@@ -79,6 +79,22 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-24 (po-2b ladenie: device list, triedenie/hľadanie, CORS web flow)** — Po HW teste na webe:
+  - **Device list bol takmer prázdny — FIX:** `platformioIsNrf` hľadal len doslovný `NRF52_PLATFORM`,
+    ktorý je v `[nrf52_base]` v KOREŇOVOM `platformio.ini`, nie v súboroch variantov. **34 nRF variantov**
+    dedí `extends = nrf52_base` → teraz sa deteguje `nrf52_base` (alebo literál). promicro + ostatné OK.
+  - **t1000-e nie je bug:** repeater release ho neobsahuje (Seeed T1000-E = tracker, nemá repeater FW).
+  - **Triedenie** zariadení teraz **case-insensitive** (bol ASCII chaos). **Device picker = `DropdownMenu`
+    s `enableFilter`** → píš a filtruje (34+ dosiek).
+  - **Repo zdroj = dropdown** (meshcore-dev/MeshCore, fkallay1/MeshCore, Custom…). Custom odhalí voľné pole.
+  - **CORS = problém IBA webu** (browser blokuje cross-origin *čítanie* binárky z `objects.githubusercontent.com`;
+    download/navigácia OK; natívne appky CORS nemajú → mobil/desktop auto-download funguje priamo).
+    **Web guided flow:** „⬇ Stiahni FW (current+target)" appka spustí browser-download presných súborov
+    (`triggerBrowserDownload`, web-only cez `package:web`, conditional import), potom „Create FOTA package"
+    otvorí multi-file picker a spáruje vybrané súbory na current/target podľa názvu. Lokálny picker berie
+    `.bin` aj `.zip` (`extractFirmwareBinFromZip`). Proxy NETREBA (mobil = reálne použitie, web = testovanie).
+  - Stav: `flutter test test/ota` 49/49, `flutter analyze lib` clean, `flutter build web` BUILDS.
+
 - **2026-06-24 (FOTA package gen — STEP 2b hotový: source abstrakcia + download + wire)** —
   „Create FOTA package" zapojené → celá in-app príprava `.otapkg.json` HOTOVÁ. Subagent-driven TDD,
   4 tasky. Verified: `flutter test test/ota` **48/48**, `flutter analyze lib` clean, **`flutter build
