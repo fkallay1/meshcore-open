@@ -15,25 +15,29 @@ class OtaDownloadException implements Exception {
 /// callers should fall back to local-file selection.
 Future<Uint8List> downloadFirmwareBin(String url, {http.Client? client}) async {
   final c = client ?? http.Client();
-  http.Response res;
   try {
-    res = await c.get(Uri.parse(url));
-  } catch (e) {
-    throw OtaDownloadException('download failed (CORS on web?): $e');
-  }
-  if (res.statusCode != 200) {
-    throw OtaDownloadException('GET $url → HTTP ${res.statusCode}');
-  }
-  final bytes = res.bodyBytes;
-  if (!url.toLowerCase().endsWith('.zip')) return bytes;
-
-  final archive = ZipDecoder().decodeBytes(bytes);
-  for (final f in archive.files) {
-    if (!f.isFile) continue;
-    final name = f.name.toLowerCase();
-    if (name.endsWith('.bin') && !name.contains('merged')) {
-      return Uint8List.fromList(f.content as List<int>);
+    http.Response res;
+    try {
+      res = await c.get(Uri.parse(url));
+    } catch (e) {
+      throw OtaDownloadException('download failed (CORS on web?): $e');
     }
+    if (res.statusCode != 200) {
+      throw OtaDownloadException('GET $url → HTTP ${res.statusCode}');
+    }
+    final bytes = res.bodyBytes;
+    if (!url.toLowerCase().endsWith('.zip')) return bytes;
+
+    final archive = ZipDecoder().decodeBytes(bytes);
+    for (final f in archive.files) {
+      if (!f.isFile) continue;
+      final name = f.name.toLowerCase();
+      if (name.endsWith('.bin') && !name.contains('merged')) {
+        return Uint8List.fromList(f.content as List<int>);
+      }
+    }
+    throw OtaDownloadException('zip has no usable (non-merged) .bin');
+  } finally {
+    if (client == null) c.close();
   }
-  throw OtaDownloadException('zip has no usable (non-merged) .bin');
 }

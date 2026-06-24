@@ -28,7 +28,7 @@ void main() {
 
   test('throws OtaDownloadException on HTTP error', () async {
     final c = MockClient((_) async => http.Response('nope', 404));
-    expect(() => downloadFirmwareBin('https://e/fw.bin', client: c),
+    await expectLater(downloadFirmwareBin('https://e/fw.bin', client: c),
         throwsA(isA<OtaDownloadException>()));
   });
 
@@ -38,7 +38,7 @@ void main() {
     final zipBytes = ZipEncoder().encode(archive)!;
     final c = MockClient(
         (_) async => http.Response.bytes(Uint8List.fromList(zipBytes), 200));
-    expect(() => downloadFirmwareBin('https://e/fw.zip', client: c),
+    await expectLater(downloadFirmwareBin('https://e/fw.zip', client: c),
         throwsA(isA<OtaDownloadException>()));
   });
 }
