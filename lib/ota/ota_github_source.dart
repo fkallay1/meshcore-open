@@ -14,7 +14,7 @@ class OtaGithubSource {
   List<OtaRelease>? _releases;
   Set<String>? _nrf;
 
-  Future<String> _get(String url) async {
+  Future<String> _getApi(String url) async {
     final res = await _client.get(Uri.parse(url),
         headers: {'Accept': 'application/vnd.github+json'});
     if (res.statusCode != 200) {
@@ -22,6 +22,16 @@ class OtaGithubSource {
     }
     return res.body;
   }
+
+  Future<String> _getRaw(String url) async {
+    final res = await _client.get(Uri.parse(url));
+    if (res.statusCode != 200) {
+      throw OtaGithubException('GET $url → HTTP ${res.statusCode}');
+    }
+    return res.body;
+  }
+
+  static final _tagRe = RegExp(r'^(?:repeater|room-server)-v(.+)$');
 
   OtaFwRole? _roleForTag(String tag) {
     if (tag.startsWith('repeater-v')) return OtaFwRole.repeater;
@@ -31,15 +41,16 @@ class OtaGithubSource {
 
   Future<List<OtaRelease>> fetchReleases({bool refresh = false}) async {
     if (_releases != null && !refresh) return _releases!;
-    final body =
-        await _get('https://api.github.com/repos/$_repo/releases?per_page=100');
+    final body = await _getApi(
+        'https://api.github.com/repos/$_repo/releases?per_page=100');
     final list = (jsonDecode(body) as List).cast<Map<String, dynamic>>();
     final out = <OtaRelease>[];
     for (final r in list) {
       final tag = r['tag_name'] as String? ?? '';
-      final role = _roleForTag(tag);
-      if (role == null) continue;
-      final version = tag.substring(tag.indexOf('-v') + 2);
+      final m = _tagRe.firstMatch(tag);
+      if (m == null) continue; // not an OTA firmware release tag
+      final version = m.group(1)!;
+      final role = _roleForTag(tag)!;
       final assets = <OtaReleaseAsset>[];
       for (final a in (r['assets'] as List? ?? const [])) {
         final m = a as Map<String, dynamic>;
@@ -55,7 +66,7 @@ class OtaGithubSource {
 
   Future<Set<String>> fetchNrfBoardNamesLower({bool refresh = false}) async {
     if (_nrf != null && !refresh) return _nrf!;
-    final treesBody = await _get(
+    final treesBody = await _getApi(
         'https://api.github.com/repos/$_repo/git/trees/$_branch?recursive=1');
     final tree = (jsonDecode(treesBody)['tree'] as List).cast<Map<String, dynamic>>();
     final re = RegExp(r'^variants/([^/]+)/platformio\.ini$');
@@ -64,7 +75,7 @@ class OtaGithubSource {
       final path = node['path'] as String? ?? '';
       final m = re.firstMatch(path);
       if (m == null) continue;
-      final ini = await _get(
+      final ini = await _getRaw(
           'https://raw.githubusercontent.com/$_repo/$_branch/$path');
       if (platformioIsNrf(ini)) names.add(m.group(1)!.toLowerCase());
     }

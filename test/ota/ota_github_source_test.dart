@@ -94,4 +94,23 @@ void main() {
     expect(cat.devices, ['ProMicro']); // xiao_c3 is esp32 → excluded
     expect(cat.releases.map((r) => r.version).toList(), ['1.17.0', '1.16.0']);
   });
+
+  test('fetchReleases cache is bypassed on refresh: true', () async {
+    int hits = 0;
+    final c = MockClient((_) async {
+      hits++;
+      return http.Response(releasesJson, 200);
+    });
+    final src = OtaGithubSource(client: c);
+    await src.fetchReleases();              // populates cache (hit 1)
+    await src.fetchReleases();              // served from cache (no hit)
+    await src.fetchReleases(refresh: true); // bypasses cache (hit 2)
+    expect(hits, 2);
+  });
+
+  test('throws OtaGithubException on non-200', () async {
+    final src = OtaGithubSource(
+        client: MockClient((_) async => http.Response('nope', 404)));
+    expect(() => src.fetchReleases(), throwsA(isA<OtaGithubException>()));
+  });
 }
