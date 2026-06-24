@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import 'package:hpatchlite_dart/hpatchlite_dart.dart';
+import 'ota_deflate.dart';
 
 class OtaBuildException implements Exception {
   final String message;
@@ -40,10 +40,10 @@ Uint8List _u32le(int v) =>
 /// puff_stream which also uses a 512-byte window.
 Uint8List buildStagedPatch(Uint8List oldFw, Uint8List newFw) {
   final raw = createInplaceLiteDiff(oldFw, newFw);
-  // dart:io ZLibCodec: raw=true -> no zlib header/trailer (raw DEFLATE);
-  // windowBits=9 -> 512-byte LZ77 window (minimum allowed by zlib spec).
-  final deflate =
-      ZLibCodec(level: 9, windowBits: 9, raw: true).encode(raw) as Uint8List;
+  // deflateRaw512: raw DEFLATE, 512-byte LZ77 window (windowBits=9).
+  // On native uses dart:io ZLibCodec (exact); on web uses archive Deflate
+  // (best-effort 512-byte window — see ota_deflate_web.dart).
+  final deflate = deflateRaw512(raw);
   final b = BytesBuilder()
     ..add(ascii.encode('ZLIB'))
     ..add(_u32le(raw.length))
