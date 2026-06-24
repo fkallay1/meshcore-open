@@ -1,9 +1,11 @@
 import 'dart:typed_data';
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../connector/meshcore_connector.dart';
 import '../connector/meshcore_protocol.dart';
+import '../ota/browser_download.dart';
 import '../ota/ota_asset_download.dart';
 import '../ota/ota_pkg_builder.dart';
 import '../ota/ota_sender.dart';
@@ -110,6 +112,66 @@ class _OtaScreenState extends State<OtaScreen> {
       final oldFw = await downloadFirmwareBin(cur.downloadUrl);
       _append('Sťahujem target: ${tgt.name}…');
       final newFw = await downloadFirmwareBin(tgt.downloadUrl);
+      await _loadGeneratedPkg(oldFw, newFw, sel.packageFileName);
+    } catch (e) {
+      _append('ERROR: $e');
+    } finally {
+      setState(() => _busy = false);
+    }
+  }
+
+  // WEB: trigger the browser to download the exact current+target assets (a
+  // navigation/download, not a fetch, so no CORS). The user then picks the two
+  // downloaded files with "Create FOTA package".
+  void _downloadFwViaBrowser() {
+    final sel = _fwSelection;
+    final cur = sel?.currentAsset, tgt = sel?.targetAsset;
+    if (cur == null || tgt == null) {
+      _append('ERROR: chýba asset pre current alebo target.');
+      return;
+    }
+    triggerBrowserDownload(cur.downloadUrl, cur.name);
+    triggerBrowserDownload(tgt.downloadUrl, tgt.name);
+    _append('Sťahujem v prehliadači: ${cur.name} + ${tgt.name}.\n'
+        'Potom daj „Create FOTA package" a vyber tie dva stiahnuté súbory.');
+  }
+
+  // WEB create: the GitHub binary host has no CORS, so instead of fetching we
+  // pick the two browser-downloaded files and match them to current/target by
+  // their (real) asset names.
+  Future<void> _createFromPickedFiles() async {
+    final sel = _fwSelection;
+    if (sel == null) return;
+    final cur = sel.currentAsset, tgt = sel.targetAsset;
+    if (cur == null || tgt == null) {
+      _append('ERROR: chýba asset pre current alebo target.');
+      return;
+    }
+    const group = XTypeGroup(label: 'firmware', extensions: ['bin', 'zip']);
+    _append('Vyber 2 stiahnuté súbory: ${cur.name} + ${tgt.name}');
+    final files = await openFiles(acceptedTypeGroups: [group]);
+    if (files.isEmpty) return;
+    XFile? pick(String assetName, String version) {
+      for (final f in files) {
+        if (f.name == assetName) return f;
+      }
+      for (final f in files) {
+        if (f.name.contains(version)) return f;
+      }
+      return null;
+    }
+
+    final oldF = pick(cur.name, sel.currentVersion);
+    final newF = pick(tgt.name, sel.targetVersion);
+    if (oldF == null || newF == null) {
+      _append('ERROR: nenašiel som oba súbory '
+          '(current=${cur.name}, target=${tgt.name}).');
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      final oldFw = _binFromPicked(oldF.name, await oldF.readAsBytes());
+      final newFw = _binFromPicked(newF.name, await newF.readAsBytes());
       await _loadGeneratedPkg(oldFw, newFw, sel.packageFileName);
     } catch (e) {
       _append('ERROR: $e');
@@ -240,14 +302,31 @@ class _OtaScreenState extends State<OtaScreen> {
                 onSelection: (s) => setState(() => _fwSelection = s),
               ),
               const SizedBox(height: 8),
+              // Web: GitHub binary downloads are CORS-blocked for in-app fetch,
+              // so first let the browser download the exact files, then pick them.
+              if (kIsWeb && _fwSelection != null) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _busy ? null : _downloadFwViaBrowser,
+                    icon: const Icon(Icons.download),
+                    label: const Text('⬇ Stiahni FW (current + target)'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  onPressed: (_busy || _fwSelection == null) ? null : _createFromGithub,
+                  onPressed: (_busy || _fwSelection == null)
+                      ? null
+                      : (kIsWeb ? _createFromPickedFiles : _createFromGithub),
                   icon: const Icon(Icons.build),
                   label: Text(_fwSelection == null
                       ? 'Create FOTA package'
-                      : 'Create FOTA package: ${_fwSelection!.packageFileName}'),
+                      : (kIsWeb
+                          ? 'Create FOTA package (vyber stiahnuté súbory)'
+                          : 'Create FOTA package: ${_fwSelection!.packageFileName}')),
                 ),
               ),
             ],
