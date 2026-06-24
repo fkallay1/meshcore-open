@@ -93,20 +93,60 @@ The app depends on it via `hpatchlite_dart: { path: packages/hpatchlite_dart }` 
   by default; the app already signs raw packages at send time) with channel/radio/scope from the UI.
 - Filename `<device>_<role>_v<current>_to_v<target>.otapkg.json` (from Step-1 `otaPackageFileName`).
 
-## 5. Download + wiring (the 2b half)
+## 5. Download + source abstraction + wiring (the 2b half)
+
+### 5.1 Source abstraction (pluggable, selectable repo)
+
+The firmware catalog read is wrapped behind a **source-agnostic interface** so the backing source
+can be swapped, and so the GitHub repo is **selectable** (not hardcoded to `meshcore-dev/MeshCore`).
+
+```dart
+abstract class OtaFwSource {
+  /// "GetFotaDevicesList" — the source-agnostic device/firmware catalog.
+  Future<List<OtaFwDevice>> getDevices();
+}
+
+class OtaFwDevice {            // one nRF board
+  final OtaFwRole type;        // repeater | roomServer
+  final String id;            // stable key (e.g. asset device-prefix, lowercased)
+  final String name;          // display name
+  final List<OtaFwFirmware> firmwares; // available versions, newest-first
+}
+class OtaFwFirmware {
+  final String version;        // e.g. "1.17.0"  (the "firmware name")
+  final String url;            // direct download link for this device+version asset
+}
+```
+
+- **`GithubOtaFwSource implements OtaFwSource`** — parameterized by **`repo` (owner/repo)** and
+  `branch`, **default `meshcore-dev/MeshCore` / `main`, overridable to a custom repo** (assumed to
+  have the same release-tag + asset-naming + `variants/*/platformio.ini` structure). This is the
+  Step-1 `ota_github_source.dart` reshaped to (a) take the repo as a parameter and (b) emit the
+  `OtaFwDevice`/`OtaFwFirmware` model above.
+- The custom-repo string is entered in the UI (a field on the FOTA prepare section / app settings),
+  persisted; empty → default. Future non-GitHub source *types* plug in via the same interface
+  (out of scope now; the interface is what makes them cheap later).
+- The picker (`ota_fw_picker.dart`) consumes `OtaFwSource` instead of the concrete class; defaults
+  (device=promicro, target=newest, current=second-newest) operate on the `OtaFwDevice` model.
+
+### 5.2 Download
 
 - **Local-bin path (all platforms incl. web):** user picks two `.bin` files (`file_selector`,
   already a dep) → straight into the builder. Fully offline, works everywhere.
-- **GitHub path:** download the Step-1-resolved `currentAsset` + `targetAsset`. If the asset is a
-  `.zip`, extract the inner non-merged `.bin` (`archive` package — **new dep**, pure Dart, web-safe).
+- **Source path:** download the selected device's current + target `OtaFwFirmware.url`. If the asset
+  is a `.zip`, extract the inner non-merged `.bin` (`archive` package — **new dep**, pure Dart,
+  web-safe).
 - **Web CORS:** GitHub release-asset downloads (redirect to `objects.githubusercontent.com`) do not
-  send permissive CORS, so in-browser binary download is blocked. Resolution: on web, the GitHub
+  send permissive CORS, so in-browser binary download is blocked. Resolution: on web, the
   auto-download may fail → fall back to the local-bin path (which works on web) with a clear
   message; native/desktop download directly. (A CORS proxy is an optional later enhancement; not
   required for a usable web flow because local-bin generation works.)
-- **Wire `Create FOTA package`:** on tap → obtain old+new bytes → `ota_pkg_builder` → load the
-  resulting `OtaPkg` into the unified selected-package slot (same as the manual picker), under the
-  generated filename, ready to send. Progress + errors go to the existing FOTA log area.
+
+### 5.3 Wire `Create FOTA package`
+
+On tap → obtain old+new bytes (downloaded or local) → `ota_pkg_builder` → load the resulting
+`OtaPkg` into the unified selected-package slot (same as the manual picker), under the generated
+filename, ready to send. Progress + errors go to the existing FOTA log area.
 
 ## 6. Verification strategy (the de-risking backbone)
 
@@ -135,6 +175,9 @@ The app depends on it via `hpatchlite_dart: { path: packages/hpatchlite_dart }` 
 | `packages/hpatchlite_dart/test/*` | applier-vs-reference + encoder round-trip + edge cases |
 | `lib/ota/ota_pkg_builder.dart` (app) | DEFLATE(512) + staged ZLIB wrap + sha/sizes + `.otapkg.json` assembly |
 | `lib/ota/ota_asset_download.dart` (app) | fetch asset, `.zip`→inner `.bin`, CORS-aware |
+| `lib/ota/ota_fw_source.dart` (app) | `OtaFwSource` interface + `OtaFwDevice`/`OtaFwFirmware` model |
+| `lib/ota/ota_github_source.dart` (app, modify) | reshape to `implements OtaFwSource`, repo as parameter (selectable/custom) |
+| `lib/screens/ota_fw_picker.dart` (app, modify) | consume `OtaFwSource`; repo/custom-source selector |
 | `lib/screens/ota_screen.dart` (app, modify) | wire `Create FOTA package` → builder → selected-package slot |
 | app `pubspec.yaml` (modify) | add `hpatchlite_dart` path dep + `archive` |
 
@@ -144,10 +187,13 @@ The app depends on it via `hpatchlite_dart: { path: packages/hpatchlite_dart }` 
   (encoder + applier + extraSafeSize) and `ota_pkg_builder.dart`, with the full offline verification
   suite (§6 items 1–4). No UI, no network. This is where the risk lives and it is independently
   testable; everything else is plumbing.
-- **Plan 2b — download + wiring.** `ota_asset_download.dart` (zip handling, CORS fallback) and the
-  `Create FOTA package` button wiring into the existing screen/slot; on-device verification (§6.5).
+- **Plan 2b — source abstraction + download + wiring.** The `OtaFwSource` interface +
+  `OtaFwDevice`/`OtaFwFirmware` model (§5.1), reshape `ota_github_source.dart` to implement it with
+  a **selectable/custom repo**, adapt the picker; `ota_asset_download.dart` (zip handling, CORS
+  fallback); wire `Create FOTA package` into the existing screen/slot; on-device verification
+  (§6.5). (Additional non-GitHub source *types* remain future — the interface makes them cheap.)
 
-Build **2a first**.
+Build **2a first**, then **2b**.
 
 ## 9. Error handling
 
