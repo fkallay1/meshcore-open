@@ -40,7 +40,6 @@ class OtaScreen extends StatefulWidget {
 
 class _OtaScreenState extends State<OtaScreen> {
   OtaPkg? _pkg;
-  final OtaGithubSource _ghSource = OtaGithubSource();
   OtaFwSelection? _fwSelection;
   String _log = '';
   double _progress = 0;
@@ -163,7 +162,7 @@ class _OtaScreenState extends State<OtaScreen> {
             title: const Text('Priprav z GitHubu'),
             children: [
               OtaFwPicker(
-                source: _ghSource,
+                sourceFactory: (repo) => OtaGithubSource(repo: repo),
                 onSelection: (s) => setState(() => _fwSelection = s),
               ),
               const SizedBox(height: 8),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../ota/ota_fw_catalog.dart';
-import '../ota/ota_github_source.dart';
+import '../ota/ota_fw_source.dart';
 
 class OtaFwSelection {
   final String device;
@@ -27,9 +27,15 @@ class OtaFwSelection {
 }
 
 class OtaFwPicker extends StatefulWidget {
-  final OtaGithubSource source;
+  final OtaFwSource Function(String repo) sourceFactory;
+  final String initialRepo;
   final void Function(OtaFwSelection)? onSelection;
-  const OtaFwPicker({super.key, required this.source, this.onSelection});
+  const OtaFwPicker({
+    super.key,
+    required this.sourceFactory,
+    this.initialRepo = 'meshcore-dev/MeshCore',
+    this.onSelection,
+  });
   @override
   State<OtaFwPicker> createState() => _OtaFwPickerState();
 }
@@ -44,10 +50,24 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
   String? _current;
   String? _target;
 
+  late final TextEditingController _repoController =
+      TextEditingController(text: widget.initialRepo);
+
+  OtaFwSource _buildSource() {
+    final repo = _repoController.text.trim();
+    return widget.sourceFactory(repo.isEmpty ? widget.initialRepo : repo);
+  }
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _repoController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -56,7 +76,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
       _error = null;
     });
     try {
-      final cat = await widget.source.loadCatalog(_role);
+      final cat = await _buildSource().loadCatalog(_role);
       if (!mounted) return;
       setState(() {
         _cat = cat;
@@ -130,6 +150,16 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     final currentAsset =
         (_device != null && _current != null) ? cat.assetFor(_device!, _current!) : null;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      TextField(
+        controller: _repoController,
+        decoration: const InputDecoration(
+          labelText: 'GitHub repo (owner/repo)',
+          border: OutlineInputBorder(),
+          isDense: true,
+        ),
+        onSubmitted: (_) => _load(),
+      ),
+      const SizedBox(height: 8),
       DropdownButtonFormField<OtaFwRole>(
         initialValue: _role,
         decoration: const InputDecoration(
