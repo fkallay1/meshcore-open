@@ -3,4 +3,4 @@
 library;
 
 export 'src/applier.dart';
-// export 'src/encoder.dart'; // added in Task 4
+export 'src/encoder.dart';
