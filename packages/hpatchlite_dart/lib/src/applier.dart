@@ -37,9 +37,11 @@ Uint8List applyInplaceLiteDiff(Uint8List diff, Uint8List oldData) {
     newPosBack = coverNewPos + coverLength;
     oldPosBack = coverOldPos + coverLength;
   }
-  // trailing literal bytes after last cover
-  for (var i = newPosBack; i < h.newSize; i++) {
-    out[i] = r.readByte();
+  // Device-faithful terminal check: covers carry ALL bytes (no trailing literals).
+  // Mirrors hpatch_lite.c:189 — requires newPosBack == newSize after the cover loop.
+  if (newPosBack != h.newSize) {
+    throw FormatException(
+        'patch produced $newPosBack bytes, expected ${h.newSize}');
   }
   return out;
 }
