@@ -81,9 +81,11 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 - **2026-06-25 (UX drobnosti v OTA obrazovke)** — tri malé úpravy v `lib/screens/ota_screen.dart`
   (verified: `flutter analyze lib/screens/ota_screen.dart` clean, `flutter test test/ota` **49/49**):
-  - **Zrušený prepínač „Nastaviť rádio companionu podľa balíka"** (`SwitchListTile` + pole
-    `_applyRadio`). Rádio sa teraz nastavuje **vždy** podľa balíka (`applyRadio: true` napevno v
-    `_send`). `OtaSendConfig.applyRadio` parameter ostal (sender testy nedotknuté).
+  - **OTA obrazovka už NEMENÍ rádio companiona** — zrušený prepínač „Nastaviť rádio companionu
+    podľa balíka" (`SwitchListTile` + pole `_applyRadio`) a `applyRadio: false` napevno v `_send`.
+    Predpoklad: companion je už naladený na rovnakú sieť (freq/bw/sf/cr) ako repeater. Sender
+    pri `applyRadio:false` preskočí `setRadio`, ale `setChannel(#fkotanrf)` sa volá naďalej (OTA
+    broadcast musí ísť na správny kanál). `OtaSendConfig.applyRadio` param ostal (sender testy nedotknuté).
   - **Tlačidlo „Vyber .otapkg.json" zobrazuje názov načítaného balíka** — nové pole `_pkgLabel`
     sa nastaví pri každom načítaní balíka (GitHub/lokálne biny → `label` z `_loadGeneratedPkg`,
     pick `.otapkg.json` → `file.name`). Label tlačidla = `_pkgLabel ?? 'Vyber .otapkg.json'`.

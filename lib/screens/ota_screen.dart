@@ -261,7 +261,9 @@ class _OtaScreenState extends State<OtaScreen> {
           scope: _scope,
           pathHex: _pathController.text.trim(),
           applyAfter: apply,
-          applyRadio: true,
+          // OTA obrazovka nemení rádio companiona — predpoklad: companion je už
+          // naladený na rovnakú sieť (freq/bw/sf/cr) ako repeater. Mení sa len kanál.
+          applyRadio: false,
           delayMs: _intField(_delayController, 300),
           cycles: _intField(_cyclesController, 1, min: 1),
           headerEvery: _intField(_headerEveryController, 0),
