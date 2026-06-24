@@ -50,13 +50,27 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
   String? _current;
   String? _target;
 
+  static const _customRepo = '__custom__';
+  static const _repoPresets = <String, String>{
+    'meshcore-dev/MeshCore': 'meshcore-dev/MeshCore',
+    'fkallay1/MeshCore': 'fkallay1/MeshCore',
+    _customRepo: 'Custom…',
+  };
+  late String _repoPreset = _repoPresets.containsKey(widget.initialRepo)
+      ? widget.initialRepo
+      : _customRepo;
   late final TextEditingController _repoController =
       TextEditingController(text: widget.initialRepo);
 
-  OtaFwSource _buildSource() {
-    final repo = _repoController.text.trim();
-    return widget.sourceFactory(repo.isEmpty ? widget.initialRepo : repo);
+  String _effectiveRepo() {
+    if (_repoPreset == _customRepo) {
+      final r = _repoController.text.trim();
+      return r.isEmpty ? widget.initialRepo : r;
+    }
+    return _repoPreset;
   }
+
+  OtaFwSource _buildSource() => widget.sourceFactory(_effectiveRepo());
 
   @override
   void initState() {
@@ -229,15 +243,36 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      TextField(
-        controller: _repoController,
+      DropdownButtonFormField<String>(
+        initialValue: _repoPreset,
+        isExpanded: true,
         decoration: const InputDecoration(
-          labelText: 'GitHub repo (owner/repo)',
+          labelText: 'Zdroj firmvéru (GitHub repo)',
           border: OutlineInputBorder(),
           isDense: true,
         ),
-        onSubmitted: (_) => _load(),
+        items: [
+          for (final e in _repoPresets.entries)
+            DropdownMenuItem(value: e.key, child: Text(e.value)),
+        ],
+        onChanged: (v) {
+          if (v == null) return;
+          setState(() => _repoPreset = v);
+          if (v != _customRepo) _load(); // Custom: reload on field submit
+        },
       ),
+      if (_repoPreset == _customRepo) ...[
+        const SizedBox(height: 8),
+        TextField(
+          controller: _repoController,
+          decoration: const InputDecoration(
+            labelText: 'Custom repo (owner/repo)',
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+          onSubmitted: (_) => _load(),
+        ),
+      ],
       const SizedBox(height: 8),
       _buildStateWidget(context),
     ]);

@@ -43,8 +43,21 @@ void main() {
     expect(sel!.packageFileName,
         'ProMicro_repeater_v1.16.0_to_v1.17.0.otapkg.json');
     expect(find.text('ProMicro'), findsWidgets);            // device dropdown rendered
-    // the custom-repo field is present, defaulting to meshcore-dev/MeshCore
-    // (widgetWithText finds TextField ancestors of EditableText in Flutter 3.44+)
+    // repo-source dropdown defaults to the meshcore-dev/MeshCore preset
+    expect(find.text('meshcore-dev/MeshCore'), findsWidgets);
+  });
+
+  testWidgets('selecting Custom reveals a free-text repo field', (tester) async {
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: OtaFwPicker(sourceFactory: _source)),
+    ));
+    await tester.pumpAndSettle();
+    // no custom TextField until "Custom…" is chosen
+    expect(find.widgetWithText(TextField, 'meshcore-dev/MeshCore'), findsNothing);
+    await tester.tap(find.text('meshcore-dev/MeshCore').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Custom…').last);
+    await tester.pumpAndSettle();
     expect(find.widgetWithText(TextField, 'meshcore-dev/MeshCore'), findsOneWidget);
   });
 }
