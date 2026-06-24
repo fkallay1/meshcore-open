@@ -94,9 +94,14 @@ int compareOtaVersionsDesc(String a, String b) {
 bool platformioIsNrf(String iniContent) =>
     iniContent.contains('nrf52_base') || iniContent.contains('NRF52_PLATFORM');
 
+/// Normalize a board/asset name for comparison: lowercase and drop `-`/`_`
+/// separators. Asset names don't always match the variant folder name's
+/// separators (e.g. variant folder `t1000-e` ships as asset `t1000e`).
+String _normBoard(String s) => s.toLowerCase().replaceAll(RegExp(r'[-_]'), '');
+
 bool deviceIsNrf(String device, Set<String> nrfBoardNamesLower) {
-  final d = device.toLowerCase();
-  return nrfBoardNamesLower.any((b) => d.startsWith(b));
+  final d = _normBoard(device);
+  return nrfBoardNamesLower.any((b) => d.startsWith(_normBoard(b)));
 }
 
 class OtaRelease {

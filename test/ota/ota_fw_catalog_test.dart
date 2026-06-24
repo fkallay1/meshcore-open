@@ -80,10 +80,12 @@ void main() {
       // esp32 variant extends a different base → not nRF
       expect(platformioIsNrf('[X]\nextends = esp32_base\nboard = esp32dev'), false);
     });
-    test('deviceIsNrf matches a board-name prefix, case-insensitively', () {
-      final nrf = {'promicro', 'ikoka_nano_nrf', 'xiao_nrf52'};
+    test('deviceIsNrf matches a board-name prefix, separator/case-insensitively', () {
+      final nrf = {'promicro', 'ikoka_nano_nrf', 'xiao_nrf52', 't1000-e'};
       expect(deviceIsNrf('ProMicro', nrf), true);
       expect(deviceIsNrf('ikoka_nano_nrf_30dbm', nrf), true); // power-variant suffix
+      // asset drops the variant folder's dash: folder `t1000-e` -> asset `t1000e`
+      expect(deviceIsNrf('t1000e', nrf), true);
       expect(deviceIsNrf('Heltec_v3', nrf), false);
     });
   });
