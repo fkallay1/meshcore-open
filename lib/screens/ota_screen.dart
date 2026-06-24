@@ -119,15 +119,16 @@ class _OtaScreenState extends State<OtaScreen> {
   }
 
   Future<void> _createFromLocalBins() async {
+    const group = XTypeGroup(label: 'firmware', extensions: ['bin']);
+    _append('Vyber STARÝ (current) .bin…');
+    final oldFile = await openFile(acceptedTypeGroups: [group]);
+    if (oldFile == null) return;
+    _append('Vyber NOVÝ (target) .bin…');
+    final newFile = await openFile(acceptedTypeGroups: [group]);
+    if (newFile == null) return;
+    // _busy gates only the compute (read + patch gen), not the file dialogs.
     setState(() => _busy = true);
     try {
-      const group = XTypeGroup(label: 'firmware', extensions: ['bin']);
-      _append('Vyber STARÝ (current) .bin…');
-      final oldFile = await openFile(acceptedTypeGroups: [group]);
-      if (oldFile == null) return;
-      _append('Vyber NOVÝ (target) .bin…');
-      final newFile = await openFile(acceptedTypeGroups: [group]);
-      if (newFile == null) return;
       final oldFw = await oldFile.readAsBytes();
       final newFw = await newFile.readAsBytes();
       await _loadGeneratedPkg(oldFw, newFw, '${oldFile.name} → ${newFile.name}');
@@ -247,10 +248,13 @@ class _OtaScreenState extends State<OtaScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _busy ? null : _createFromLocalBins,
-            icon: const Icon(Icons.folder_zip),
-            label: const Text('Vyrob z lokálnych .bin'),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _busy ? null : _createFromLocalBins,
+              icon: const Icon(Icons.folder_zip),
+              label: const Text('Vyrob z lokálnych .bin'),
+            ),
           ),
           const SizedBox(height: 8),
           ElevatedButton.icon(
