@@ -35,9 +35,11 @@ Uint8List _u32le(int v) =>
 /// raw inplace diff -> raw DEFLATE (512-byte window, windowBits=9) ->
 /// staged ZLIB blob: ['Z','L','I','B'][uncompSize u32le][newFwSize u32le][deflate].
 ///
-/// Uses dart:io ZLibCodec with raw:true and windowBits:9 (= 512-byte LZ77
-/// back-reference window) so the output is decodable by the device's
-/// puff_stream which also uses a 512-byte window.
+/// Calls [deflateRaw512] (platform-conditional via ota_deflate.dart):
+/// - Native: dart:io ZLibCodec(raw:true, windowBits:9) — exact 512-byte window.
+/// - Web: archive Deflate(windowBits:9) — verified exact 512-byte window
+///   (see ota_deflate_web.dart and test/ota/ota_deflate_web_test.dart).
+/// Output is decodable by the device puff_stream (512-byte window).
 Uint8List buildStagedPatch(Uint8List oldFw, Uint8List newFw) {
   final raw = createInplaceLiteDiff(oldFw, newFw);
   // deflateRaw512: raw DEFLATE, 512-byte LZ77 window (windowBits=9).
