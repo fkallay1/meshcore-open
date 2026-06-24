@@ -66,4 +66,52 @@ void main() {
     final v = ['1.16.0', '1.17.0', '1.16.2']..sort(compareOtaVersionsDesc);
     expect(v, ['1.17.0', '1.16.2', '1.16.0']);
   });
+
+  group('nRF detection', () {
+    test('platformioIsNrf detects the NRF52_PLATFORM token', () {
+      expect(platformioIsNrf('build_flags = -D NRF52_PLATFORM\n  -D X'), true);
+      expect(platformioIsNrf('build_flags = -D ESP32_PLATFORM'), false);
+    });
+    test('deviceIsNrf matches a board-name prefix, case-insensitively', () {
+      final nrf = {'promicro', 'ikoka_nano_nrf', 'xiao_nrf52'};
+      expect(deviceIsNrf('ProMicro', nrf), true);
+      expect(deviceIsNrf('ikoka_nano_nrf_30dbm', nrf), true); // power-variant suffix
+      expect(deviceIsNrf('Heltec_v3', nrf), false);
+    });
+  });
+
+  group('buildOtaCatalog', () {
+    OtaRelease rel(String ver, List<String> assetNames) => OtaRelease(
+          role: OtaFwRole.repeater,
+          version: ver,
+          tag: 'repeater-v$ver',
+          assets: [
+            for (final n in assetNames) OtaReleaseAsset(name: n, downloadUrl: '$n#u'),
+          ],
+        );
+    final releases = [
+      rel('1.16.0', [
+        'ProMicro_repeater-v1.16.0-abc.zip',
+        'Heltec_v3_repeater-v1.16.0-abc.bin', // not nRF → excluded
+        'xiao_c3_repeater-v1.16.0-abc.bin', // not nRF → excluded
+      ]),
+      rel('1.17.0', ['ProMicro_repeater-v1.17.0-def.zip']),
+    ];
+    final nrf = {'promicro', 'xiao_nrf52'};
+
+    test('devices are nRF ∩ have-usable-asset, releases newest-first', () {
+      final cat = buildOtaCatalog(
+          role: OtaFwRole.repeater, releases: releases, nrfBoardNamesLower: nrf);
+      expect(cat.devices, ['ProMicro']); // Heltec_v3 + xiao_c3 filtered out
+      expect(cat.releases.map((r) => r.version).toList(), ['1.17.0', '1.16.0']);
+    });
+
+    test('assetFor resolves the right download url per device+version', () {
+      final cat = buildOtaCatalog(
+          role: OtaFwRole.repeater, releases: releases, nrfBoardNamesLower: nrf);
+      expect(cat.assetFor('ProMicro', '1.17.0')!.downloadUrl,
+          'ProMicro_repeater-v1.17.0-def.zip#u');
+      expect(cat.assetFor('ProMicro', '9.9.9'), isNull);
+    });
+  });
 }

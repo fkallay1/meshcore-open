@@ -85,3 +85,66 @@ int compareOtaVersionsDesc(String a, String b) {
   }
   return 0;
 }
+
+bool platformioIsNrf(String iniContent) => iniContent.contains('NRF52_PLATFORM');
+
+bool deviceIsNrf(String device, Set<String> nrfBoardNamesLower) {
+  final d = device.toLowerCase();
+  return nrfBoardNamesLower.any((b) => d.startsWith(b));
+}
+
+class OtaRelease {
+  final OtaFwRole role;
+  final String version;
+  final String tag;
+  final List<OtaReleaseAsset> assets;
+  const OtaRelease({
+    required this.role,
+    required this.version,
+    required this.tag,
+    required this.assets,
+  });
+}
+
+class OtaFwCatalog {
+  final OtaFwRole role;
+  final List<OtaRelease> releases; // newest-first
+  final List<String> devices; // sorted, nRF ∩ usable
+  const OtaFwCatalog(
+      {required this.role, required this.releases, required this.devices});
+
+  OtaRelease? _release(String version) {
+    for (final r in releases) {
+      if (r.version == version) return r;
+    }
+    return null;
+  }
+
+  OtaReleaseAsset? assetFor(String device, String version) {
+    final r = _release(version);
+    if (r == null) return null;
+    return selectOtaAsset(r.assets, device, role);
+  }
+}
+
+OtaFwCatalog buildOtaCatalog({
+  required OtaFwRole role,
+  required List<OtaRelease> releases,
+  required Set<String> nrfBoardNamesLower,
+}) {
+  final forRole = releases.where((r) => r.role == role).toList()
+    ..sort((a, b) => compareOtaVersionsDesc(a.version, b.version));
+
+  final devices = <String>{};
+  for (final r in forRole) {
+    for (final a in r.assets) {
+      final info = parseOtaAssetName(a.name);
+      if (info == null || info.role != role || info.isMerged) continue;
+      if (info.ext != 'bin' && info.ext != 'zip') continue; // ignore uf2 etc.
+      if (!deviceIsNrf(info.device, nrfBoardNamesLower)) continue;
+      devices.add(info.device);
+    }
+  }
+  final sorted = devices.toList()..sort();
+  return OtaFwCatalog(role: role, releases: forRole, devices: sorted);
+}
