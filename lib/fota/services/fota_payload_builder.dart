@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import 'package:pinenacl/ed25519.dart' as nacl;
-import 'fota_types.dart';
+import '../models/fota_types.dart';
 
 class FotaPayloadBuilder {
   static Uint8List sha256(Uint8List data) => Uint8List.fromList(c.sha256.convert(data).bytes);

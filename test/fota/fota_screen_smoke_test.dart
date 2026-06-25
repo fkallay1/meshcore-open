@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fota_screen.dart';
+import 'package:meshcore_open/fota/screens/fota_screen.dart';
 
 void main() {
   testWidgets('FotaScreen renders the file-picker button and header target',

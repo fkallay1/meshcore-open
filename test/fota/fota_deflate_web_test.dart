@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fota_deflate_web.dart'; // direct import bypasses the conditional export
+import 'package:meshcore_open/fota/helpers/fota_deflate_web.dart'; // direct import bypasses the conditional export
 
 void main() {
   test('web deflate output is RAW deflate (no zlib header)', () {

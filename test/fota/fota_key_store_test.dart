@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fota_key_store.dart';
+import 'package:meshcore_open/fota/services/fota_key_store.dart';
 
 void main() {
   test('seedFromPkcs8Der extracts the 32B seed (matches fixture seed)', () {

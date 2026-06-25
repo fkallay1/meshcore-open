@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'fota_fw_catalog.dart';
-import 'fota_fw_source.dart';
+import '../models/fota_fw_catalog.dart';
+import '../models/fota_fw_source.dart';
 
 class FotaFwSelection {
   final String device;

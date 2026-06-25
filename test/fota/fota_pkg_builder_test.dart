@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart' as c;
-import 'package:meshcore_open/fota/fota_pkg_builder.dart';
-import 'package:meshcore_open/fota/fotapkg.dart';
+import 'package:meshcore_open/fota/services/fota_pkg_builder.dart';
+import 'package:meshcore_open/fota/models/fotapkg.dart';
 
 void main() {
   final oldFw = Uint8List.fromList(List.generate(2048, (i) => i & 0xFF));

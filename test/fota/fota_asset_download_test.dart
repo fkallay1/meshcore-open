@@ -3,7 +3,7 @@ import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:meshcore_open/fota/fota_asset_download.dart';
+import 'package:meshcore_open/fota/services/fota_asset_download.dart';
 
 void main() {
   test('returns raw bytes for a .bin url', () async {

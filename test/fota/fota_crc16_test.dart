@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fota_types.dart';
+import 'package:meshcore_open/fota/models/fota_types.dart';
 
 void main() {
   test('crc16Ccitt matches python crc16 golden', () {

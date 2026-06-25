@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fotapkg.dart';
-import 'package:meshcore_open/fota/fota_types.dart';
+import 'package:meshcore_open/fota/models/fotapkg.dart';
+import 'package:meshcore_open/fota/models/fota_types.dart';
 
 String _x(Uint8List b) => b.map((x) => x.toRadixString(16).padLeft(2, '0')).join();
 

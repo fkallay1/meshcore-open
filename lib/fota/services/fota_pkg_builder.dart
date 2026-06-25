@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import 'package:hpatchlite_dart/hpatchlite_dart.dart';
-import 'fota_deflate.dart';
+import '../helpers/fota_deflate.dart';
 
 class FotaBuildException implements Exception {
   final String message;

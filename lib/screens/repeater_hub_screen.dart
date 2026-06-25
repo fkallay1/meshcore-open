@@ -13,7 +13,7 @@ import 'repeater_cli_screen.dart';
 import 'repeater_settings_screen.dart';
 import 'telemetry_screen.dart';
 import 'neighbors_screen.dart';
-import '../fota/fota_screen.dart';
+import '../fota/screens/fota_screen.dart';
 
 class RepeaterHubScreen extends StatelessWidget {
   final Contact repeater;

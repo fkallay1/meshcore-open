@@ -2,9 +2,9 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fota_sender.dart';
-import 'package:meshcore_open/fota/fota_types.dart';
-import 'package:meshcore_open/fota/fotapkg.dart';
+import 'package:meshcore_open/fota/services/fota_sender.dart';
+import 'package:meshcore_open/fota/models/fota_types.dart';
+import 'package:meshcore_open/fota/models/fotapkg.dart';
 
 class _FakeSink implements FotaFrameSink {
   final frames = <Uint8List>[];

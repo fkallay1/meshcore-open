@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
-import '../connector/meshcore_protocol.dart';
+import '../../connector/meshcore_protocol.dart';
 import 'fota_payload_builder.dart';
-import 'fota_types.dart';
+import '../models/fota_types.dart';
 
 abstract class FotaFrameSink {
   Future<void> sendFrame(Uint8List frame);

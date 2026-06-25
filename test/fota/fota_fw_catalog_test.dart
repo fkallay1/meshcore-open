@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fota_fw_catalog.dart';
+import 'package:meshcore_open/fota/models/fota_fw_catalog.dart';
 
 void main() {
   group('parseFotaAssetName', () {

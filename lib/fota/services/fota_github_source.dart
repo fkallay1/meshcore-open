@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'fota_fw_catalog.dart';
-import 'fota_fw_source.dart';
+import '../models/fota_fw_catalog.dart';
+import '../models/fota_fw_source.dart';
 
 /// Fetches MeshCore firmware releases + nRF variant definitions from GitHub and
 /// builds an [FotaFwCatalog]. Pure-IO; all parsing/selection lives in the catalog.

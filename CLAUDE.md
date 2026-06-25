@@ -385,9 +385,16 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
   history hygiene). Never commit to `dev`/`main` directly. Co-Author trailer per global rules.
 - **Save the work log:** keep `fkclaude/fcl_readme_nrf-fota-flutterapp.md` updated with what was
   advised, done, and why (so context survives a Reload Window / new session).
-- **Isolation discipline:** ALL FOTA logic is self-contained under `lib/fota/` (sender, payload
-  builder, package parse/build, screen, fw picker/catalog/source, downloader, key store) — every
-  file is `fota_*`-named (or `fotapkg.dart`). Tests live in `test/fota/` (`fota_*`), fixtures in
+- **Isolation discipline:** ALL FOTA logic is self-contained under `lib/fota/`, split into
+  subfolders that mirror the top-level `lib/` layout so it's clear what's what:
+  - `lib/fota/models/` — data classes + constants: `fota_types.dart` (consts, CRC16, `FotaJob`,
+    `FotaScope`), `fotapkg.dart` (`FotaPkg` parse), `fota_fw_catalog.dart`, `fota_fw_source.dart`.
+  - `lib/fota/services/` — logic / IO: `fota_sender.dart`, `fota_payload_builder.dart`,
+    `fota_pkg_builder.dart`, `fota_key_store.dart`, `fota_github_source.dart`, `fota_asset_download.dart`.
+  - `lib/fota/screens/` — UI: `fota_screen.dart`, `fota_fw_picker.dart`.
+  - `lib/fota/helpers/` — platform-conditional shims: `fota_deflate*.dart`, `fota_browser_download*.dart`.
+
+  Every file is `fota_*`-named (or `fotapkg.dart`). Tests live in `test/fota/` (`fota_*`), fixtures in
   `test/fixtures/fota_*`. Touch upstream files minimally — only: `meshcore_protocol.dart` (+1
   CMD-62 builder), `repeater_cli_screen.dart` (quick-cmds), `repeater_hub_screen.dart` (one nav
   tile), `settings_screen.dart` (FOTA Broadcast entry). The reusable `packages/hpatchlite_dart/`

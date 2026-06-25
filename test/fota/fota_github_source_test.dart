@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:meshcore_open/fota/fota_fw_catalog.dart';
-import 'package:meshcore_open/fota/fota_fw_source.dart';
-import 'package:meshcore_open/fota/fota_github_source.dart';
+import 'package:meshcore_open/fota/models/fota_fw_catalog.dart';
+import 'package:meshcore_open/fota/models/fota_fw_source.dart';
+import 'package:meshcore_open/fota/services/fota_github_source.dart';
 
 http.Client _fake(Map<String, String> routes) {
   return MockClient((req) async {

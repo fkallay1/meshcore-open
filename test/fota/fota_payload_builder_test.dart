@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/fota/fota_payload_builder.dart';
+import 'package:meshcore_open/fota/services/fota_payload_builder.dart';
 
 void main() {
   late Map g;

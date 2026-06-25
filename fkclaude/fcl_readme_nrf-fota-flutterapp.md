@@ -79,6 +79,19 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-26 (FOTA modul rozdelený do podadresárov)** — `lib/fota/` rozčlenené tak, aby zrkadlilo
+  top-level `lib/` (prehľadnosť „čo je čo"). **Verified: `flutter test test/fota` 49/49, `flutter
+  analyze lib test/fota` clean** (tie isté 2 pre-existujúce warningy).
+  - `lib/fota/models/` — `fota_types.dart`, `fotapkg.dart`, `fota_fw_catalog.dart`, `fota_fw_source.dart`
+  - `lib/fota/services/` — `fota_sender.dart`, `fota_payload_builder.dart`, `fota_pkg_builder.dart`,
+    `fota_key_store.dart`, `fota_github_source.dart`, `fota_asset_download.dart`
+  - `lib/fota/screens/` — `fota_screen.dart`, `fota_fw_picker.dart`
+  - `lib/fota/helpers/` — `fota_deflate*.dart`, `fota_browser_download*.dart`
+  - **Importy:** cross-folder relatívne (`../models/`, `../services/`, `../helpers/`); zanorené
+    súbory čo importujú connector → `../../connector/`; upstream screens → `'../fota/screens/fota_screen.dart'`;
+    testy → `package:meshcore_open/fota/<sub>/…`. Cez `git mv` (história zachovaná). CLAUDE.md
+    izolačná disciplína aktualizovaná o strom podadresárov.
+
 - **2026-06-25 (konsolidácia FOTA do `lib/fota/` + fota_ prefix)** — všetok FOTA kód zjednotený pod
   `lib/fota/`, aby bola príslušnosť k FOTA úpravám jasná z názvu aj umiestnenia. **Verified: `flutter
   test test/fota` 49/49, `flutter analyze lib test/fota` clean** (tie isté 2 pre-existujúce warningy).
