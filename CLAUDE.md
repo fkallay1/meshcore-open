@@ -394,8 +394,11 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
   - `lib/fota/screens/` — UI: `fota_screen.dart`, `fota_fw_picker.dart`.
   - `lib/fota/helpers/` — platform-conditional shims: `fota_deflate*.dart`, `fota_browser_download*.dart`.
 
-  Every file is `fota_*`-named (or `fotapkg.dart`). Tests live in `test/fota/` (`fota_*`), fixtures in
-  `test/fixtures/fota_*`. Touch upstream files minimally — only: `meshcore_protocol.dart` (+1
+  Every file is `fota_*`-named (or `fotapkg.dart`). Tests live in `test/fota/`, mirroring the same
+  subfolders (`test/fota/{models,services,screens,helpers}/`); `fota_channel_data_frame_test.dart`
+  stays at `test/fota/` root since it tests the CMD-62 builder in `connector/`, not a `lib/fota/`
+  file. Fixtures in `test/fixtures/fota_*` (referenced from project-root CWD, so test location is
+  irrelevant). Touch upstream files minimally — only: `meshcore_protocol.dart` (+1
   CMD-62 builder), `repeater_cli_screen.dart` (quick-cmds), `repeater_hub_screen.dart` (one nav
   tile), `settings_screen.dart` (FOTA Broadcast entry). The reusable `packages/hpatchlite_dart/`
   delta engine is intentionally generic/publishable (not `fota_`-prefixed).

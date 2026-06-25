@@ -91,6 +91,10 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
     súbory čo importujú connector → `../../connector/`; upstream screens → `'../fota/screens/fota_screen.dart'`;
     testy → `package:meshcore_open/fota/<sub>/…`. Cez `git mv` (história zachovaná). CLAUDE.md
     izolačná disciplína aktualizovaná o strom podadresárov.
+  - **`test/fota/` zrkadlí `lib/fota/`** (rovnaké podadresáre `models/services/screens/helpers/`).
+    Presun testov je edit-free — používajú `package:` importy + `File('test/fixtures/…')` cesty
+    od project-root CWD (nezávisle od umiestnenia testu). `fota_channel_data_frame_test.dart` ostal
+    v roote `test/fota/` (testuje CMD-62 builder v `connector/`, nie `lib/fota/` súbor).
 
 - **2026-06-25 (konsolidácia FOTA do `lib/fota/` + fota_ prefix)** — všetok FOTA kód zjednotený pod
   `lib/fota/`, aby bola príslušnosť k FOTA úpravám jasná z názvu aj umiestnenia. **Verified: `flutter
