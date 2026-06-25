@@ -79,6 +79,18 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-25 (tooling: centralizácia .otapkg.json + push do telefónu)** — v `../MeshCore/test_nrf-ota/`:
+  - **Nový adresár `fotapkg_json/`** — všetky `*.otapkg.json` presunuté sem (preč z koreňa
+    `test_nrf-ota/`). `gen_otapkg.py` default `--out-dir` zmenený na `fotapkg_json/` (+ auto-mkdir),
+    takže nové balíky padajú rovno sem.
+  - **`push_otapkg.py`** — multi-select súborový dialóg (default = `fotapkg_json/`) → `adb push` na
+    `/sdcard/Download/`. **Bez závislostí: Win32 `comdlg32`/`user32` cez `ctypes`** (NIE tkinter —
+    žiadny lokálny python tkinter NEMÁ: PlatformIO python aj Store-stub sú bez neho; ctypes je v
+    stdlib každého CPythonu). adb cesta = scrcpy (`D:\FkDev\00_Downloads\scrcpy-win64-v4.0\adb.exe`)
+    s fallbackom na PATH.
+  - **`push_otapkg.bat`** — double-click launcher; preferuje PlatformIO python
+    (`D:\FkDev\.platformio\python3\python.exe`), fallback `py`/`python`. (necommitnuté do MeshCore repa)
+
 - **2026-06-25 (UX drobnosti v OTA obrazovke)** — tri malé úpravy v `lib/screens/ota_screen.dart`
   (verified: `flutter analyze lib/screens/ota_screen.dart` clean, `flutter test test/ota` **49/49**):
   - **OTA obrazovka už NEMENÍ rádio companiona** — zrušený prepínač „Nastaviť rádio companionu
