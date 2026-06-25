@@ -2,11 +2,11 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/ota/ota_sender.dart';
-import 'package:meshcore_open/ota/ota_types.dart';
-import 'package:meshcore_open/ota/otapkg.dart';
+import 'package:meshcore_open/fota/fota_sender.dart';
+import 'package:meshcore_open/fota/fota_types.dart';
+import 'package:meshcore_open/fota/fotapkg.dart';
 
-class _FakeSink implements OtaFrameSink {
+class _FakeSink implements FotaFrameSink {
   final frames = <Uint8List>[];
   int? freqVal, bwVal, sf, cr, chIdx;
   String? chName;
@@ -29,15 +29,15 @@ class _FakeSink implements OtaFrameSink {
 
 void main() {
   test('sends chunks then META+SIG (hend), correct count and radio units', () async {
-    final pkg = OtaPkg.fromJsonString(File('test/fixtures/sample.otapkg.json').readAsStringSync());
-    final g = jsonDecode(File('test/fixtures/ota_golden.json').readAsStringSync());
+    final pkg = FotaPkg.fromJsonString(File('test/fixtures/sample.fotapkg.json').readAsStringSync());
+    final g = jsonDecode(File('test/fixtures/fota_golden.json').readAsStringSync());
     final sink = _FakeSink();
-    final sender = OtaSender(sink);
-    final total = (pkg.patch.length / kOtaChunkData).ceil();
+    final sender = FotaSender(sink);
+    final total = (pkg.patch.length / kFotaChunkData).ceil();
 
     await sender.send(
       pkg.toJob(),
-      OtaSendConfig(
+      FotaSendConfig(
         channelName: pkg.channelName,
         channelIdx: pkg.channelIdx,
         freqMHz: pkg.freqMHz,
@@ -66,12 +66,12 @@ void main() {
   });
 
   test('applyAfter adds one APPLY frame', () async {
-    final pkg = OtaPkg.fromJsonString(File('test/fixtures/sample.otapkg.json').readAsStringSync());
+    final pkg = FotaPkg.fromJsonString(File('test/fixtures/sample.fotapkg.json').readAsStringSync());
     final sink = _FakeSink();
-    final total = (pkg.patch.length / kOtaChunkData).ceil();
-    await OtaSender(sink).send(
+    final total = (pkg.patch.length / kFotaChunkData).ceil();
+    await FotaSender(sink).send(
         pkg.toJob(),
-        OtaSendConfig(
+        FotaSendConfig(
             channelName: pkg.channelName,
             channelIdx: pkg.channelIdx,
             freqMHz: pkg.freqMHz,
@@ -90,12 +90,12 @@ void main() {
   });
 
   test('cycles=N repeats the whole broadcast N times', () async {
-    final pkg = OtaPkg.fromJsonString(File('test/fixtures/sample.otapkg.json').readAsStringSync());
+    final pkg = FotaPkg.fromJsonString(File('test/fixtures/sample.fotapkg.json').readAsStringSync());
     final sink = _FakeSink();
-    final total = (pkg.patch.length / kOtaChunkData).ceil();
-    await OtaSender(sink).send(
+    final total = (pkg.patch.length / kFotaChunkData).ceil();
+    await FotaSender(sink).send(
         pkg.toJob(),
-        OtaSendConfig(
+        FotaSendConfig(
             channelName: pkg.channelName,
             channelIdx: pkg.channelIdx,
             freqMHz: pkg.freqMHz,
@@ -117,13 +117,13 @@ void main() {
   });
 
   test('headerEvery resends META+SIG every N chunks', () async {
-    final pkg = OtaPkg.fromJsonString(File('test/fixtures/sample.otapkg.json').readAsStringSync());
+    final pkg = FotaPkg.fromJsonString(File('test/fixtures/sample.fotapkg.json').readAsStringSync());
     final sink = _FakeSink();
-    final total = (pkg.patch.length / kOtaChunkData).ceil();
+    final total = (pkg.patch.length / kFotaChunkData).ceil();
     const every = 2;
-    await OtaSender(sink).send(
+    await FotaSender(sink).send(
         pkg.toJob(),
-        OtaSendConfig(
+        FotaSendConfig(
             channelName: pkg.channelName,
             channelIdx: pkg.channelIdx,
             freqMHz: pkg.freqMHz,

@@ -1,10 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class OtaKeyStore {
-  static const _key = 'ota_ed25519_seed';
+class FotaKeyStore {
+  static const _key = 'fota_ed25519_seed';
   final FlutterSecureStorage _s;
-  OtaKeyStore([FlutterSecureStorage? s]) : _s = s ?? const FlutterSecureStorage();
+  FotaKeyStore([FlutterSecureStorage? s]) : _s = s ?? const FlutterSecureStorage();
 
   /// Extract the 32-byte Ed25519 seed from a PKCS#8 DER (RFC 8410).
   /// Standard encoding is 48 bytes: 16-byte prefix + 32-byte seed.

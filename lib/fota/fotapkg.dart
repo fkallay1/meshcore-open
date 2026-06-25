@@ -1,27 +1,27 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
-import 'ota_types.dart';
+import 'fota_types.dart';
 
-class OtaPkgException implements Exception {
+class FotaPkgException implements Exception {
   final String message;
-  OtaPkgException(this.message);
+  FotaPkgException(this.message);
   @override
-  String toString() => 'OtaPkgException: $message';
+  String toString() => 'FotaPkgException: $message';
 }
 
-class OtaPkg {
+class FotaPkg {
   final String channelName;
   final int channelIdx;
   final double freqMHz, bwKHz;
   final int sf, cr;
-  final OtaScope scope;
+  final FotaScope scope;
   final String pathHex;
   final Uint8List oldSha256, newSha256, patchSha256, patch;
   final int oldFwSize, patchLen, keyId;
   final Uint8List? meta, sig; // present iff pre-signed
 
-  OtaPkg({
+  FotaPkg({
     required this.channelName,
     required this.channelIdx,
     required this.freqMHz,
@@ -41,30 +41,32 @@ class OtaPkg {
     this.sig,
   });
 
-  factory OtaPkg.fromJsonString(String s) {
+  factory FotaPkg.fromJsonString(String s) {
     final Map j;
     try {
       j = jsonDecode(s) as Map;
     } catch (e) {
-      throw OtaPkgException('invalid JSON: $e');
+      throw FotaPkgException('invalid JSON: $e');
     }
-    if (j['format'] != 'mc-fotanrf-otapkg/1') {
-      throw OtaPkgException('unsupported format: ${j['format']}');
+    // Accept the new FOTA magic and the legacy OTA magic (pre-rename packages).
+    if (j['format'] != 'mc-fotanrf-fotapkg/1' &&
+        j['format'] != 'mc-fotanrf-otapkg/1') {
+      throw FotaPkgException('unsupported format: ${j['format']}');
     }
     final fw = j['fw'];
-    if (fw is! Map) throw OtaPkgException('missing fw block');
+    if (fw is! Map) throw FotaPkgException('missing fw block');
     final patch = _b64(j['patch_b64'], 'patch_b64');
     final patchLen = (fw['patch_len'] as num).toInt();
     if (patch.length != patchLen) {
-      throw OtaPkgException('patch_len $patchLen != actual ${patch.length}');
+      throw FotaPkgException('patch_len $patchLen != actual ${patch.length}');
     }
     final patchSha = Uint8List.fromList(c.sha256.convert(patch).bytes);
     final declared = _hex(fw['patch_sha256'], 'patch_sha256');
-    if (!_eq(patchSha, declared)) throw OtaPkgException('patch sha256 mismatch');
+    if (!_eq(patchSha, declared)) throw FotaPkgException('patch sha256 mismatch');
 
     final ch = j['channel'] as Map, radio = j['radio'] as Map;
     final signed = j['signed'];
-    return OtaPkg(
+    return FotaPkg(
       channelName: ch['name'] as String,
       channelIdx: (ch['idx'] as num).toInt(),
       freqMHz: (radio['freq'] as num).toDouble(),
@@ -85,7 +87,7 @@ class OtaPkg {
     );
   }
 
-  OtaJob toJob() => OtaJob(
+  FotaJob toJob() => FotaJob(
         patch: patch,
         oldSha256: oldSha256,
         newSha256: newSha256,
@@ -95,31 +97,31 @@ class OtaPkg {
         presignedSig: sig,
       );
 
-  static OtaScope _scope(String? s) {
+  static FotaScope _scope(String? s) {
     switch (s) {
       case 'flood':
-        return OtaScope.flood;
+        return FotaScope.flood;
       case 'direct':
-        return OtaScope.direct;
+        return FotaScope.direct;
       case 'zerohop':
       case null:
-        return OtaScope.zerohop;
+        return FotaScope.zerohop;
       default:
-        throw OtaPkgException('unknown scope: $s');
+        throw FotaPkgException('unknown scope: $s');
     }
   }
 
   static Uint8List _b64(dynamic v, String f) {
-    if (v is! String) throw OtaPkgException('missing $f');
+    if (v is! String) throw FotaPkgException('missing $f');
     try {
       return Uint8List.fromList(base64.decode(v));
     } catch (e) {
-      throw OtaPkgException('bad base64 in $f');
+      throw FotaPkgException('bad base64 in $f');
     }
   }
 
   static Uint8List _hex(dynamic v, String f) {
-    if (v is! String || v.length.isOdd) throw OtaPkgException('bad hex in $f');
+    if (v is! String || v.length.isOdd) throw FotaPkgException('bad hex in $f');
     return Uint8List.fromList(
         [for (var i = 0; i < v.length; i += 2) int.parse(v.substring(i, i + 2), radix: 16)]);
   }

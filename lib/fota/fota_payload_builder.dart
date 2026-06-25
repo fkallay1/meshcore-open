@@ -1,16 +1,16 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import 'package:pinenacl/ed25519.dart' as nacl;
-import 'ota_types.dart';
+import 'fota_types.dart';
 
-class OtaPayloadBuilder {
+class FotaPayloadBuilder {
   static Uint8List sha256(Uint8List data) => Uint8List.fromList(c.sha256.convert(data).bytes);
 
   Uint8List buildMeta(int patchSize, Uint8List patchSha256, Uint8List newSha256,
       Uint8List oldSha256) {
     final b = BytesBuilder();
-    b.addByte(kOtaPktHeader);
-    b.addByte(kOtaProtInfV0);
+    b.addByte(kFotaPktHeader);
+    b.addByte(kFotaProtInfV0);
     b.add(_u32le(patchSize));
     b.add(patchSha256);
     b.add(newSha256);
@@ -35,8 +35,8 @@ class OtaPayloadBuilder {
     final sig = signMeta(meta, seed32);
     final oldSha256 = meta.sublist(70, 102);
     final b = BytesBuilder();
-    b.addByte(kOtaPktHdrSig);
-    b.addByte(kOtaProtInfV0);
+    b.addByte(kFotaPktHdrSig);
+    b.addByte(kFotaProtInfV0);
     b.add(oldSha256);
     b.addByte(keyId & 0xFF);
     b.add(sig);
@@ -47,7 +47,7 @@ class OtaPayloadBuilder {
 
   Uint8List buildChunk(int idx, Uint8List data, int oldFwSize, Uint8List oldSha256Prefix4) {
     final b = BytesBuilder();
-    b.addByte(kOtaPktChunk);
+    b.addByte(kFotaPktChunk);
     b.add(_u16le(idx));
     b.add(_u16le(crc16Ccitt(data)));
     b.add(_u32le(oldFwSize));
@@ -58,7 +58,7 @@ class OtaPayloadBuilder {
 
   Uint8List buildApply(Uint8List patchSha256) {
     final b = BytesBuilder()
-      ..addByte(kOtaPktApply)
+      ..addByte(kFotaPktApply)
       ..add(patchSha256);
     return b.toBytes();
   }

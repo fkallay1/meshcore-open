@@ -3,7 +3,7 @@ import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:meshcore_open/ota/ota_asset_download.dart';
+import 'package:meshcore_open/fota/fota_asset_download.dart';
 
 void main() {
   test('returns raw bytes for a .bin url', () async {
@@ -26,10 +26,10 @@ void main() {
     expect(got, fw); // not the -merged.bin, not the txt
   });
 
-  test('throws OtaDownloadException on HTTP error', () async {
+  test('throws FotaDownloadException on HTTP error', () async {
     final c = MockClient((_) async => http.Response('nope', 404));
     await expectLater(downloadFirmwareBin('https://e/fw.bin', client: c),
-        throwsA(isA<OtaDownloadException>()));
+        throwsA(isA<FotaDownloadException>()));
   });
 
   test('throws when a .zip has no usable .bin', () async {
@@ -39,6 +39,6 @@ void main() {
     final c = MockClient(
         (_) async => http.Response.bytes(Uint8List.fromList(zipBytes), 200));
     await expectLater(downloadFirmwareBin('https://e/fw.zip', client: c),
-        throwsA(isA<OtaDownloadException>()));
+        throwsA(isA<FotaDownloadException>()));
   });
 }

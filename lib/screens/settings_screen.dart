@@ -17,7 +17,7 @@ import '../widgets/mesh_ui.dart';
 import 'app_settings_screen.dart';
 import 'app_debug_log_screen.dart';
 import 'ble_debug_log_screen.dart';
-import 'ota_screen.dart';
+import 'fota_screen.dart';
 import '../widgets/radio_stats_entry.dart';
 import '../widgets/sync_progress_overlay.dart';
 import 'region_management_screen.dart';
@@ -128,13 +128,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: _buildActionsCardContent(context, connector),
                 ),
 
-                // FOTA BROADCAST section — launch OTA without repeater login
+                // FOTA BROADCAST section — launch FOTA without repeater login
                 const SectionHeader('FOTA Broadcast'),
                 MeshCard(
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const OtaScreen(headerTarget: 'Broadcast'),
+                      builder: (_) => const FotaScreen(headerTarget: 'Broadcast'),
                     ),
                   ),
                   child: _buildNavTileContent(

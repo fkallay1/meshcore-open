@@ -1,16 +1,16 @@
 import 'dart:typed_data';
 
-const int kOtaMagic = 0x07A0;
-const int kOtaProtInfV0 = 0x00;
-const int kOtaChunkData = 144;
-const int kOtaPktHeader = 0x10;
-const int kOtaPktChunk = 0x11;
-const int kOtaPktApply = 0x12;
-const int kOtaPktHdrSig = 0x13;
-const int kOtaPktStatus = 0x20;
-const int kOtaPktNack = 0x21;
-const int kOtaStVerified = 0x04;
-const int kOtaStError = 0x80;
+const int kFotaMagic = 0x07A0;
+const int kFotaProtInfV0 = 0x00;
+const int kFotaChunkData = 144;
+const int kFotaPktHeader = 0x10;
+const int kFotaPktChunk = 0x11;
+const int kFotaPktApply = 0x12;
+const int kFotaPktHdrSig = 0x13;
+const int kFotaPktStatus = 0x20;
+const int kFotaPktNack = 0x21;
+const int kFotaStVerified = 0x04;
+const int kFotaStError = 0x80;
 const int kGrpDataMaxLen = 165;
 
 /// CRC16/CCITT-FALSE: init 0xFFFF, poly 0x1021, no reflect, no xorout.
@@ -26,9 +26,9 @@ int crc16Ccitt(Uint8List data) {
   return crc;
 }
 
-enum OtaScope { zerohop, flood, direct }
+enum FotaScope { zerohop, flood, direct }
 
-class OtaJob {
+class FotaJob {
   final Uint8List patch;
   final Uint8List oldSha256;
   final Uint8List newSha256;
@@ -37,7 +37,7 @@ class OtaJob {
   final Uint8List? presignedMeta; // 102B if pre-signed package
   final Uint8List? presignedSig; // 99B if pre-signed package
 
-  OtaJob({
+  FotaJob({
     required this.patch,
     required this.oldSha256,
     required this.newSha256,

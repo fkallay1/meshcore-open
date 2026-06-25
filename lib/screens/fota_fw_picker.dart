@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import '../ota/ota_fw_catalog.dart';
-import '../ota/ota_fw_source.dart';
+import '../fota/fota_fw_catalog.dart';
+import '../fota/fota_fw_source.dart';
 
-class OtaFwSelection {
+class FotaFwSelection {
   final String device;
-  final OtaFwRole role;
+  final FotaFwRole role;
   final String currentVersion;
   final String targetVersion;
-  final OtaReleaseAsset? currentAsset;
-  final OtaReleaseAsset? targetAsset;
-  const OtaFwSelection({
+  final FotaReleaseAsset? currentAsset;
+  final FotaReleaseAsset? targetAsset;
+  const FotaFwSelection({
     required this.device,
     required this.role,
     required this.currentVersion,
@@ -18,7 +18,7 @@ class OtaFwSelection {
     required this.targetAsset,
   });
 
-  String get packageFileName => otaPackageFileName(
+  String get packageFileName => fotaPackageFileName(
         device: device,
         role: role,
         currentVersion: currentVersion,
@@ -26,23 +26,23 @@ class OtaFwSelection {
       );
 }
 
-class OtaFwPicker extends StatefulWidget {
-  final OtaFwSource Function(String repo) sourceFactory;
+class FotaFwPicker extends StatefulWidget {
+  final FotaFwSource Function(String repo) sourceFactory;
   final String initialRepo;
-  final void Function(OtaFwSelection)? onSelection;
-  const OtaFwPicker({
+  final void Function(FotaFwSelection)? onSelection;
+  const FotaFwPicker({
     super.key,
     required this.sourceFactory,
     this.initialRepo = 'meshcore-dev/MeshCore',
     this.onSelection,
   });
   @override
-  State<OtaFwPicker> createState() => _OtaFwPickerState();
+  State<FotaFwPicker> createState() => _FotaFwPickerState();
 }
 
-class _OtaFwPickerState extends State<OtaFwPicker> {
-  OtaFwRole _role = OtaFwRole.repeater;
-  OtaFwCatalog? _cat;
+class _FotaFwPickerState extends State<FotaFwPicker> {
+  FotaFwRole _role = FotaFwRole.repeater;
+  FotaFwCatalog? _cat;
   String? _error;
   bool _loading = true;
 
@@ -70,7 +70,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     return _repoPreset;
   }
 
-  OtaFwSource _buildSource() => widget.sourceFactory(_effectiveRepo());
+  FotaFwSource _buildSource() => widget.sourceFactory(_effectiveRepo());
 
   @override
   void initState() {
@@ -107,7 +107,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     }
   }
 
-  void _applyDefaults(OtaFwCatalog cat) {
+  void _applyDefaults(FotaFwCatalog cat) {
     _device = cat.devices.firstWhere(
       (d) => d.toLowerCase() == 'promicro',
       orElse: () => cat.devices.isNotEmpty ? cat.devices.first : '',
@@ -122,7 +122,7 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     if (cat == null || _device == null || _current == null || _target == null) {
       return;
     }
-    widget.onSelection?.call(OtaFwSelection(
+    widget.onSelection?.call(FotaFwSelection(
       device: _device!,
       role: _role,
       currentVersion: _current!,
@@ -163,13 +163,13 @@ class _OtaFwPickerState extends State<OtaFwPicker> {
     final currentAsset =
         (_device != null && _current != null) ? cat.assetFor(_device!, _current!) : null;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      DropdownButtonFormField<OtaFwRole>(
+      DropdownButtonFormField<FotaFwRole>(
         initialValue: _role,
         decoration: const InputDecoration(
             labelText: 'Rola firmvéru', border: OutlineInputBorder(), isDense: true),
         items: const [
-          DropdownMenuItem(value: OtaFwRole.repeater, child: Text('Repeater')),
-          DropdownMenuItem(value: OtaFwRole.roomServer, child: Text('Room Server')),
+          DropdownMenuItem(value: FotaFwRole.repeater, child: Text('Repeater')),
+          DropdownMenuItem(value: FotaFwRole.roomServer, child: Text('Room Server')),
         ],
         onChanged: (v) {
           if (v == null) return;

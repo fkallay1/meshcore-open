@@ -13,7 +13,7 @@ import 'repeater_cli_screen.dart';
 import 'repeater_settings_screen.dart';
 import 'telemetry_screen.dart';
 import 'neighbors_screen.dart';
-import 'ota_screen.dart';
+import 'fota_screen.dart';
 
 class RepeaterHubScreen extends StatelessWidget {
   final Contact repeater;
@@ -279,7 +279,7 @@ class RepeaterHubScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          OtaScreen(headerTarget: repeater.name),
+                          FotaScreen(headerTarget: repeater.name),
                     ),
                   );
                 },

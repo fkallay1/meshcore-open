@@ -672,7 +672,7 @@ Uint8List buildSetChannelFrame(int channelIndex, String name, Uint8List psk) {
 }
 
 /// CMD_SEND_CHANNEL_DATA (62): [62][channelIndex][pathLen][path][dataType u16le][data].
-/// Mirrors test_nrf-ota/ota_sender_mcpy.py companion_chan_data_frame.
+/// Mirrors test_nrf-fota/fota_sender_mcpy.py companion_chan_data_frame.
 Uint8List buildSendChannelDataFrame(
     int channelIndex, int pathLen, Uint8List path, int dataType, Uint8List data) {
   final writer = BufferWriter();

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/services/ota_key_store.dart';
+import 'package:meshcore_open/services/fota_key_store.dart';
 
 void main() {
   test('seedFromPkcs8Der extracts the 32B seed (matches fixture seed)', () {
@@ -14,6 +14,6 @@ void main() {
       0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x04, 0x22, 0x04, 0x20
     ]);
     final der = Uint8List.fromList([...prefix, ...seed]);
-    expect(OtaKeyStore.seedFromPkcs8Der(der), seed);
+    expect(FotaKeyStore.seedFromPkcs8Der(der), seed);
   });
 }

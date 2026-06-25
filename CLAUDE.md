@@ -338,13 +338,19 @@ PWA scaffold present but boilerplate (`manifest.json` and `index.html` are unmod
 
 ---
 
-# FK fork — nRF-OTA sender (Fedor Kallay)
+# FK fork — nRF-FOTA sender (Fedor Kallay)
 
 > Everything below is **fork-specific** (not upstream `zjs81/meshcore-open`). It is appended at
 > the end so `git pull upstream` rarely conflicts here. This fork (`fkallay1/meshcore-open`,
-> branch `feature/nrf-ota-sender`) adds an **nRF52840 LoRa delta-patch OTA sender** + OTA admin
+> branch `feature/nrf-fota-sender`) adds an **nRF52840 LoRa delta-patch FOTA sender** + FOTA admin
 > quick-commands. Keep the app identity (`name: meshcore_open`, title `MeshCore Open`) UNCHANGED
 > so upstream merges stay clean.
+>
+> **Naming:** our LoRa delta-patch system was renamed `OTA`/`ota` → `FOTA`/`fota` (2026-06-25,
+> mirrors the firmware rename in `../MeshCore`, branch `features/nrf-fota`). The wire protocol is
+> UNCHANGED (same channel `#fkotanrf`, data_type `0x07A0`, payload types) — only symbol/file names
+> changed. The companion repeater CLI accepts both `fota …` and legacy `ota …`; the app sends `fota …`.
+> The `.fotapkg.json` parser also accepts the legacy `.otapkg.json` / `mc-fotanrf-otapkg/1` format.
 
 ## Read first each session
 
@@ -354,20 +360,20 @@ PWA scaffold present but boilerplate (`manifest.json` and `index.html` are unmod
   - `fkclaude/docs/superpowers/specs/2026-06-23-mc-fotanrf-flutterapp-design.md`
   - `fkclaude/docs/superpowers/plans/2026-06-23-nrf-ota-sender.md`  ← task-by-task, TDD, byte-exact.
 
-## OTA reference lives in the sibling MeshCore firmware repo
+## FOTA reference lives in the sibling MeshCore firmware repo
 
 The firmware + the authoritative wire format are in **`../MeshCore`** (sibling on disk,
-`D:\FkDev\FkProj\VSC\MeshCore`). Read these by absolute path when implementing OTA:
+`D:\FkDev\FkProj\VSC\MeshCore`). Read these by absolute path when implementing FOTA:
 
 | What | Path |
 |------|------|
-| **Authoritative wire format** (META/SIG/chunk/APPLY, CRC16, framing) | `../MeshCore/test_nrf-ota/ota_sender.py` |
-| Companion-relay variant we mirror | `../MeshCore/test_nrf-ota/ota_sender_mcpy.py` |
+| **Authoritative wire format** (META/SIG/chunk/APPLY, CRC16, framing) | `../MeshCore/test_nrf-fota/fota_sender.py` |
+| Companion-relay variant we mirror | `../MeshCore/test_nrf-fota/fota_sender_mcpy.py` |
 | Companion `CMD_*` codes + RESP codes | `../MeshCore/examples/companion_radio/MyMesh.cpp` |
 | Protocol reference impl (same frames) | `D:\FkDev\FkProj\VSC\meshcore_py` |
-| OTA system deep-dive | `../MeshCore/fkclaude/fcl_readme_tech_nrf-ota.md` |
-| Golden-vector emitter (run on PC) | `../MeshCore/test_nrf-ota/tools/emit_ota_golden.py` |
-| PC `.otapkg.json` export tool | `../MeshCore/test_nrf-ota/ota_export_pkg.py` |
+| FOTA system deep-dive | `../MeshCore/fkclaude/fcl_readme_tech_nrf-ota.md` |
+| Golden-vector emitter (run on PC) | `../MeshCore/test_nrf-fota/tools/emit_ota_golden.py` |
+| PC `.fotapkg.json` export tool | `../MeshCore/test_nrf-fota/fota_export_pkg.py` |
 
 ## Conventions (this fork)
 
@@ -379,10 +385,10 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
   history hygiene). Never commit to `dev`/`main` directly. Co-Author trailer per global rules.
 - **Save the work log:** keep `fkclaude/fcl_readme_nrf-ota-flutterapp.md` updated with what was
   advised, done, and why (so context survives a Reload Window / new session).
-- **Isolation discipline:** OTA logic in NEW files (`lib/ota/`, `lib/screens/ota_screen.dart`,
-  `lib/services/ota_key_store.dart`). Touch upstream files minimally (only `meshcore_protocol.dart`
+- **Isolation discipline:** FOTA logic in NEW files (`lib/fota/`, `lib/screens/fota_screen.dart`,
+  `lib/services/fota_key_store.dart`). Touch upstream files minimally (only `meshcore_protocol.dart`
   +1 builder, `repeater_cli_screen.dart` quick-cmds, `repeater_hub_screen.dart` one nav tile).
-- **Byte-exactness mandatory:** OTA output must equal `ota_sender.py` byte-for-byte (golden vectors
-  in `test/fixtures/ota_golden.json`).
+- **Byte-exactness mandatory:** FOTA output must equal `fota_sender.py` byte-for-byte (golden vectors
+  in `test/fixtures/fota_golden.json`).
 - **Portable Flutter:** upstream CLAUDE.md uses `~/flutter/bin/flutter` (portable SDK). Set up
   Flutter zip + Android cmdline-tools + JDK per `fkclaude/fcl_readme_nrf-ota-flutterapp.md`.

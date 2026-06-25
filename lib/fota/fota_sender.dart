@@ -1,31 +1,31 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import '../connector/meshcore_protocol.dart';
-import 'ota_payload_builder.dart';
-import 'ota_types.dart';
+import 'fota_payload_builder.dart';
+import 'fota_types.dart';
 
-abstract class OtaFrameSink {
+abstract class FotaFrameSink {
   Future<void> sendFrame(Uint8List frame);
   Future<void> setRadio(int freqVal, int bwVal, int sf, int cr);
   Future<void> setChannel(int idx, String name, Uint8List psk);
 }
 
-class OtaSendConfig {
+class FotaSendConfig {
   final String channelName;
   final int channelIdx;
   final double freqMHz, bwKHz;
   final int sf, cr;
-  final OtaScope scope;
+  final FotaScope scope;
   final String pathHex;
   final bool applyAfter, applyRadio;
   final int delayMs, tsBase;
-  // Timing / redundancy knobs mirroring ota_sender.py:
+  // Timing / redundancy knobs mirroring fota_sender.py:
   //   headerEvery  → --header-every : resend META+SIG every N chunks (0 = off)
   //   cycles       → --cycles       : repeat the whole broadcast N times (fire-and-forget)
   //   cycleDelayMs → --cycle-delay  : pause between cycles
   final int headerEvery, cycles, cycleDelayMs;
   final Uint8List? seed32; // Ed25519 seed for raw signing; null → zero sig
-  OtaSendConfig({
+  FotaSendConfig({
     required this.channelName,
     required this.channelIdx,
     required this.freqMHz,
@@ -45,24 +45,24 @@ class OtaSendConfig {
   });
 }
 
-enum OtaPhase { setup, chunks, header, apply, done }
+enum FotaPhase { setup, chunks, header, apply, done }
 
-class OtaProgress {
-  final OtaPhase phase;
+class FotaProgress {
+  final FotaPhase phase;
   final int sent, total;
-  OtaProgress(this.phase, this.sent, this.total);
+  FotaProgress(this.phase, this.sent, this.total);
 }
 
-class OtaSender {
-  final OtaFrameSink _sink;
-  final OtaPayloadBuilder _b = OtaPayloadBuilder();
-  OtaSender(this._sink);
+class FotaSender {
+  final FotaFrameSink _sink;
+  final FotaPayloadBuilder _b = FotaPayloadBuilder();
+  FotaSender(this._sink);
 
-  Future<void> send(OtaJob job, OtaSendConfig cfg,
-      {void Function(OtaProgress)? onProgress}) async {
+  Future<void> send(FotaJob job, FotaSendConfig cfg,
+      {void Function(FotaProgress)? onProgress}) async {
     int ts = cfg.tsBase;
 
-    onProgress?.call(OtaProgress(OtaPhase.setup, 0, 0));
+    onProgress?.call(FotaProgress(FotaPhase.setup, 0, 0));
     if (cfg.applyRadio) {
       await _sink.setRadio((cfg.freqMHz * 1000).round(), (cfg.bwKHz * 1000).round(),
           cfg.sf, cfg.cr);
@@ -84,16 +84,16 @@ class OtaSender {
         throw StateError('GRP_DATA data_len ${data.length} > $kGrpDataMaxLen');
       }
       await _sink.sendFrame(
-          buildSendChannelDataFrame(cfg.channelIdx, pathLen, path, kOtaMagic, data));
+          buildSendChannelDataFrame(cfg.channelIdx, pathLen, path, kFotaMagic, data));
       if (cfg.delayMs > 0) await Future.delayed(Duration(milliseconds: cfg.delayMs));
     }
 
     final patch = job.patch;
-    final total = (patch.length / kOtaChunkData).ceil();
+    final total = (patch.length / kFotaChunkData).ceil();
     final oldPrefix = job.oldSha256.sublist(0, 4);
 
     // header = META + SIG (built once, reused across cycles / redundancy resends)
-    final patchSha = OtaPayloadBuilder.sha256(patch);
+    final patchSha = FotaPayloadBuilder.sha256(patch);
     final meta = job.presignedMeta ??
         _b.buildMeta(patch.length, patchSha, job.newSha256, job.oldSha256);
     final sig = job.presignedSig ?? _b.buildSig(meta, cfg.seed32, job.keyId);
@@ -109,12 +109,12 @@ class OtaSender {
     for (int cycle = 0; cycle < cycles; cycle++) {
       // chunks (hend order: chunks first)
       for (int i = 0; i < total; i++) {
-        final start = i * kOtaChunkData;
-        final end = (start + kOtaChunkData).clamp(0, patch.length);
+        final start = i * kFotaChunkData;
+        final end = (start + kFotaChunkData).clamp(0, patch.length);
         await snd(_b.buildChunk(
             i, Uint8List.sublistView(patch, start, end), job.oldFwSize, oldPrefix));
         doneChunks++;
-        onProgress?.call(OtaProgress(OtaPhase.chunks, doneChunks, grandTotal));
+        onProgress?.call(FotaProgress(FotaPhase.chunks, doneChunks, grandTotal));
         // HEADER redundancy: META+SIG is the single critical packet (total=0
         // blocks everything) and has no accumulation advantage like chunks.
         if (cfg.headerEvery > 0 && (i + 1) % cfg.headerEvery == 0) {
@@ -122,11 +122,11 @@ class OtaSender {
         }
       }
 
-      onProgress?.call(OtaProgress(OtaPhase.header, doneChunks, grandTotal));
+      onProgress?.call(FotaProgress(FotaPhase.header, doneChunks, grandTotal));
       await sendHeader();
 
       if (cfg.applyAfter) {
-        onProgress?.call(OtaProgress(OtaPhase.apply, doneChunks, grandTotal));
+        onProgress?.call(FotaProgress(FotaPhase.apply, doneChunks, grandTotal));
         await snd(_b.buildApply(patchSha));
       }
 
@@ -134,16 +134,16 @@ class OtaSender {
         await Future.delayed(Duration(milliseconds: cfg.cycleDelayMs));
       }
     }
-    onProgress?.call(OtaProgress(OtaPhase.done, grandTotal, grandTotal));
+    onProgress?.call(FotaProgress(FotaPhase.done, grandTotal, grandTotal));
   }
 
-  (int, Uint8List) _scopePath(OtaScope scope, String pathHex) {
+  (int, Uint8List) _scopePath(FotaScope scope, String pathHex) {
     switch (scope) {
-      case OtaScope.zerohop:
+      case FotaScope.zerohop:
         return (0, Uint8List(0));
-      case OtaScope.flood:
+      case FotaScope.flood:
         return (0xFF, Uint8List(0));
-      case OtaScope.direct:
+      case FotaScope.direct:
         final p = Uint8List.fromList([
           for (var i = 0; i < pathHex.length; i += 2)
             int.parse(pathHex.substring(i, i + 2), radix: 16)

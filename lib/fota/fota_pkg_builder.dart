@@ -2,22 +2,22 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import 'package:hpatchlite_dart/hpatchlite_dart.dart';
-import 'ota_deflate.dart';
+import 'fota_deflate.dart';
 
-class OtaBuildException implements Exception {
+class FotaBuildException implements Exception {
   final String message;
-  OtaBuildException(this.message);
+  FotaBuildException(this.message);
   @override
-  String toString() => 'OtaBuildException: $message';
+  String toString() => 'FotaBuildException: $message';
 }
 
-class OtaBuildParams {
+class FotaBuildParams {
   final String channelName;
   final int channelIdx;
   final double freqMHz, bwKHz;
   final int sf, cr;
   final String scope, path;
-  OtaBuildParams({
+  FotaBuildParams({
     required this.channelName,
     required this.channelIdx,
     required this.freqMHz,
@@ -35,16 +35,16 @@ Uint8List _u32le(int v) =>
 /// raw inplace diff -> raw DEFLATE (512-byte window, windowBits=9) ->
 /// staged ZLIB blob: ['Z','L','I','B'][uncompSize u32le][newFwSize u32le][deflate].
 ///
-/// Calls [deflateRaw512] (platform-conditional via ota_deflate.dart):
+/// Calls [deflateRaw512] (platform-conditional via fota_deflate.dart):
 /// - Native: dart:io ZLibCodec(raw:true, windowBits:9) — exact 512-byte window.
 /// - Web: archive Deflate(windowBits:9) — verified exact 512-byte window
-///   (see ota_deflate_web.dart and test/ota/ota_deflate_web_test.dart).
+///   (see fota_deflate_web.dart and test/fota/fota_deflate_web_test.dart).
 /// Output is decodable by the device puff_stream (512-byte window).
 Uint8List buildStagedPatch(Uint8List oldFw, Uint8List newFw) {
   final raw = createInplaceLiteDiff(oldFw, newFw);
   // deflateRaw512: raw DEFLATE, 512-byte LZ77 window (windowBits=9).
   // On native uses dart:io ZLibCodec (exact); on web uses archive Deflate
-  // (best-effort 512-byte window — see ota_deflate_web.dart).
+  // (best-effort 512-byte window — see fota_deflate_web.dart).
   final deflate = deflateRaw512(raw);
   final b = BytesBuilder()
     ..add(ascii.encode('ZLIB'))
@@ -54,25 +54,25 @@ Uint8List buildStagedPatch(Uint8List oldFw, Uint8List newFw) {
   return b.toBytes();
 }
 
-String buildOtaPkgJson(
+String buildFotaPkgJson(
     {required Uint8List oldFw,
     required Uint8List newFw,
-    required OtaBuildParams p}) {
+    required FotaBuildParams p}) {
   // self-check: never emit a silently-wrong package
   final raw = createInplaceLiteDiff(oldFw, newFw);
   final applied = applyInplaceLiteDiff(raw, oldFw);
   if (applied.length != newFw.length) {
-    throw OtaBuildException(
+    throw FotaBuildException(
         'self-check failed: length ${applied.length} != ${newFw.length}');
   }
   for (var i = 0; i < newFw.length; i++) {
     if (applied[i] != newFw[i]) {
-      throw OtaBuildException('self-check failed at byte $i');
+      throw FotaBuildException('self-check failed at byte $i');
     }
   }
   final staged = buildStagedPatch(oldFw, newFw);
   final pkg = {
-    'format': 'mc-fotanrf-otapkg/1',
+    'format': 'mc-fotanrf-fotapkg/1',
     'created': '1970-01-01T00:00:00Z',
     'channel': {'name': p.channelName, 'idx': p.channelIdx},
     'radio': {'freq': p.freqMHz, 'bw': p.bwKHz, 'sf': p.sf, 'cr': p.cr},

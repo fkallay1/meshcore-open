@@ -6,7 +6,7 @@ import 'package:meshcore_open/connector/meshcore_protocol.dart';
 
 void main() {
   test('buildSendChannelDataFrame matches python META frame (zerohop, idx=1)', () {
-    final g = jsonDecode(File('test/fixtures/ota_golden.json').readAsStringSync());
+    final g = jsonDecode(File('test/fixtures/fota_golden.json').readAsStringSync());
     final meta = _hex(g['meta_hex'] as String);
     final ts = g['inputs']['ts'] as int;
     final data = BytesBuilder()

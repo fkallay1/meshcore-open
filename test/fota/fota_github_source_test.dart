@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:meshcore_open/ota/ota_fw_catalog.dart';
-import 'package:meshcore_open/ota/ota_fw_source.dart';
-import 'package:meshcore_open/ota/ota_github_source.dart';
+import 'package:meshcore_open/fota/fota_fw_catalog.dart';
+import 'package:meshcore_open/fota/fota_fw_source.dart';
+import 'package:meshcore_open/fota/fota_github_source.dart';
 
 http.Client _fake(Map<String, String> routes) {
   return MockClient((req) async {
@@ -63,16 +63,16 @@ void main() {
   });
 
   test('fetchReleases parses tags into role+version+assets', () async {
-    final src = OtaGithubSource(client: _fake({'/releases': releasesJson}));
+    final src = FotaGithubSource(client: _fake({'/releases': releasesJson}));
     final rels = await src.fetchReleases();
-    expect(rels.where((r) => r.role == OtaFwRole.repeater).length, 2);
-    expect(rels.where((r) => r.role == OtaFwRole.roomServer).length, 1);
+    expect(rels.where((r) => r.role == FotaFwRole.repeater).length, 2);
+    expect(rels.where((r) => r.role == FotaFwRole.roomServer).length, 1);
     final r = rels.firstWhere((r) => r.version == '1.17.0');
     expect(r.assets.single.downloadUrl, 'https://example/ProMicro-1.17.0.zip');
   });
 
   test('fetchNrfBoardNamesLower keeps only NRF52_PLATFORM variants', () async {
-    final src = OtaGithubSource(
+    final src = FotaGithubSource(
         client: _fake({
       '/git/trees/': treesJson,
       'variants/promicro/platformio.ini': '-D NRF52_PLATFORM',
@@ -84,14 +84,14 @@ void main() {
   });
 
   test('loadCatalog yields nRF-only devices for the chosen role', () async {
-    final src = OtaGithubSource(
+    final src = FotaGithubSource(
         client: _fake({
       '/releases': releasesJson,
       '/git/trees/': treesJson,
       'variants/promicro/platformio.ini': '-D NRF52_PLATFORM',
       'variants/xiao_c3/platformio.ini': '-D ESP32',
     }));
-    final cat = await src.loadCatalog(OtaFwRole.repeater);
+    final cat = await src.loadCatalog(FotaFwRole.repeater);
     expect(cat.devices, ['ProMicro']); // xiao_c3 is esp32 → excluded
     expect(cat.releases.map((r) => r.version).toList(), ['1.17.0', '1.16.0']);
   });
@@ -102,22 +102,22 @@ void main() {
       hits++;
       return http.Response(releasesJson, 200);
     });
-    final src = OtaGithubSource(client: c);
+    final src = FotaGithubSource(client: c);
     await src.fetchReleases();              // populates cache (hit 1)
     await src.fetchReleases();              // served from cache (no hit)
     await src.fetchReleases(refresh: true); // bypasses cache (hit 2)
     expect(hits, 2);
   });
 
-  test('throws OtaGithubException on non-200', () async {
-    final src = OtaGithubSource(
+  test('throws FotaGithubException on non-200', () async {
+    final src = FotaGithubSource(
         client: MockClient((_) async => http.Response('nope', 404)));
-    expect(() => src.fetchReleases(), throwsA(isA<OtaGithubException>()));
+    expect(() => src.fetchReleases(), throwsA(isA<FotaGithubException>()));
   });
 
-  test('OtaGithubSource is an OtaFwSource and targets a custom repo', () async {
+  test('FotaGithubSource is an FotaFwSource and targets a custom repo', () async {
     String? seenReleasesUrl;
-    final src = OtaGithubSource(
+    final src = FotaGithubSource(
       repo: 'myfork/MeshCore',
       client: MockClient((req) async {
         final u = req.url.toString();
@@ -128,14 +128,14 @@ void main() {
         return http.Response('[]', 200);
       }),
     );
-    expect(src, isA<OtaFwSource>());
+    expect(src, isA<FotaFwSource>());
     await src.fetchReleases();
     expect(seenReleasesUrl, contains('myfork/MeshCore'));
   });
 
   test('defaults to meshcore-dev/MeshCore when repo not given', () async {
     String? seenUrl;
-    final src = OtaGithubSource(client: MockClient((req) async {
+    final src = FotaGithubSource(client: MockClient((req) async {
       seenUrl = req.url.toString();
       return http.Response('[]', 200);
     }));

@@ -1,28 +1,28 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'ota_fw_catalog.dart';
-import 'ota_fw_source.dart';
+import 'fota_fw_catalog.dart';
+import 'fota_fw_source.dart';
 
 /// Fetches MeshCore firmware releases + nRF variant definitions from GitHub and
-/// builds an [OtaFwCatalog]. Pure-IO; all parsing/selection lives in the catalog.
-class OtaGithubSource implements OtaFwSource {
+/// builds an [FotaFwCatalog]. Pure-IO; all parsing/selection lives in the catalog.
+class FotaGithubSource implements FotaFwSource {
   final String repo;
   final String branch;
   final http.Client _client;
-  OtaGithubSource({
+  FotaGithubSource({
     this.repo = 'meshcore-dev/MeshCore',
     this.branch = 'main',
     http.Client? client,
   }) : _client = client ?? http.Client();
 
-  List<OtaRelease>? _releases;
+  List<FotaRelease>? _releases;
   Set<String>? _nrf;
 
   Future<String> _getApi(String url) async {
     final res = await _client.get(Uri.parse(url),
         headers: {'Accept': 'application/vnd.github+json'});
     if (res.statusCode != 200) {
-      throw OtaGithubException('GET $url → HTTP ${res.statusCode}');
+      throw FotaGithubException('GET $url → HTTP ${res.statusCode}');
     }
     return res.body;
   }
@@ -30,40 +30,40 @@ class OtaGithubSource implements OtaFwSource {
   Future<String> _getRaw(String url) async {
     final res = await _client.get(Uri.parse(url));
     if (res.statusCode != 200) {
-      throw OtaGithubException('GET $url → HTTP ${res.statusCode}');
+      throw FotaGithubException('GET $url → HTTP ${res.statusCode}');
     }
     return res.body;
   }
 
   static final _tagRe = RegExp(r'^(?:repeater|room-server)-v(.+)$');
 
-  OtaFwRole? _roleForTag(String tag) {
-    if (tag.startsWith('repeater-v')) return OtaFwRole.repeater;
-    if (tag.startsWith('room-server-v')) return OtaFwRole.roomServer;
+  FotaFwRole? _roleForTag(String tag) {
+    if (tag.startsWith('repeater-v')) return FotaFwRole.repeater;
+    if (tag.startsWith('room-server-v')) return FotaFwRole.roomServer;
     return null;
   }
 
-  Future<List<OtaRelease>> fetchReleases({bool refresh = false}) async {
+  Future<List<FotaRelease>> fetchReleases({bool refresh = false}) async {
     if (_releases != null && !refresh) return _releases!;
     final body = await _getApi(
         'https://api.github.com/repos/$repo/releases?per_page=100');
     final list = (jsonDecode(body) as List).cast<Map<String, dynamic>>();
-    final out = <OtaRelease>[];
+    final out = <FotaRelease>[];
     for (final r in list) {
       final tag = r['tag_name'] as String? ?? '';
       final m = _tagRe.firstMatch(tag);
-      if (m == null) continue; // not an OTA firmware release tag
+      if (m == null) continue; // not an FOTA firmware release tag
       final version = m.group(1)!;
       final role = _roleForTag(tag)!;
-      final assets = <OtaReleaseAsset>[];
+      final assets = <FotaReleaseAsset>[];
       for (final a in (r['assets'] as List? ?? const [])) {
         final m = a as Map<String, dynamic>;
-        assets.add(OtaReleaseAsset(
+        assets.add(FotaReleaseAsset(
           name: m['name'] as String,
           downloadUrl: m['browser_download_url'] as String,
         ));
       }
-      out.add(OtaRelease(role: role, version: version, tag: tag, assets: assets));
+      out.add(FotaRelease(role: role, version: version, tag: tag, assets: assets));
     }
     return _releases = out;
   }
@@ -89,17 +89,17 @@ class OtaGithubSource implements OtaFwSource {
   }
 
   @override
-  Future<OtaFwCatalog> loadCatalog(OtaFwRole role, {bool refresh = false}) async {
+  Future<FotaFwCatalog> loadCatalog(FotaFwRole role, {bool refresh = false}) async {
     final releases = await fetchReleases(refresh: refresh);
     final nrf = await fetchNrfBoardNamesLower(refresh: refresh);
-    return buildOtaCatalog(
+    return buildFotaCatalog(
         role: role, releases: releases, nrfBoardNamesLower: nrf);
   }
 }
 
-class OtaGithubException implements Exception {
+class FotaGithubException implements Exception {
   final String message;
-  OtaGithubException(this.message);
+  FotaGithubException(this.message);
   @override
-  String toString() => 'OtaGithubException: $message';
+  String toString() => 'FotaGithubException: $message';
 }

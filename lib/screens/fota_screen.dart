@@ -5,19 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../connector/meshcore_connector.dart';
 import '../connector/meshcore_protocol.dart';
-import '../ota/browser_download.dart';
-import '../ota/ota_asset_download.dart';
-import '../ota/ota_pkg_builder.dart';
-import '../ota/ota_sender.dart';
-import '../ota/ota_types.dart';
-import '../ota/ota_github_source.dart';
-import '../ota/otapkg.dart';
-import '../services/ota_key_store.dart';
-import 'ota_fw_picker.dart';
+import '../fota/browser_download.dart';
+import '../fota/fota_asset_download.dart';
+import '../fota/fota_pkg_builder.dart';
+import '../fota/fota_sender.dart';
+import '../fota/fota_types.dart';
+import '../fota/fota_github_source.dart';
+import '../fota/fotapkg.dart';
+import '../services/fota_key_store.dart';
+import 'fota_fw_picker.dart';
 
-class _ConnectorOtaSink implements OtaFrameSink {
+class _ConnectorFotaSink implements FotaFrameSink {
   final MeshCoreConnector c;
-  _ConnectorOtaSink(this.c);
+  _ConnectorFotaSink(this.c);
   @override
   Future<void> sendFrame(Uint8List frame) => c.sendFrame(frame);
   @override
@@ -28,30 +28,30 @@ class _ConnectorOtaSink implements OtaFrameSink {
       c.sendFrame(buildSetChannelFrame(idx, name, psk));
 }
 
-/// Reusable OTA sender screen. The only difference between launching it from a
+/// Reusable FOTA sender screen. The only difference between launching it from a
 /// repeater admin hub and from the global FOTA Broadcast settings entry is the
 /// header target ([headerTarget]); the whole send flow below is shared.
 ///
-/// OTA is a channel GRP_DATA broadcast — it needs no repeater login, so this
+/// FOTA is a channel GRP_DATA broadcast — it needs no repeater login, so this
 /// screen can run without being connected/authenticated to any repeater.
-class OtaScreen extends StatefulWidget {
+class FotaScreen extends StatefulWidget {
   /// Shown in the app-bar as "FOTA → [headerTarget]" (repeater name or "Broadcast").
   final String headerTarget;
-  const OtaScreen({super.key, required this.headerTarget});
+  const FotaScreen({super.key, required this.headerTarget});
   @override
-  State<OtaScreen> createState() => _OtaScreenState();
+  State<FotaScreen> createState() => _FotaScreenState();
 }
 
-class _OtaScreenState extends State<OtaScreen> {
-  OtaPkg? _pkg;
+class _FotaScreenState extends State<FotaScreen> {
+  FotaPkg? _pkg;
   String? _pkgLabel; // názov načítaného balíka (zobrazený na tlačidle výberu)
-  OtaFwSelection? _fwSelection;
+  FotaFwSelection? _fwSelection;
   String _log = '';
   double _progress = 0;
   bool _busy = false;
 
-  // Send-mode / timing options (mirror ota_sender.py CLI flags).
-  OtaScope _scope = OtaScope.zerohop; // --scope (ZeroHop default)
+  // Send-mode / timing options (mirror fota_sender.py CLI flags).
+  FotaScope _scope = FotaScope.zerohop; // --scope (ZeroHop default)
   final _pathController = TextEditingController(); // --path (scope=direct)
   final _delayController = TextEditingController(text: '300'); // --delay [ms]
   final _cyclesController = TextEditingController(text: '1'); // --cycles
@@ -74,7 +74,7 @@ class _OtaScreenState extends State<OtaScreen> {
     return v;
   }
 
-  OtaBuildParams _buildParams() => OtaBuildParams(
+  FotaBuildParams _buildParams() => FotaBuildParams(
         channelName: '#fkotanrf',
         channelIdx: 1,
         freqMHz: 869.618,
@@ -87,8 +87,8 @@ class _OtaScreenState extends State<OtaScreen> {
 
   Future<void> _loadGeneratedPkg(Uint8List oldFw, Uint8List newFw, String label) async {
     _append('Generujem patch ($label)…');
-    final json = buildOtaPkgJson(oldFw: oldFw, newFw: newFw, p: _buildParams());
-    final pkg = OtaPkg.fromJsonString(json);
+    final json = buildFotaPkgJson(oldFw: oldFw, newFw: newFw, p: _buildParams());
+    final pkg = FotaPkg.fromJsonString(json);
     setState(() {
       _pkg = pkg;
       _pkgLabel = label;
@@ -96,7 +96,7 @@ class _OtaScreenState extends State<OtaScreen> {
       _pathController.text = pkg.pathHex;
     });
     _append('Hotovo: patch=${pkg.patchLen}B '
-        'chunkov=${(pkg.patchLen / kOtaChunkData).ceil()}');
+        'chunkov=${(pkg.patchLen / kFotaChunkData).ceil()}');
   }
 
   Future<void> _createFromGithub() async {
@@ -208,12 +208,13 @@ class _OtaScreenState extends State<OtaScreen> {
   }
 
   Future<void> _pickPkg() async {
-    const group = XTypeGroup(label: 'otapkg', extensions: ['json', 'otapkg']);
+    const group =
+        XTypeGroup(label: 'fotapkg', extensions: ['json', 'fotapkg', 'otapkg']);
     final file = await openFile(acceptedTypeGroups: [group]);
     if (file == null) return;
     try {
       final bytes = await file.readAsBytes();
-      final pkg = OtaPkg.fromJsonString(String.fromCharCodes(bytes));
+      final pkg = FotaPkg.fromJsonString(String.fromCharCodes(bytes));
       setState(() {
         _pkg = pkg;
         _pkgLabel = file.name;
@@ -223,7 +224,7 @@ class _OtaScreenState extends State<OtaScreen> {
         _pathController.text = pkg.pathHex;
       });
       _append('Loaded ${file.name}: '
-          'patch=${pkg.patchLen}B chunks=${(pkg.patchLen / kOtaChunkData).ceil()} '
+          'patch=${pkg.patchLen}B chunks=${(pkg.patchLen / kFotaChunkData).ceil()} '
           'signed=${pkg.meta != null}');
     } catch (e) {
       _append('ERROR: $e');
@@ -238,7 +239,7 @@ class _OtaScreenState extends State<OtaScreen> {
       _append('Not connected.');
       return;
     }
-    if (_scope == OtaScope.direct && _pathController.text.trim().isEmpty) {
+    if (_scope == FotaScope.direct && _pathController.text.trim().isEmpty) {
       _append('ERROR: scope=direct vyžaduje path (hex hopy).');
       return;
     }
@@ -248,10 +249,10 @@ class _OtaScreenState extends State<OtaScreen> {
     });
     try {
       Uint8List? seed;
-      if (pkg.meta == null) seed = await OtaKeyStore().loadSeed(); // raw → need key
-      await OtaSender(_ConnectorOtaSink(c)).send(
+      if (pkg.meta == null) seed = await FotaKeyStore().loadSeed(); // raw → need key
+      await FotaSender(_ConnectorFotaSink(c)).send(
         pkg.toJob(),
-        OtaSendConfig(
+        FotaSendConfig(
           channelName: pkg.channelName,
           channelIdx: pkg.channelIdx,
           freqMHz: pkg.freqMHz,
@@ -261,7 +262,7 @@ class _OtaScreenState extends State<OtaScreen> {
           scope: _scope,
           pathHex: _pathController.text.trim(),
           applyAfter: apply,
-          // OTA obrazovka nemení rádio companiona — predpoklad: companion je už
+          // FOTA obrazovka nemení rádio companiona — predpoklad: companion je už
           // naladený na rovnakú sieť (freq/bw/sf/cr) ako repeater. Mení sa len kanál.
           applyRadio: false,
           delayMs: _intField(_delayController, 300),
@@ -301,8 +302,8 @@ class _OtaScreenState extends State<OtaScreen> {
             childrenPadding: const EdgeInsets.only(bottom: 8),
             title: const Text('Priprav z GitHubu'),
             children: [
-              OtaFwPicker(
-                sourceFactory: (repo) => OtaGithubSource(repo: repo),
+              FotaFwPicker(
+                sourceFactory: (repo) => FotaGithubSource(repo: repo),
                 onSelection: (s) => setState(() => _fwSelection = s),
               ),
               const SizedBox(height: 8),
@@ -348,7 +349,7 @@ class _OtaScreenState extends State<OtaScreen> {
           ElevatedButton.icon(
             onPressed: _busy ? null : _pickPkg,
             icon: const Icon(Icons.folder_open),
-            label: Text(_pkgLabel ?? 'Vyber .otapkg.json'),
+            label: Text(_pkgLabel ?? 'Vyber .fotapkg.json'),
           ),
           if (pkg != null) ...[
             const SizedBox(height: 8),
@@ -357,10 +358,10 @@ class _OtaScreenState extends State<OtaScreen> {
                 Text('Kanál: ${pkg.channelName} [${pkg.channelIdx}]   '
                     'Rádio: ${pkg.freqMHz}/${pkg.bwKHz}/SF${pkg.sf}/CR${pkg.cr}'),
                 Text('Patch: ${pkg.patchLen} B   '
-                    'chunkov: ${(pkg.patchLen / kOtaChunkData).ceil()}   '
+                    'chunkov: ${(pkg.patchLen / kFotaChunkData).ceil()}   '
                     'signed: ${pkg.meta != null}'),
                 const SizedBox(height: 8),
-                DropdownButtonFormField<OtaScope>(
+                DropdownButtonFormField<FotaScope>(
                   initialValue: _scope,
                   decoration: const InputDecoration(
                     labelText: 'Scope (LoRa šírenie)',
@@ -369,19 +370,19 @@ class _OtaScreenState extends State<OtaScreen> {
                   ),
                   items: const [
                     DropdownMenuItem(
-                        value: OtaScope.zerohop,
+                        value: FotaScope.zerohop,
                         child: Text('ZeroHop — len priami susedia (default)')),
                     DropdownMenuItem(
-                        value: OtaScope.flood,
+                        value: FotaScope.flood,
                         child: Text('Flood — každý repeater re-flooduje')),
                     DropdownMenuItem(
-                        value: OtaScope.direct,
+                        value: FotaScope.direct,
                         child: Text('Direct — cez menované hopy (path)')),
                   ],
                   onChanged:
-                      _busy ? null : (v) => setState(() => _scope = v ?? OtaScope.zerohop),
+                      _busy ? null : (v) => setState(() => _scope = v ?? FotaScope.zerohop),
                 ),
-                if (_scope == OtaScope.direct) ...[
+                if (_scope == FotaScope.direct) ...[
                   const SizedBox(height: 8),
                   TextField(
                     controller: _pathController,

@@ -79,6 +79,32 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-25 (RENAME OTA → FOTA — celý fork FOTA modul)** — nová vetva `feature/nrf-fota-sender`
+  (z `feature/nrf-ota-sender`). Mirror firmware renamu (`../MeshCore`, `features/nrf-fota`, handoff
+  `../MeshCore/fkclaude/docs/fota-rename-handoff.md`). **Verified: `flutter test test/fota` 49/49,
+  `flutter analyze lib test/fota` clean** (2 pre-existujúce `unnecessary_non_null_assertion` warningy
+  v `fota_asset_download_test.dart` — `archive` API, NIE z renamu).
+  - **Wire protokol NEZMENENÝ** — kanál `#fkotanrf` (zámerne ponechaný, obsahuje „ota"!), data_type
+    `0x07A0`, payload typy, AES/HMAC/Ed25519 — všetko ostalo. Premenovali sa len NÁZVY.
+  - **Adresáre/súbory:** `lib/ota/` → `lib/fota/`, `ota_*.dart` → `fota_*.dart`, `otapkg.dart` →
+    `fotapkg.dart`, `lib/screens/ota_screen.dart` → `fota_screen.dart`, `ota_fw_picker.dart` →
+    `fota_fw_picker.dart`, `lib/services/ota_key_store.dart` → `fota_key_store.dart`, `test/ota/` →
+    `test/fota/`, `test/fixtures/ota_golden.json` → `fota_golden.json`, `sample.otapkg.json` →
+    `sample.fotapkg.json`. Všetko cez `git mv` (zachovaná história).
+  - **Identifikátory:** `Ota*` → `Fota*` (FotaPkg, FotaSender, FotaScreen, FotaJob, FotaScope,
+    FotaKeyStore, FotaPayloadBuilder, FotaFwCatalog, …), `kOta*` → `kFota*` konšt., `otaRoleInfix` →
+    `fotaRoleInfix`, `otaPackageFileName` → `fotaPackageFileName`. Bulk cez `perl` (ordered:
+    `otapkg`→`fotapkg`, `Ota`→`Fota`, `ota_`→`fota_`, `/ota/`→`/fota/`, `nrf-ota`→`nrf-fota`,
+    `\bOTA\b`→`FOTA`) na izolovaných FOTA súboroch; zdieľané súbory surgicky.
+  - **Balíček `.fotapkg.json`:** generátor (`fota_pkg_builder.dart`) emituje `mc-fotanrf-fotapkg/1` +
+    názov `*.fotapkg.json`. **Backward-compat:** parser (`fotapkg.dart`) akceptuje aj legacy
+    `mc-fotanrf-otapkg/1`; file picker akceptuje prípony `json`/`fotapkg`/`otapkg`.
+  - **CLI quick-cmds** (`repeater_cli_screen.dart`): `ota status`/`ota verify` → `fota status`/
+    `fota verify` (companion drží oba tvary, keep-both — handoff §2).
+  - **Zdieľané súbory (minimálne dotknuté):** `meshcore_protocol.dart` (komentár cesty),
+    `repeater_hub_screen.dart` (import + `FotaScreen`), `settings_screen.dart` (import + `FotaScreen`
+    + komentár), `repeater_cli_screen.dart` (quick-cmds). `CLAUDE.md` FK fork sekcia aktualizovaná.
+
 - **2026-06-25 (tooling: centralizácia .otapkg.json + push do telefónu)** — v `../MeshCore/test_nrf-ota/`:
   - **Nový adresár `fotapkg_json/`** — všetky `*.otapkg.json` presunuté sem (preč z koreňa
     `test_nrf-ota/`). `gen_otapkg.py` default `--out-dir` zmenený na `fotapkg_json/` (+ auto-mkdir),

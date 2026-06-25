@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:meshcore_open/ota/ota_github_source.dart';
-import 'package:meshcore_open/ota/ota_fw_source.dart';
-import 'package:meshcore_open/screens/ota_fw_picker.dart';
+import 'package:meshcore_open/fota/fota_github_source.dart';
+import 'package:meshcore_open/fota/fota_fw_source.dart';
+import 'package:meshcore_open/screens/fota_fw_picker.dart';
 
-OtaFwSource _source(String repo) {
+FotaFwSource _source(String repo) {
   final releases = jsonEncode([
     {'tag_name': 'repeater-v1.17.0', 'assets': [
       {'name': 'ProMicro_repeater-v1.17.0-def.zip', 'browser_download_url': 'https://e/p-1.17.zip'}]},
@@ -16,7 +16,7 @@ OtaFwSource _source(String repo) {
   ]);
   final trees = jsonEncode({'tree': [
     {'path': 'variants/promicro/platformio.ini', 'type': 'blob'}]});
-  return OtaGithubSource(repo: repo, client: MockClient((req) async {
+  return FotaGithubSource(repo: repo, client: MockClient((req) async {
     final u = req.url.toString();
     if (u.contains('/releases')) return http.Response(releases, 200);
     if (u.contains('/git/trees/')) return http.Response(trees, 200);
@@ -29,10 +29,10 @@ OtaFwSource _source(String repo) {
 
 void main() {
   testWidgets('loads via the factory and applies defaults', (tester) async {
-    OtaFwSelection? sel;
+    FotaFwSelection? sel;
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: OtaFwPicker(sourceFactory: _source, onSelection: (s) => sel = s),
+        body: FotaFwPicker(sourceFactory: _source, onSelection: (s) => sel = s),
       ),
     ));
     await tester.pumpAndSettle();
@@ -41,7 +41,7 @@ void main() {
     expect(sel!.targetVersion, '1.17.0');
     expect(sel!.currentVersion, '1.16.0');
     expect(sel!.packageFileName,
-        'ProMicro_repeater_v1.16.0_to_v1.17.0.otapkg.json');
+        'ProMicro_repeater_v1.16.0_to_v1.17.0.fotapkg.json');
     expect(find.text('ProMicro'), findsWidgets);            // device dropdown rendered
     // repo-source dropdown defaults to the meshcore-dev/MeshCore preset
     expect(find.text('meshcore-dev/MeshCore'), findsWidgets);
@@ -49,7 +49,7 @@ void main() {
 
   testWidgets('selecting Custom reveals a free-text repo field', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      home: Scaffold(body: OtaFwPicker(sourceFactory: _source)),
+      home: Scaffold(body: FotaFwPicker(sourceFactory: _source)),
     ));
     await tester.pumpAndSettle();
     // no custom TextField until "Custom…" is chosen

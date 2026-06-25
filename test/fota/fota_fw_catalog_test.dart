@@ -1,69 +1,69 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/ota/ota_fw_catalog.dart';
+import 'package:meshcore_open/fota/fota_fw_catalog.dart';
 
 void main() {
-  group('parseOtaAssetName', () {
+  group('parseFotaAssetName', () {
     test('parses a repeater zip', () {
-      final info = parseOtaAssetName('ProMicro_repeater-v1.16.0-07a3ca9.zip');
+      final info = parseFotaAssetName('ProMicro_repeater-v1.16.0-07a3ca9.zip');
       expect(info, isNotNull);
       expect(info!.device, 'ProMicro');
-      expect(info.role, OtaFwRole.repeater);
+      expect(info.role, FotaFwRole.repeater);
       expect(info.version, '1.16.0');
       expect(info.ext, 'zip');
       expect(info.isMerged, false);
     });
 
     test('parses a room_server bin with underscored device', () {
-      final info = parseOtaAssetName('Heltec_v3_room_server-v1.16.0-07a3ca9.bin');
+      final info = parseFotaAssetName('Heltec_v3_room_server-v1.16.0-07a3ca9.bin');
       expect(info!.device, 'Heltec_v3');
-      expect(info.role, OtaFwRole.roomServer);
+      expect(info.role, FotaFwRole.roomServer);
       expect(info.ext, 'bin');
       expect(info.isMerged, false);
     });
 
     test('flags merged bins', () {
-      final info = parseOtaAssetName('Heltec_v3_room_server-v1.16.0-07a3ca9-merged.bin');
+      final info = parseFotaAssetName('Heltec_v3_room_server-v1.16.0-07a3ca9-merged.bin');
       expect(info!.isMerged, true);
     });
 
     test('returns null for non-matching names', () {
-      expect(parseOtaAssetName('README.txt'), isNull);
+      expect(parseFotaAssetName('README.txt'), isNull);
     });
   });
 
-  group('selectOtaAsset', () {
+  group('selectFotaAsset', () {
     final assets = [
-      OtaReleaseAsset(name: 'ProMicro_repeater-v1.16.0-abc.uf2', downloadUrl: 'u'),
-      OtaReleaseAsset(name: 'ProMicro_repeater-v1.16.0-abc.zip', downloadUrl: 'z'),
-      OtaReleaseAsset(name: 'Heltec_v3_repeater-v1.16.0-abc-merged.bin', downloadUrl: 'm'),
-      OtaReleaseAsset(name: 'Heltec_v3_repeater-v1.16.0-abc.bin', downloadUrl: 'b'),
+      FotaReleaseAsset(name: 'ProMicro_repeater-v1.16.0-abc.uf2', downloadUrl: 'u'),
+      FotaReleaseAsset(name: 'ProMicro_repeater-v1.16.0-abc.zip', downloadUrl: 'z'),
+      FotaReleaseAsset(name: 'Heltec_v3_repeater-v1.16.0-abc-merged.bin', downloadUrl: 'm'),
+      FotaReleaseAsset(name: 'Heltec_v3_repeater-v1.16.0-abc.bin', downloadUrl: 'b'),
     ];
     test('prefers a non-merged bin over zip/uf2', () {
-      final a = selectOtaAsset(assets, 'Heltec_v3', OtaFwRole.repeater);
+      final a = selectFotaAsset(assets, 'Heltec_v3', FotaFwRole.repeater);
       expect(a!.downloadUrl, 'b');
     });
     test('falls back to zip when no standalone bin', () {
-      final a = selectOtaAsset(assets, 'ProMicro', OtaFwRole.repeater);
+      final a = selectFotaAsset(assets, 'ProMicro', FotaFwRole.repeater);
       expect(a!.downloadUrl, 'z'); // never the .uf2
     });
     test('never selects a merged bin or a uf2', () {
       final onlyBad = [
-        OtaReleaseAsset(name: 'X_repeater-v1.0.0-abc-merged.bin', downloadUrl: 'm'),
-        OtaReleaseAsset(name: 'X_repeater-v1.0.0-abc.uf2', downloadUrl: 'u'),
+        FotaReleaseAsset(name: 'X_repeater-v1.0.0-abc-merged.bin', downloadUrl: 'm'),
+        FotaReleaseAsset(name: 'X_repeater-v1.0.0-abc.uf2', downloadUrl: 'u'),
       ];
-      expect(selectOtaAsset(onlyBad, 'X', OtaFwRole.repeater), isNull);
+      expect(selectFotaAsset(onlyBad, 'X', FotaFwRole.repeater), isNull);
     });
   });
 
-  test('otaPackageFileName carries device + both versions', () {
-    final n = otaPackageFileName(
-      device: 'ProMicro', role: OtaFwRole.repeater,
+  test('fotaPackageFileName carries device + both versions', () {
+    final n = fotaPackageFileName(
+      device: 'ProMicro', role: FotaFwRole.repeater,
       currentVersion: '1.16.0', targetVersion: '1.17.0');
-    expect(n, 'ProMicro_repeater_v1.16.0_to_v1.17.0.otapkg.json');
+    expect(n, 'ProMicro_repeater_v1.16.0_to_v1.17.0.fotapkg.json');
   });
 
-  test('compareOtaVersionsDesc orders newest first', () {
-    final v = ['1.16.0', '1.17.0', '1.16.2']..sort(compareOtaVersionsDesc);
+  test('compareFotaVersionsDesc orders newest first', () {
+    final v = ['1.16.0', '1.17.0', '1.16.2']..sort(compareFotaVersionsDesc);
     expect(v, ['1.17.0', '1.16.2', '1.16.0']);
   });
 
@@ -90,13 +90,13 @@ void main() {
     });
   });
 
-  group('buildOtaCatalog', () {
-    OtaRelease rel(String ver, List<String> assetNames) => OtaRelease(
-          role: OtaFwRole.repeater,
+  group('buildFotaCatalog', () {
+    FotaRelease rel(String ver, List<String> assetNames) => FotaRelease(
+          role: FotaFwRole.repeater,
           version: ver,
           tag: 'repeater-v$ver',
           assets: [
-            for (final n in assetNames) OtaReleaseAsset(name: n, downloadUrl: '$n#u'),
+            for (final n in assetNames) FotaReleaseAsset(name: n, downloadUrl: '$n#u'),
           ],
         );
     final releases = [
@@ -110,15 +110,15 @@ void main() {
     final nrf = {'promicro', 'xiao_nrf52'};
 
     test('devices are nRF ∩ have-usable-asset, releases newest-first', () {
-      final cat = buildOtaCatalog(
-          role: OtaFwRole.repeater, releases: releases, nrfBoardNamesLower: nrf);
+      final cat = buildFotaCatalog(
+          role: FotaFwRole.repeater, releases: releases, nrfBoardNamesLower: nrf);
       expect(cat.devices, ['ProMicro']); // Heltec_v3 + xiao_c3 filtered out
       expect(cat.releases.map((r) => r.version).toList(), ['1.17.0', '1.16.0']);
     });
 
     test('assetFor resolves the right download url per device+version', () {
-      final cat = buildOtaCatalog(
-          role: OtaFwRole.repeater, releases: releases, nrfBoardNamesLower: nrf);
+      final cat = buildFotaCatalog(
+          role: FotaFwRole.repeater, releases: releases, nrfBoardNamesLower: nrf);
       expect(cat.assetFor('ProMicro', '1.17.0')!.downloadUrl,
           'ProMicro_repeater-v1.17.0-def.zip#u');
       expect(cat.assetFor('ProMicro', '9.9.9'), isNull);
