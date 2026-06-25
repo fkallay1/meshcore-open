@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../connector/meshcore_connector.dart';
 import '../connector/meshcore_protocol.dart';
-import '../fota/browser_download.dart';
-import '../fota/fota_asset_download.dart';
-import '../fota/fota_pkg_builder.dart';
-import '../fota/fota_sender.dart';
-import '../fota/fota_types.dart';
-import '../fota/fota_github_source.dart';
-import '../fota/fotapkg.dart';
-import '../services/fota_key_store.dart';
+import 'fota_browser_download.dart';
+import 'fota_asset_download.dart';
+import 'fota_pkg_builder.dart';
+import 'fota_sender.dart';
+import 'fota_types.dart';
+import 'fota_github_source.dart';
+import 'fotapkg.dart';
+import 'fota_key_store.dart';
 import 'fota_fw_picker.dart';
 
 class _ConnectorFotaSink implements FotaFrameSink {

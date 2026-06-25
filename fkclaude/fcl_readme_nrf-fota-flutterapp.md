@@ -79,6 +79,22 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-25 (konsolidácia FOTA do `lib/fota/` + fota_ prefix)** — všetok FOTA kód zjednotený pod
+  `lib/fota/`, aby bola príslušnosť k FOTA úpravám jasná z názvu aj umiestnenia. **Verified: `flutter
+  test test/fota` 49/49, `flutter analyze lib test/fota` clean** (tie isté 2 pre-existujúce warningy).
+  - **Presunuté do `lib/fota/`:** `screens/fota_screen.dart`, `screens/fota_fw_picker.dart`,
+    `services/fota_key_store.dart` → `lib/fota/`. Upstream adresáre `lib/screens/` a `lib/services/`
+    už neobsahujú žiadny fork súbor (lepšia izolácia pri `git pull upstream`).
+  - **Prefix `fota_`:** `browser_download*.dart` → `fota_browser_download*.dart`;
+    `test/fota/channel_data_frame_test.dart` → `fota_channel_data_frame_test.dart`,
+    `crc16_test.dart` → `fota_crc16_test.dart`; fixture `test_ed25519_seed.hex` →
+    `fota_ed25519_seed.hex`. (`fotapkg.dart` ponechané — už začína „fota".)
+  - **Importy:** `fota_screen`/`fota_fw_picker` interné importy zmenené na same-dir (`'fota_*.dart'`);
+    `repeater_hub_screen.dart` + `settings_screen.dart` → `import '../fota/fota_screen.dart'`; testy →
+    `package:meshcore_open/fota/…`. Cez `git mv` (história zachovaná).
+  - **Ponechané mimo `lib/fota/`:** `packages/hpatchlite_dart/` (zámerne generická/publikovateľná
+    knižnica, nie FOTA-špecifická) + 4 dotknuté upstream súbory (protocol/cli/hub/settings).
+
 - **2026-06-25 (RENAME OTA → FOTA — celý fork FOTA modul)** — nová vetva `feature/nrf-fota-sender`
   (z `feature/nrf-ota-sender`). Mirror firmware renamu (`../MeshCore`, `features/nrf-fota`, handoff
   `../MeshCore/fkclaude/docs/fota-rename-handoff.md`). **Verified: `flutter test test/fota` 49/49,

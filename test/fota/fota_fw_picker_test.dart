@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:meshcore_open/fota/fota_github_source.dart';
 import 'package:meshcore_open/fota/fota_fw_source.dart';
-import 'package:meshcore_open/screens/fota_fw_picker.dart';
+import 'package:meshcore_open/fota/fota_fw_picker.dart';
 
 FotaFwSource _source(String repo) {
   final releases = jsonEncode([

@@ -385,9 +385,13 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
   history hygiene). Never commit to `dev`/`main` directly. Co-Author trailer per global rules.
 - **Save the work log:** keep `fkclaude/fcl_readme_nrf-fota-flutterapp.md` updated with what was
   advised, done, and why (so context survives a Reload Window / new session).
-- **Isolation discipline:** FOTA logic in NEW files (`lib/fota/`, `lib/screens/fota_screen.dart`,
-  `lib/services/fota_key_store.dart`). Touch upstream files minimally (only `meshcore_protocol.dart`
-  +1 builder, `repeater_cli_screen.dart` quick-cmds, `repeater_hub_screen.dart` one nav tile).
+- **Isolation discipline:** ALL FOTA logic is self-contained under `lib/fota/` (sender, payload
+  builder, package parse/build, screen, fw picker/catalog/source, downloader, key store) — every
+  file is `fota_*`-named (or `fotapkg.dart`). Tests live in `test/fota/` (`fota_*`), fixtures in
+  `test/fixtures/fota_*`. Touch upstream files minimally — only: `meshcore_protocol.dart` (+1
+  CMD-62 builder), `repeater_cli_screen.dart` (quick-cmds), `repeater_hub_screen.dart` (one nav
+  tile), `settings_screen.dart` (FOTA Broadcast entry). The reusable `packages/hpatchlite_dart/`
+  delta engine is intentionally generic/publishable (not `fota_`-prefixed).
 - **Byte-exactness mandatory:** FOTA output must equal `fota_sender.py` byte-for-byte (golden vectors
   in `test/fixtures/fota_golden.json`).
 - **Portable Flutter:** upstream CLAUDE.md uses `~/flutter/bin/flutter` (portable SDK). Set up

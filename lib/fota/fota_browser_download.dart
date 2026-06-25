@@ -4,5 +4,5 @@
 /// Native platforms never call this (they download directly via http).
 library;
 
-export 'browser_download_stub.dart'
-    if (dart.library.js_interop) 'browser_download_web.dart';
+export 'fota_browser_download_stub.dart'
+    if (dart.library.js_interop) 'fota_browser_download_web.dart';

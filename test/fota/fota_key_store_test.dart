@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/services/fota_key_store.dart';
+import 'package:meshcore_open/fota/fota_key_store.dart';
 
 void main() {
   test('seedFromPkcs8Der extracts the 32B seed (matches fixture seed)', () {
     // A 48-byte Ed25519 PKCS#8 DER whose seed is 00..1f (same as golden seed).
-    final seedHex = File('test/fixtures/test_ed25519_seed.hex').readAsStringSync().trim();
+    final seedHex = File('test/fixtures/fota_ed25519_seed.hex').readAsStringSync().trim();
     final seed = Uint8List.fromList(
         [for (var i = 0; i < seedHex.length; i += 2) int.parse(seedHex.substring(i, i + 2), radix: 16)]);
     // Standard PKCS#8 Ed25519 prefix (RFC 8410), 16 bytes, then 32B seed:
