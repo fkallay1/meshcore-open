@@ -355,10 +355,10 @@ PWA scaffold present but boilerplate (`manifest.json` and `index.html` are unmod
 ## Read first each session
 
 - **`fkclaude/`** holds the maintainer's working docs, prefixed `fcl_*`. **Read `fcl_*` files at
-  the start of a session** when touching their subject area. Primary: `fkclaude/fcl_readme_nrf-ota-flutterapp.md`.
+  the start of a session** when touching their subject area. Primary: `fkclaude/fcl_readme_nrf-fota-flutterapp.md`.
 - **Design spec + implementation plan** for the OTA feature:
   - `fkclaude/docs/superpowers/specs/2026-06-23-mc-fotanrf-flutterapp-design.md`
-  - `fkclaude/docs/superpowers/plans/2026-06-23-nrf-ota-sender.md`  ← task-by-task, TDD, byte-exact.
+  - `fkclaude/docs/superpowers/plans/2026-06-23-nrf-fota-sender.md`  ← task-by-task, TDD, byte-exact.
 
 ## FOTA reference lives in the sibling MeshCore firmware repo
 
@@ -383,7 +383,7 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
   fork-helper material.
 - **Autonomous commits** on the feature branch (commit/push milestones without asking; OneDrive
   history hygiene). Never commit to `dev`/`main` directly. Co-Author trailer per global rules.
-- **Save the work log:** keep `fkclaude/fcl_readme_nrf-ota-flutterapp.md` updated with what was
+- **Save the work log:** keep `fkclaude/fcl_readme_nrf-fota-flutterapp.md` updated with what was
   advised, done, and why (so context survives a Reload Window / new session).
 - **Isolation discipline:** FOTA logic in NEW files (`lib/fota/`, `lib/screens/fota_screen.dart`,
   `lib/services/fota_key_store.dart`). Touch upstream files minimally (only `meshcore_protocol.dart`
@@ -391,4 +391,4 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
 - **Byte-exactness mandatory:** FOTA output must equal `fota_sender.py` byte-for-byte (golden vectors
   in `test/fixtures/fota_golden.json`).
 - **Portable Flutter:** upstream CLAUDE.md uses `~/flutter/bin/flutter` (portable SDK). Set up
-  Flutter zip + Android cmdline-tools + JDK per `fkclaude/fcl_readme_nrf-ota-flutterapp.md`.
+  Flutter zip + Android cmdline-tools + JDK per `fkclaude/fcl_readme_nrf-fota-flutterapp.md`.

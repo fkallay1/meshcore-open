@@ -1,4 +1,4 @@
-# fcl_readme_nrf-ota-flutterapp — pracovné poznámky (Fedor Kallay)
+# fcl_readme_nrf-fota-flutterapp — pracovné poznámky (Fedor Kallay)
 
 Pracovný/údržbový denník pre **nRF-OTA sender** vo Flutter appke (fork `fkallay1/meshcore-open`).
 Čítaj na začiatku session. Dvojča pre firmvér je `../MeshCore/fkclaude/`.
@@ -23,7 +23,7 @@ textových príkazov do repeatera — reuse `repeater_cli_screen`).
 | | |
 |---|---|
 | **Spec** | `fkclaude/docs/superpowers/specs/2026-06-23-mc-fotanrf-flutterapp-design.md` |
-| **Plán** (task-by-task, TDD) | `fkclaude/docs/superpowers/plans/2026-06-23-nrf-ota-sender.md` |
+| **Plán** (task-by-task, TDD) | `fkclaude/docs/superpowers/plans/2026-06-23-nrf-fota-sender.md` |
 | **Konvencie + cross-ref** | `CLAUDE.md` → sekcia „FK fork — nRF-OTA sender" |
 | **Firmvér / wire formát** | `../MeshCore` (súrodenec na disku) |
 

@@ -54,7 +54,7 @@ send order (default 'hend'): chunks…, then META, then SIG, then (optional) APP
 Done in the scaffold session: cloned `fkallay1/meshcore-open` → `D:\FkDev\FkProj\VSC\meshcore-open`,
 added `upstream = zjs81/meshcore-open`, created branch `feature/nrf-ota-sender` (pushed). Spec + plan
 live at `fkclaude/docs/superpowers/specs|plans/` (helper-docs convention — NOT `docs/`). CLAUDE.md
-fork section + `fkclaude/fcl_readme_nrf-ota-flutterapp.md` + project memory created.
+fork section + `fkclaude/fcl_readme_nrf-fota-flutterapp.md` + project memory created.
 
 - [ ] **Step 3: Add the two new dependencies**
 
