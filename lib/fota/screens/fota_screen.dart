@@ -26,6 +26,17 @@ class _ConnectorFotaSink implements FotaFrameSink {
   @override
   Future<void> setChannel(int idx, String name, Uint8List psk) =>
       c.sendFrame(buildSetChannelFrame(idx, name, psk));
+  @override
+  Future<void> setFloodScope(Uint8List? key16) {
+    if (key16 != null) {
+      return c.sendFrame(buildSetFloodScopeKeyFrame(key16));
+    }
+    // Clear: ver 12+ supports an explicit "force unscoped" that ignores the
+    // companion's default scope; older firmware only resets the override.
+    return c.sendFrame((c.firmwareVerCode ?? 0) >= 12
+        ? buildSetFloodScopeUnscopedFrame()
+        : buildSetFloodScopeFrame(''));
+  }
 }
 
 /// Reusable FOTA sender screen. The only difference between launching it from a
@@ -53,6 +64,9 @@ class _FotaScreenState extends State<FotaScreen> {
   // Send-mode / timing options (mirror fota_sender.py CLI flags).
   FotaScope _scope = FotaScope.zerohop; // --scope (ZeroHop default)
   final _pathController = TextEditingController(); // --path (scope=direct)
+  int _pathHashSize = 1; // --path-hashsize (scope=direct: 1/2/3 B per hop)
+  final _regionController = TextEditingController(); // --scope-name / --scope-key
+  bool _regionAsKey = false; // false = #názov, true = 16B hex kľúč
   final _delayController = TextEditingController(text: '300'); // --delay [ms]
   final _cyclesController = TextEditingController(text: '1'); // --cycles
   final _headerEveryController = TextEditingController(text: '0'); // --header-every
@@ -60,6 +74,7 @@ class _FotaScreenState extends State<FotaScreen> {
   @override
   void dispose() {
     _pathController.dispose();
+    _regionController.dispose();
     _delayController.dispose();
     _cyclesController.dispose();
     _headerEveryController.dispose();
@@ -83,6 +98,9 @@ class _FotaScreenState extends State<FotaScreen> {
         cr: 5,
         scope: _scope.name,
         path: _pathController.text.trim(),
+        pathHashSize: _pathHashSize,
+        scopeName: _regionAsKey ? '' : _regionController.text.trim(),
+        scopeKey: _regionAsKey ? _regionController.text.trim() : '',
       );
 
   Future<void> _loadGeneratedPkg(Uint8List oldFw, Uint8List newFw, String label) async {
@@ -92,8 +110,7 @@ class _FotaScreenState extends State<FotaScreen> {
     setState(() {
       _pkg = pkg;
       _pkgLabel = label;
-      _scope = pkg.scope;
-      _pathController.text = pkg.pathHex;
+      _adoptPkgScope(pkg);
     });
     _append('Hotovo: patch=${pkg.patchLen}B '
         'chunkov=${(pkg.patchLen / kFotaChunkData).ceil()}');
@@ -220,8 +237,7 @@ class _FotaScreenState extends State<FotaScreen> {
         _pkgLabel = file.name;
         // Adopt the package's recommended scope (defaults to zerohop) and path,
         // but the controls below let the user override them per send.
-        _scope = pkg.scope;
-        _pathController.text = pkg.pathHex;
+        _adoptPkgScope(pkg);
       });
       _append('Loaded ${file.name}: '
           'patch=${pkg.patchLen}B chunks=${(pkg.patchLen / kFotaChunkData).ceil()} '
@@ -229,6 +245,42 @@ class _FotaScreenState extends State<FotaScreen> {
     } catch (e) {
       _append('ERROR: $e');
     }
+  }
+
+  // Adopt a loaded package's recommended scope/path/region into the editable
+  // controls (the user can still override before sending). Caller wraps in setState.
+  void _adoptPkgScope(FotaPkg pkg) {
+    _scope = pkg.scope;
+    _pathController.text = pkg.pathHex;
+    _pathHashSize = (pkg.pathHashSize >= 1 && pkg.pathHashSize <= 3) ? pkg.pathHashSize : 1;
+    _regionAsKey = pkg.scopeKeyHex.isNotEmpty;
+    _regionController.text = _regionAsKey ? pkg.scopeKeyHex : pkg.scopeName;
+  }
+
+  // Resolve the 16-byte region transport key from the UI (name → SHA256("#"+name)
+  // like the firmware; or a raw 32-hex-char key). Returns null + logs on error.
+  Uint8List? _resolveRegionKey() {
+    final raw = _regionController.text.trim();
+    if (raw.isEmpty) {
+      _append('ERROR: scope=region vyžaduje názov regiónu alebo 16B hex kľúč.');
+      return null;
+    }
+    if (!_regionAsKey) return fotaRegionKeyFromName(raw);
+    final hex = raw.startsWith('0x') ? raw.substring(2) : raw;
+    if (hex.length != 32) {
+      _append('ERROR: 16B kľúč musí mať 32 hex znakov (má ${hex.length}).');
+      return null;
+    }
+    final bytes = <int>[];
+    for (var i = 0; i < 32; i += 2) {
+      final b = int.tryParse(hex.substring(i, i + 2), radix: 16);
+      if (b == null) {
+        _append('ERROR: neplatný hex v 16B kľúči.');
+        return null;
+      }
+      bytes.add(b);
+    }
+    return Uint8List.fromList(bytes);
   }
 
   Future<void> _send({required bool apply}) async {
@@ -240,8 +292,13 @@ class _FotaScreenState extends State<FotaScreen> {
       return;
     }
     if (_scope == FotaScope.direct && _pathController.text.trim().isEmpty) {
-      _append('ERROR: scope=direct vyžaduje path (hex hopy).');
+      _append('ERROR: scope=direct vyžaduje path (hex hopy oddelené čiarkou).');
       return;
+    }
+    Uint8List? regionKey;
+    if (_scope == FotaScope.region) {
+      regionKey = _resolveRegionKey();
+      if (regionKey == null) return;
     }
     setState(() {
       _busy = true;
@@ -261,6 +318,8 @@ class _FotaScreenState extends State<FotaScreen> {
           cr: pkg.cr,
           scope: _scope,
           pathHex: _pathController.text.trim(),
+          pathHashSize: _pathHashSize,
+          scopeKey: regionKey,
           applyAfter: apply,
           // FOTA obrazovka nemení rádio companiona — predpoklad: companion je už
           // naladený na rovnakú sieť (freq/bw/sf/cr) ako repeater. Mení sa len kanál.
@@ -376,20 +435,78 @@ class _FotaScreenState extends State<FotaScreen> {
                         value: FotaScope.flood,
                         child: Text('Flood — každý repeater re-flooduje')),
                     DropdownMenuItem(
+                        value: FotaScope.region,
+                        child: Text('Region — flood len v zhodnom regióne')),
+                    DropdownMenuItem(
                         value: FotaScope.direct,
                         child: Text('Direct — cez menované hopy (path)')),
                   ],
                   onChanged:
                       _busy ? null : (v) => setState(() => _scope = v ?? FotaScope.zerohop),
                 ),
+                if (_scope == FotaScope.region) ...[
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<bool>(
+                    initialValue: _regionAsKey,
+                    decoration: const InputDecoration(
+                      labelText: 'Región zadaný ako',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                          value: false, child: Text('Názov (#hashtag)')),
+                      DropdownMenuItem(
+                          value: true, child: Text('16-bajtový hex kľúč')),
+                    ],
+                    onChanged: _busy
+                        ? null
+                        : (v) => setState(() => _regionAsKey = v ?? false),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _regionController,
+                    enabled: !_busy,
+                    decoration: InputDecoration(
+                      labelText: _regionAsKey
+                          ? '16B kľúč (32 hex znakov)'
+                          : 'Názov regiónu (napr. mesh → #mesh)',
+                      helperText: _regionAsKey
+                          ? 'Surový transport kľúč.'
+                          : 'Kľúč = SHA256("#"+názov)[:16]; companion dopočíta transport code.',
+                      helperMaxLines: 2,
+                      border: const OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                  ),
+                ],
                 if (_scope == FotaScope.direct) ...[
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<int>(
+                    initialValue: _pathHashSize,
+                    decoration: const InputDecoration(
+                      labelText: 'Path hashsize (bajtov/hop)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 1, child: Text('1 bajt/hop')),
+                      DropdownMenuItem(value: 2, child: Text('2 bajty/hop')),
+                      DropdownMenuItem(value: 3, child: Text('3 bajty/hop')),
+                    ],
+                    onChanged: _busy
+                        ? null
+                        : (v) => setState(() => _pathHashSize = v ?? 1),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _pathController,
                     enabled: !_busy,
-                    decoration: const InputDecoration(
-                      labelText: 'Path (hex hopy, napr. 3fa1b2)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: _pathHashSize == 1
+                          ? 'Path (hopy oddelené čiarkou, napr. 3f,a1,b2)'
+                          : 'Path (hopy po ${_pathHashSize}B, napr. ${_pathHashSize == 2 ? "3fa1,b2c3" : "aabbcc,ddeeff"})',
+                      border: const OutlineInputBorder(),
                       isDense: true,
                     ),
                   ),

@@ -17,6 +17,9 @@ class FotaPkg {
   final int sf, cr;
   final FotaScope scope;
   final String pathHex;
+  final int pathHashSize; // direct: bytes per hop (1/2/3)
+  final String scopeName; // region: hashtag name (key derived from it)
+  final String scopeKeyHex; // region: raw 16-byte key as hex (alt. to name)
   final Uint8List oldSha256, newSha256, patchSha256, patch;
   final int oldFwSize, patchLen, keyId;
   final Uint8List? meta, sig; // present iff pre-signed
@@ -30,6 +33,9 @@ class FotaPkg {
     required this.cr,
     required this.scope,
     required this.pathHex,
+    this.pathHashSize = 1,
+    this.scopeName = '',
+    this.scopeKeyHex = '',
     required this.oldSha256,
     required this.newSha256,
     required this.patchSha256,
@@ -75,6 +81,9 @@ class FotaPkg {
       cr: (radio['cr'] as num).toInt(),
       scope: _scope(j['scope'] as String?),
       pathHex: (j['path'] as String?) ?? '',
+      pathHashSize: (j['path_hashsize'] as num?)?.toInt() ?? 1,
+      scopeName: (j['scope_name'] as String?) ?? '',
+      scopeKeyHex: (j['scope_key'] as String?) ?? '',
       oldSha256: _hex(fw['old_sha256'], 'old_sha256'),
       newSha256: _hex(fw['new_sha256'], 'new_sha256'),
       patchSha256: patchSha,
@@ -101,6 +110,8 @@ class FotaPkg {
     switch (s) {
       case 'flood':
         return FotaScope.flood;
+      case 'region':
+        return FotaScope.region;
       case 'direct':
         return FotaScope.direct;
       case 'zerohop':

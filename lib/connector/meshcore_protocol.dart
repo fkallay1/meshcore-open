@@ -1061,3 +1061,18 @@ Uint8List buildSetFloodScopeFrame(String region) {
 
   return Uint8List.fromList([cmdSetFloodScope, 0, ...scope]);
 }
+
+// CMD_SET_FLOOD_SCOPE with a raw 16-byte transport key.
+// Format: [54][0][16-byte key]. Sets the companion's send_scope override so the
+// next flood packets carry that region's transport code.
+Uint8List buildSetFloodScopeKeyFrame(Uint8List key16) {
+  if (key16.length != 16) {
+    throw ArgumentError('flood scope key must be 16 bytes, got ${key16.length}');
+  }
+  return Uint8List.fromList([cmdSetFloodScope, 0, ...key16]);
+}
+
+// CMD_SET_FLOOD_SCOPE "force unscoped" (companion firmware ver 12+).
+// Format: [54][1]. Forces plain unscoped flood, ignoring any default scope.
+Uint8List buildSetFloodScopeUnscopedFrame() =>
+    Uint8List.fromList([cmdSetFloodScope, 1]);

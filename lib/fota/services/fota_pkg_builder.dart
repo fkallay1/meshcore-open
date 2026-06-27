@@ -17,6 +17,8 @@ class FotaBuildParams {
   final double freqMHz, bwKHz;
   final int sf, cr;
   final String scope, path;
+  final int pathHashSize;
+  final String scopeName, scopeKey; // region: name OR raw 16-byte hex key
   FotaBuildParams({
     required this.channelName,
     required this.channelIdx,
@@ -26,6 +28,9 @@ class FotaBuildParams {
     required this.cr,
     this.scope = 'zerohop',
     this.path = '',
+    this.pathHashSize = 1,
+    this.scopeName = '',
+    this.scopeKey = '',
   });
 }
 
@@ -78,6 +83,9 @@ String buildFotaPkgJson(
     'radio': {'freq': p.freqMHz, 'bw': p.bwKHz, 'sf': p.sf, 'cr': p.cr},
     'scope': p.scope,
     'path': p.path,
+    'path_hashsize': p.pathHashSize,
+    'scope_name': p.scopeName,
+    'scope_key': p.scopeKey,
     'fw': {
       'old_sha256': _hex(c.sha256.convert(oldFw).bytes),
       'new_sha256': _hex(c.sha256.convert(newFw).bytes),

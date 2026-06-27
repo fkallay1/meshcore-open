@@ -25,6 +25,14 @@ class _FakeSink implements FotaFrameSink {
     chIdx = i;
     chName = n;
   }
+
+  int floodScopeCalls = 0;
+  Uint8List? lastFloodScopeKey;
+  @override
+  Future<void> setFloodScope(Uint8List? key16) async {
+    floodScopeCalls++;
+    lastFloodScopeKey = key16;
+  }
 }
 
 void main() {
@@ -140,5 +148,103 @@ void main() {
     // chunks + (total ~/ every) redundancy header pairs + final META + SIG
     final redundant = (total ~/ every) * 2;
     expect(sink.frames.length, total + redundant + 2);
+  });
+
+  test('region scope sets the companion flood scope key and floods', () async {
+    final pkg = FotaPkg.fromJsonString(
+        File('test/fixtures/sample.fotapkg.json').readAsStringSync());
+    final sink = _FakeSink();
+    final key = fotaRegionKeyFromName('mesh');
+    await FotaSender(sink).send(
+        pkg.toJob(),
+        FotaSendConfig(
+            channelName: pkg.channelName,
+            channelIdx: pkg.channelIdx,
+            freqMHz: pkg.freqMHz,
+            bwKHz: pkg.bwKHz,
+            sf: pkg.sf,
+            cr: pkg.cr,
+            scope: FotaScope.region,
+            scopeKey: key,
+            delayMs: 0,
+            applyRadio: false,
+            tsBase: 1,
+            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+    expect(sink.floodScopeCalls, 1);
+    expect(sink.lastFloodScopeKey, key);
+    // region floods (path_len byte at frame index 2 = 0xFF; companion adds code)
+    expect(sink.frames.every((f) => f[2] == 0xFF), true);
+  });
+
+  test('flood scope clears the companion flood scope (pure flood)', () async {
+    final pkg = FotaPkg.fromJsonString(
+        File('test/fixtures/sample.fotapkg.json').readAsStringSync());
+    final sink = _FakeSink();
+    await FotaSender(sink).send(
+        pkg.toJob(),
+        FotaSendConfig(
+            channelName: pkg.channelName,
+            channelIdx: pkg.channelIdx,
+            freqMHz: pkg.freqMHz,
+            bwKHz: pkg.bwKHz,
+            sf: pkg.sf,
+            cr: pkg.cr,
+            scope: FotaScope.flood,
+            delayMs: 0,
+            applyRadio: false,
+            tsBase: 1,
+            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+    expect(sink.floodScopeCalls, 1);
+    expect(sink.lastFloodScopeKey, isNull);
+    expect(sink.frames.every((f) => f[2] == 0xFF), true);
+  });
+
+  test('zerohop clears flood scope and uses path_len 0', () async {
+    final pkg = FotaPkg.fromJsonString(
+        File('test/fixtures/sample.fotapkg.json').readAsStringSync());
+    final sink = _FakeSink();
+    await FotaSender(sink).send(
+        pkg.toJob(),
+        FotaSendConfig(
+            channelName: pkg.channelName,
+            channelIdx: pkg.channelIdx,
+            freqMHz: pkg.freqMHz,
+            bwKHz: pkg.bwKHz,
+            sf: pkg.sf,
+            cr: pkg.cr,
+            scope: FotaScope.zerohop,
+            delayMs: 0,
+            applyRadio: false,
+            tsBase: 1,
+            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+    expect(sink.lastFloodScopeKey, isNull);
+    expect(sink.frames.every((f) => f[2] == 0x00), true);
+  });
+
+  test('direct encodes path_len with hashsize and writes comma-parsed hops',
+      () async {
+    final pkg = FotaPkg.fromJsonString(
+        File('test/fixtures/sample.fotapkg.json').readAsStringSync());
+    final sink = _FakeSink();
+    await FotaSender(sink).send(
+        pkg.toJob(),
+        FotaSendConfig(
+            channelName: pkg.channelName,
+            channelIdx: pkg.channelIdx,
+            freqMHz: pkg.freqMHz,
+            bwKHz: pkg.bwKHz,
+            sf: pkg.sf,
+            cr: pkg.cr,
+            scope: FotaScope.direct,
+            pathHex: '3fa1,b2c3',
+            pathHashSize: 2,
+            delayMs: 0,
+            applyRadio: false,
+            tsBase: 1,
+            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+    // ((2-1)<<6)|2 = 0x42
+    expect(sink.frames.every((f) => f[2] == 0x42), true);
+    expect(sink.frames.first.sublist(3, 7), [0x3f, 0xa1, 0xb2, 0xc3]);
+    expect(sink.lastFloodScopeKey, isNull); // direct doesn't flood → scope cleared
   });
 }

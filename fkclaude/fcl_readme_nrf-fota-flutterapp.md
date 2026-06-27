@@ -79,6 +79,40 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-27 (FOTA scope: region + path-hashsize + comma path)** — Dorobené 3 veci do send
+  obrazovky, aby scope zodpovedal `fota_sender.py`. **Verified: `flutter test test/fota` 73/73,
+  `flutter analyze lib` clean** (tie isté 2 pre-existujúce warningy v `fota_asset_download_test.dart`).
+  Subagent-free TDD (RED→GREEN), commit na `feature/nrf-fota-sender`.
+  - **KĽÚČOVÉ zistenie — region cez companion FUNGUJE, len inak než py:** `fota_sender.py` stavia
+    raw LoRa paket aj s transport_codes. Appka ide cez **companion CMD-62**, ktorý transport_codes
+    NEnesie. ALE companion (`MyMesh.cpp:486-520`) si transport_code **dopočíta sám** zo scope kľúča,
+    ktorý sa nastaví ako **stav** cez **CMD_SET_FLOOD_SCOPE=54**: `[54,0,16B key]` = región (override),
+    `[54,0]` = reset, `[54,1]` = vynútený unscoped (v12+). Pri floode companion zoberie `send_scope`
+    (alebo `default_scope`) a spraví `ROUTE_TYPE_TRANSPORT_FLOOD`. **Appka teda len nastaví scope pred
+    odoslaním a pošle flood** — to, čo sama nedokáže (HMAC nad šifrou). `sendGroupData`→`sendFloodScoped`.
+  - **Region key derivácia (interop s repeaterom!):** firmvér (`TransportKeyStore::getAutoKeyFor`) =
+    `SHA256(name)[:16]`, kde `name` má `#` prefix (`RegionMap` prepája `#` ak chýba). Takže
+    `fotaRegionKeyFromName('mesh')==SHA256('#mesh')[:16]`. (Pozn.: `fota_sender.py:615` robí raw
+    `SHA256(name)` bez `#` — appka je bližšie firmvéru; rovnaké ako upstream `buildSetFloodScopeFrame`.)
+  - **Direct hashsize 1/2/3:** companion korektne číta `path_len` bity 6-7 = (hashsize-1), bity 0-5 =
+    hop_count (`Packet.cpp isValidPathLen/writePath`, `MAX_PATH_SIZE=64`). `path_len=((hsz-1)<<6)|hop_count`.
+  - **`region` pri direct nehrá rolu** — direct ide cez `sendDirect`, nie flood; transport_codes len pri floode.
+  - **Zmeny (FOTA-izolované + protocol):**
+    - `lib/fota/models/fota_types.dart`: `FotaScope{+region}`, `fotaRegionKeyFromName(name)`,
+      `fotaScopePath(scope,pathStr,hashSize)` (comma-split, hashsize validácia, FormatException) — pure, testované.
+    - `lib/connector/meshcore_protocol.dart`: `buildSetFloodScopeKeyFrame(key16)` = `[54,0,..16B]`,
+      `buildSetFloodScopeUnscopedFrame()` = `[54,1]` (reuse existujúceho `buildSetFloodScopeFrame('')` pre reset).
+    - `lib/fota/services/fota_sender.dart`: `FotaFrameSink.setFloodScope(key16?)`, `FotaSendConfig`
+      +`pathHashSize`/`scopeKey`; pred odoslaním `setFloodScope(region?key:null)`; `_scopePath`→`fotaScopePath`.
+    - `lib/fota/screens/fota_screen.dart`: adaptér `setFloodScope` (verzia-aware clear: v12+ `[54,1]`,
+      inak `[54,0]`), region dropdown + sub-vstup (názov #tag / 16B hex), path-hashsize dropdown,
+      comma path hint, `_resolveRegionKey()` validácia, round-trip cez `_adoptPkgScope`.
+    - `lib/fota/services/fota_pkg_builder.dart` + `lib/fota/models/fotapkg.dart`: `.fotapkg.json`
+      nesie `path_hashsize`/`scope_name`/`scope_key` (optional, default 1/''/''; backward-compat).
+  - **POZOR (edge case):** pre čistý flood na companione **v8-11** ide `[54,0]` (reset override) — ak má
+    companion nastavený **persistent default_scope** (CMD 63), flood by ostal scoped. v12+ rieši `[54,1]`.
+    Default scope appka zámerne nemaže (persist do prefs = intruzívne). Reálne väčšina companionov default nemá.
+
 - **2026-06-26 (FOTA modul rozdelený do podadresárov)** — `lib/fota/` rozčlenené tak, aby zrkadlilo
   top-level `lib/` (prehľadnosť „čo je čo"). **Verified: `flutter test test/fota` 49/49, `flutter
   analyze lib test/fota` clean** (tie isté 2 pre-existujúce warningy).

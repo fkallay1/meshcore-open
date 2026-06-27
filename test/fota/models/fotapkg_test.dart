@@ -19,6 +19,14 @@ void main() {
     expect(job.patch.length, pkg.patchLen);
   });
 
+  test('defaults path_hashsize to 1 and region fields to empty when absent', () {
+    final pkg = FotaPkg.fromJsonString(
+        File('test/fixtures/sample.fotapkg.json').readAsStringSync());
+    expect(pkg.pathHashSize, 1);
+    expect(pkg.scopeName, '');
+    expect(pkg.scopeKeyHex, '');
+  });
+
   test('rejects a package with a corrupted patch hash', () {
     // Corrupt the declared patch_sha256 so the sha256-mismatch branch fires
     // with an FotaPkgException (not a raw cast/type error).

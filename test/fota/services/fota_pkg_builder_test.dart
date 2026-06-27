@@ -5,6 +5,7 @@ import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart' as c;
 import 'package:meshcore_open/fota/services/fota_pkg_builder.dart';
 import 'package:meshcore_open/fota/models/fotapkg.dart';
+import 'package:meshcore_open/fota/models/fota_types.dart';
 
 void main() {
   final oldFw = Uint8List.fromList(List.generate(2048, (i) => i & 0xFF));
@@ -39,5 +40,26 @@ void main() {
     // FotaPkg.fromJsonString already verifies patch_sha256 == sha256(staged patch)
     // (throws otherwise), so a successful parse proves the staged patch integrity.
     expect((jsonDecode(json) as Map)['format'], 'mc-fotanrf-fotapkg/1');
+  });
+
+  test('round-trips direct scope path + hashsize', () {
+    final p = FotaBuildParams(
+        channelName: '#fkotanrf', channelIdx: 1,
+        freqMHz: 869.618, bwKHz: 62.5, sf: 8, cr: 5,
+        scope: 'direct', path: '3fa1,b2c3', pathHashSize: 2);
+    final pkg = FotaPkg.fromJsonString(buildFotaPkgJson(oldFw: oldFw, newFw: newFw, p: p));
+    expect(pkg.scope, FotaScope.direct);
+    expect(pkg.pathHex, '3fa1,b2c3');
+    expect(pkg.pathHashSize, 2);
+  });
+
+  test('round-trips region scope name', () {
+    final p = FotaBuildParams(
+        channelName: '#fkotanrf', channelIdx: 1,
+        freqMHz: 869.618, bwKHz: 62.5, sf: 8, cr: 5,
+        scope: 'region', scopeName: 'mesh');
+    final pkg = FotaPkg.fromJsonString(buildFotaPkgJson(oldFw: oldFw, newFw: newFw, p: p));
+    expect(pkg.scope, FotaScope.region);
+    expect(pkg.scopeName, 'mesh');
   });
 }

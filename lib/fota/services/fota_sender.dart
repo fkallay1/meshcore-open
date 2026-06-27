@@ -8,6 +8,11 @@ abstract class FotaFrameSink {
   Future<void> sendFrame(Uint8List frame);
   Future<void> setRadio(int freqVal, int bwVal, int sf, int cr);
   Future<void> setChannel(int idx, String name, Uint8List psk);
+
+  /// Set the companion's outgoing flood scope before sending. [key16] non-null →
+  /// region scope (companion computes the transport code); null → clear/unscoped
+  /// (pure flood). Has no effect on zero-hop/direct routes (they don't flood).
+  Future<void> setFloodScope(Uint8List? key16);
 }
 
 class FotaSendConfig {
@@ -17,6 +22,10 @@ class FotaSendConfig {
   final int sf, cr;
   final FotaScope scope;
   final String pathHex;
+  // scope=direct: bytes per path hop (1/2/3), mirrors --path-hashsize.
+  final int pathHashSize;
+  // scope=region: 16-byte transport key (companion derives the transport code).
+  final Uint8List? scopeKey;
   final bool applyAfter, applyRadio;
   final int delayMs, tsBase;
   // Timing / redundancy knobs mirroring fota_sender.py:
@@ -34,6 +43,8 @@ class FotaSendConfig {
     required this.cr,
     required this.scope,
     this.pathHex = '',
+    this.pathHashSize = 1,
+    this.scopeKey,
     this.applyAfter = false,
     this.applyRadio = false,
     this.delayMs = 300,
@@ -73,7 +84,14 @@ class FotaSender {
         .sublist(0, 16));
     await _sink.setChannel(cfg.channelIdx, cfg.channelName, psk);
 
-    final (pathLen, path) = _scopePath(cfg.scope, cfg.pathHex);
+    // Flood scope is companion state, not a per-packet field: set the region key
+    // for region scope, otherwise clear it so flood is a true unscoped flood and
+    // no stale region leaks into this broadcast (zero-hop/direct don't flood, but
+    // clearing keeps companion state predictable).
+    await _sink.setFloodScope(cfg.scope == FotaScope.region ? cfg.scopeKey : null);
+
+    final (pathLen, path) =
+        fotaScopePath(cfg.scope, cfg.pathHex, cfg.pathHashSize);
     Future<void> snd(Uint8List payload) async {
       ts += 1; // increasing ts → unique packet (anti-dedup), matches python
       final data = (BytesBuilder()
@@ -135,21 +153,6 @@ class FotaSender {
       }
     }
     onProgress?.call(FotaProgress(FotaPhase.done, grandTotal, grandTotal));
-  }
-
-  (int, Uint8List) _scopePath(FotaScope scope, String pathHex) {
-    switch (scope) {
-      case FotaScope.zerohop:
-        return (0, Uint8List(0));
-      case FotaScope.flood:
-        return (0xFF, Uint8List(0));
-      case FotaScope.direct:
-        final p = Uint8List.fromList([
-          for (var i = 0; i < pathHex.length; i += 2)
-            int.parse(pathHex.substring(i, i + 2), radix: 16)
-        ]);
-        return (p.length, p);
-    }
   }
 
   static Uint8List _u32le(int v) =>
