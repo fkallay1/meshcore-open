@@ -112,6 +112,23 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
   - **POZOR (edge case):** pre čistý flood na companione **v8-11** ide `[54,0]` (reset override) — ak má
     companion nastavený **persistent default_scope** (CMD 63), flood by ostal scoped. v12+ rieši `[54,1]`.
     Default scope appka zámerne nemaže (persist do prefs = intruzívne). Reálne väčšina companionov default nemá.
+  - **⚠️ NEOTESTOVANÉ NA HW (open item):** comma-cesta + 1/2/3B hashsize + **region scope** sú overené
+    len unit-testami (73/73). **Region (a clear flood) cez companion CMD-54 ešte NEBOL otestovaný na
+    reálnom HW** — treba overiť, že companion naozaj dopočíta transport_code a region-flood prejde k
+    repeateru v zhodnom regióne (a že čistý flood po regióne nezostane scoped). Plán testu: v appke
+    FOTA → scope=Region (názov napr. „mesh"), poslať na SenseCap_Solar repeater nakonfigurovaný na ten
+    región; sledovať COM5 log repeatera (RSSI/CRC, či paket prejde region filtrom). Pre v8-11 companion
+    overiť aj čistý flood (reset `[54,0]`).
+  - **HW príprava (2026-06-27 večer):** debug APK (`flutter build apk --debug`, 385 MB) nainštalované
+    cez adb (`install -r`, dev `f161f715`). Na `/sdcard/Download/` pushnuté testovacie sensecap balíky:
+    `185-188.sensecap.fotapkg.json` a `187-190.sensecap.fotapkg.json` (forward upgrade). **POZOR:** delta
+    je viazaná na base build# — repeater musí bežať presne príslušný OLD build (185 resp. 187), inak
+    `err=0x7`. sensecap fota binárky sú lokálne v `../MeshCore/test_nrf-fota/builds/sensecap.fw_<build#>.bin`
+    (gitignored), balíky generuje `gen_fotapkg.py --old .. --new .. --device sensecap` (signed test_key.der);
+    push cez `push_fotapkg.py` alebo `adb push`. „185/187/190" = **FW_BUILD_NUMBER** (nie verzia), inkrement
+    pri každom builde `_fota` envu. GitHub meshcore-dev SenseCap_Solar NEMÁ (fork-only board variant).
+  - **Pozn.:** `build-apk.bat` v roote (release APK launcher, natvrdo `D:\FkDev` cesty) je lokálny
+    machine-specific helper — **zámerne necommitnutý** (fork sleduje upstream; root nie je na fork-helpery).
 
 - **2026-06-26 (FOTA modul rozdelený do podadresárov)** — `lib/fota/` rozčlenené tak, aby zrkadlilo
   top-level `lib/` (prehľadnosť „čo je čo"). **Verified: `flutter test test/fota` 49/49, `flutter
