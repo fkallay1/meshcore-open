@@ -490,7 +490,7 @@ class _FotaScreenState extends State<FotaScreen> {
         }),
       );
       _setResult(
-          'Sent - OK. Req: $req  Sent: ${sink.sent}  All: $allPackets',
+          'Sent -  OK. Req: $req  Sent: ${sink.sent}  All: $allPackets',
           Colors.green);
     } on FotaCancelled {
       _setResult(
