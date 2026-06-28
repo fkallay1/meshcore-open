@@ -18,8 +18,14 @@ import 'fota_fw_picker.dart';
 class _ConnectorFotaSink implements FotaFrameSink {
   final MeshCoreConnector c;
   _ConnectorFotaSink(this.c);
+  // Count only FOTA payload packets (META/SIG/chunk/APPLY go through sendFrame);
+  // setChannel/setFloodScope call c.sendFrame directly and are not counted.
+  int sent = 0;
   @override
-  Future<void> sendFrame(Uint8List frame) => c.sendFrame(frame);
+  Future<void> sendFrame(Uint8List frame) {
+    sent++;
+    return c.sendFrame(frame);
+  }
   @override
   Future<void> setRadio(int freqVal, int bwVal, int sf, int cr) =>
       c.sendFrame(buildSetRadioParamsFrame(freqVal, bwVal, sf, cr));
@@ -67,7 +73,7 @@ class _FotaScreenState extends State<FotaScreen> {
   int _pathHashSize = 1; // --path-hashsize (scope=direct: 1/2/3 B per hop)
   final _regionController = TextEditingController(); // --scope-name / --scope-key
   bool _regionAsKey = false; // false = #názov, true = 16B hex kľúč
-  final _delayController = TextEditingController(text: '300'); // --delay [ms]
+  final _delayController = TextEditingController(text: '3000'); // --delay [ms]
   final _cyclesController = TextEditingController(text: '1'); // --cycles
   final _headerEveryController = TextEditingController(text: '0'); // --header-every
 
@@ -116,6 +122,7 @@ class _FotaScreenState extends State<FotaScreen> {
     setState(() {
       _pkg = pkg;
       _pkgLabel = label;
+      _resetSelection();
       _adoptPkgScope(pkg);
     });
     _append('Hotovo: patch=${pkg.patchLen}B '
@@ -241,6 +248,7 @@ class _FotaScreenState extends State<FotaScreen> {
       setState(() {
         _pkg = pkg;
         _pkgLabel = file.name;
+        _resetSelection();
         // Adopt the package's recommended scope (defaults to zerohop) and path,
         // but the controls below let the user override them per send.
         _adoptPkgScope(pkg);
@@ -251,6 +259,13 @@ class _FotaScreenState extends State<FotaScreen> {
     } catch (e) {
       _append('ERROR: $e');
     }
+  }
+
+  // A newly loaded package resets the send selection back to All (its chunk
+  // count differs, so a stale list would be meaningless). Caller wraps in setState.
+  void _resetSelection() {
+    _selectionMode = false;
+    _selectionController.clear();
   }
 
   // Adopt a loaded package's recommended scope/path/region into the editable
@@ -306,11 +321,11 @@ class _FotaScreenState extends State<FotaScreen> {
       regionKey = _resolveRegionKey();
       if (regionKey == null) return;
     }
+    final total = (pkg.patchLen / kFotaChunkData).ceil();
     // Resolve the selection: an explicit override (APPLY-only button) wins;
     // otherwise parse the text field when in Selection mode; else null = All.
     FotaSelection? sel = selectionOverride;
     if (sel == null && _selectionMode) {
-      final total = (pkg.patchLen / kFotaChunkData).ceil();
       try {
         sel = parseFotaSelection(_selectionController.text, totalChunks: total);
       } on FormatException catch (e) {
@@ -322,6 +337,24 @@ class _FotaScreenState extends State<FotaScreen> {
             'balík má $total — iná session?');
       }
     }
+    // Packet accounting for the result line: Req = how many FOTA packets this
+    // send should emit; Sent = how many actually went out (sink counter);
+    // All = packets in a complete package (all chunks + META + SIG).
+    final cyclesN = _intField(_cyclesController, 1, min: 1);
+    final headerEveryN = _intField(_headerEveryController, 0);
+    final int req;
+    if (sel != null) {
+      req = (sel.chunks.length +
+              (sel.meta ? 1 : 0) +
+              (sel.sig ? 1 : 0) +
+              (apply ? 1 : 0)) *
+          cyclesN;
+    } else {
+      final redundancy = headerEveryN > 0 ? (total ~/ headerEveryN) * 2 : 0;
+      req = (total + 2 + redundancy + (apply ? 1 : 0)) * cyclesN;
+    }
+    final allPackets = total + 2;
+    final sink = _ConnectorFotaSink(c);
     setState(() {
       _busy = true;
       _progress = 0;
@@ -329,7 +362,7 @@ class _FotaScreenState extends State<FotaScreen> {
     try {
       Uint8List? seed;
       if (pkg.meta == null) seed = await FotaKeyStore().loadSeed(); // raw → need key
-      final sender = FotaSender(_ConnectorFotaSink(c));
+      final sender = FotaSender(sink);
       _activeSender = sender;
       await sender.send(
         pkg.toJob(),
@@ -348,9 +381,9 @@ class _FotaScreenState extends State<FotaScreen> {
           // FOTA obrazovka nemení rádio companiona — predpoklad: companion je už
           // naladený na rovnakú sieť (freq/bw/sf/cr) ako repeater. Mení sa len kanál.
           applyRadio: false,
-          delayMs: _intField(_delayController, 300),
-          cycles: _intField(_cyclesController, 1, min: 1),
-          headerEvery: _intField(_headerEveryController, 0),
+          delayMs: _intField(_delayController, 3000),
+          cycles: cyclesN,
+          headerEvery: headerEveryN,
           // ts base = wall-clock epoch seconds (like python senders' int(time.time())).
           // Without this it defaulted to 0, so every send replayed the SAME ts
           // sequence (1,2,3,...). For an unchanged patch the packets were then
@@ -365,11 +398,14 @@ class _FotaScreenState extends State<FotaScreen> {
           _progress = p.total == 0 ? 0 : (p.sent / p.total).clamp(0.0, 1.0);
         }),
       );
-      _append(apply ? 'Done — APPLY sent (repeater will reboot).' : 'Done — all packets sent.');
+      _append('Done - all packets sent. Req: $req  Sent: ${sink.sent}  '
+          'All: $allPackets');
     } on FotaCancelled {
-      _append('Zrušené.');
+      _append('Done - problem - packets send. Req: $req  Sent: ${sink.sent}  '
+          'All: $allPackets  Canceled');
     } catch (e) {
-      _append('ERROR: $e');
+      _append('Done - problem - packets send. Req: $req  Sent: ${sink.sent}  '
+          'All: $allPackets  Error: $e');
     } finally {
       _activeSender = null;
       setState(() => _busy = false);
@@ -411,6 +447,7 @@ class _FotaScreenState extends State<FotaScreen> {
   Future<void> _openSelectionDialog() async {
     final total = _pkg == null ? 0 : (_pkg!.patchLen / kFotaChunkData).ceil();
     bool mode = _selectionMode;
+    String? error;
     await showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -451,6 +488,11 @@ class _FotaScreenState extends State<FotaScreen> {
                   isDense: true,
                 ),
               ),
+              if (error != null) ...[
+                const SizedBox(height: 8),
+                Text(error!,
+                    style: const TextStyle(color: Colors.red, fontSize: 12)),
+              ],
             ],
           ),
           actions: [
@@ -459,6 +501,17 @@ class _FotaScreenState extends State<FotaScreen> {
                 child: const Text('Zrušiť')),
             ElevatedButton(
               onPressed: () {
+                // Validate the list now (on confirm) when in Selection mode, so
+                // typos are caught here rather than silently at send time.
+                if (mode) {
+                  try {
+                    parseFotaSelection(_selectionController.text,
+                        totalChunks: total);
+                  } on FormatException catch (e) {
+                    setLocal(() => error = e.message);
+                    return;
+                  }
+                }
                 setState(() => _selectionMode = mode);
                 Navigator.pop(ctx);
               },
@@ -682,13 +735,6 @@ class _FotaScreenState extends State<FotaScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                       child: ElevatedButton(
-                          onPressed: _busy ? null : _sendApplyOnly,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange),
-                          child: const Text('APPLY'))),
-                  const SizedBox(width: 8),
-                  Expanded(
-                      child: ElevatedButton(
                           onPressed: _busy
                               ? null
                               : () async {
@@ -697,6 +743,13 @@ class _FotaScreenState extends State<FotaScreen> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.deepOrange),
                           child: const Text('Odoslať + APPLY'))),
+                  const SizedBox(width: 8),
+                  Expanded(
+                      child: ElevatedButton(
+                          onPressed: _busy ? null : _sendApplyOnly,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange),
+                          child: const Text('APPLY'))),
                 ]),
               ]),
             ),
