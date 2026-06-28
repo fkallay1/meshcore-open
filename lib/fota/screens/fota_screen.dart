@@ -64,6 +64,8 @@ class _FotaScreenState extends State<FotaScreen> {
   String? _pkgLabel; // názov načítaného balíka (zobrazený na tlačidle výberu)
   FotaFwSelection? _fwSelection;
   String _log = '';
+  String? _result; // final coloured result line (OK green / cancel orange / error red)
+  Color? _resultColor;
   double _progress = 0;
   bool _busy = false;
 
@@ -94,6 +96,12 @@ class _FotaScreenState extends State<FotaScreen> {
   }
 
   void _append(String s) => setState(() => _log = '$_log$s\n');
+
+  void _setResult(String s, Color color) =>
+      setState(() {
+        _result = s;
+        _resultColor = color;
+      });
 
   int _intField(TextEditingController c, int fallback, {int min = 0}) {
     final v = int.tryParse(c.text.trim());
@@ -358,6 +366,7 @@ class _FotaScreenState extends State<FotaScreen> {
     setState(() {
       _busy = true;
       _progress = 0;
+      _result = null;
     });
     try {
       Uint8List? seed;
@@ -398,14 +407,17 @@ class _FotaScreenState extends State<FotaScreen> {
           _progress = p.total == 0 ? 0 : (p.sent / p.total).clamp(0.0, 1.0);
         }),
       );
-      _append('Done - all packets sent. Req: $req  Sent: ${sink.sent}  '
-          'All: $allPackets');
+      _setResult(
+          'Sent - OK. Req: $req  Sent: ${sink.sent}  All: $allPackets',
+          Colors.green);
     } on FotaCancelled {
-      _append('Done - problem - packets send. Req: $req  Sent: ${sink.sent}  '
-          'All: $allPackets  Canceled');
+      _setResult(
+          'Sent - ERR. Req: $req  Sent: ${sink.sent}  All: $allPackets  Cancel',
+          Colors.orange);
     } catch (e) {
-      _append('Done - problem - packets send. Req: $req  Sent: ${sink.sent}  '
-          'All: $allPackets  Error: $e');
+      _setResult(
+          'Sent - ERR. Req: $req  Sent: ${sink.sent}  All: $allPackets  Error: $e',
+          Colors.red);
     } finally {
       _activeSender = null;
       setState(() => _busy = false);
@@ -765,6 +777,19 @@ class _FotaScreenState extends State<FotaScreen> {
               ),
             ]),
           const SizedBox(height: 8),
+          if (_result != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(
+                _result!,
+                style: TextStyle(
+                  color: _resultColor,
+                  fontWeight: FontWeight.w700,
+                  fontFamily: 'monospace',
+                  fontSize: 12.5,
+                ),
+              ),
+            ),
           SizedBox(
             height: 140,
             child: Container(
