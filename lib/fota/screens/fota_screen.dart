@@ -167,12 +167,13 @@ class _FotaScreenState extends State<FotaScreen> {
     return true;
   }
 
-  void _append(String s) => setState(() => _log = '$_log$s\n');
+  // Newest-first log: prepend so the latest line is on top.
+  void _append(String s) => setState(() => _log = '$s\n$_log');
 
-  void _setResult(String s, Color color) =>
-      setState(() {
+  void _setResult(String s, Color color) => setState(() {
         _result = s;
         _resultColor = color;
+        _log = '$s\n$_log'; // keep the result in the log history too
       });
 
   int _intField(TextEditingController c, int fallback, {int min = 0}) {
