@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -5,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../connector/meshcore_connector.dart';
 import '../../connector/meshcore_protocol.dart';
+import '../../models/contact.dart';
+import '../../services/repeater_command_service.dart';
 import '../helpers/fota_browser_download.dart';
 import '../services/fota_asset_download.dart';
 import '../services/fota_pkg_builder.dart';
@@ -54,7 +57,14 @@ class _ConnectorFotaSink implements FotaFrameSink {
 class FotaScreen extends StatefulWidget {
   /// Shown in the app-bar as "FOTA → [headerTarget]" (repeater name or "Broadcast").
   final String headerTarget;
-  const FotaScreen({super.key, required this.headerTarget});
+
+  /// Non-null when launched from a repeater admin hub: enables the repeater-aware
+  /// features (auto Direct path from the known route, "Get missing Chunks" via
+  /// `fota missall`). Null = global FOTA Broadcast (those features hidden).
+  final Contact? repeater;
+  final String? password;
+  const FotaScreen(
+      {super.key, required this.headerTarget, this.repeater, this.password});
   @override
   State<FotaScreen> createState() => _FotaScreenState();
 }
@@ -84,8 +94,49 @@ class _FotaScreenState extends State<FotaScreen> {
   final _selectionController = TextEditingController();
   FotaSender? _activeSender; // non-null while a send runs (for cancel)
 
+  // Repeater-aware (only when widget.repeater != null): command service + frame
+  // listener for `fota missall` request/response.
+  RepeaterCommandService? _commandService;
+  StreamSubscription<Uint8List>? _frameSub;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.repeater == null) return;
+    final c = Provider.of<MeshCoreConnector>(context, listen: false);
+    _commandService = RepeaterCommandService(c);
+    _frameSub = c.receivedFrames.listen((frame) {
+      if (frame.isEmpty) return;
+      if (frame[0] != respCodeContactMsgRecv &&
+          frame[0] != respCodeContactMsgRecvV3) {
+        return;
+      }
+      final parsed = parseContactMessageText(frame);
+      if (parsed == null) return;
+      final rep = _resolveRepeater(c);
+      if (rep == null || !_matchesPrefix(parsed.senderPrefix, rep)) return;
+      _commandService?.handleResponse(rep, parsed.text);
+    });
+    // Auto Direct path from the (live) known route, before any package adopts
+    // its own scope. Runs after first build so the connector is resolvable.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final rep = _resolveRepeater(c);
+      final bytes = rep?.pathBytesForDisplay ?? Uint8List(0);
+      if (bytes.isNotEmpty) {
+        setState(() {
+          _scope = FotaScope.direct;
+          _pathController.text = fotaDirectPathFromBytes(bytes);
+          _pathHashSize = 1;
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _frameSub?.cancel();
+    _commandService?.dispose();
     _pathController.dispose();
     _regionController.dispose();
     _delayController.dispose();
@@ -93,6 +144,27 @@ class _FotaScreenState extends State<FotaScreen> {
     _headerEveryController.dispose();
     _selectionController.dispose();
     super.dispose();
+  }
+
+  // Resolve the freshest contact record for the target repeater from the live
+  // connector (the route is discovered after a flood login, so widget.repeater
+  // is a stale snapshot). Returns null for Broadcast (no repeater).
+  Contact? _resolveRepeater(MeshCoreConnector c) {
+    final target = widget.repeater;
+    if (target == null) return null;
+    for (final ct in c.contacts) {
+      if (ct.publicKeyHex == target.publicKeyHex) return ct;
+    }
+    return target;
+  }
+
+  bool _matchesPrefix(Uint8List prefix, Contact rep) {
+    final key = rep.publicKey;
+    if (key.length < 6 || prefix.length < 6) return false;
+    for (int i = 0; i < 6; i++) {
+      if (prefix[i] != key[i]) return false;
+    }
+    return true;
   }
 
   void _append(String s) => setState(() => _log = '$_log$s\n');
@@ -267,6 +339,15 @@ class _FotaScreenState extends State<FotaScreen> {
     } catch (e) {
       _append('ERROR: $e');
     }
+  }
+
+  // Set scope=Direct + path from the repeater's known route (hashsize 1).
+  void _useRepeaterPath(Uint8List bytes) {
+    setState(() {
+      _scope = FotaScope.direct;
+      _pathController.text = fotaDirectPathFromBytes(bytes);
+      _pathHashSize = 1;
+    });
   }
 
   // A newly loaded package resets the send selection back to All (its chunk
@@ -460,6 +541,7 @@ class _FotaScreenState extends State<FotaScreen> {
     final total = _pkg == null ? 0 : (_pkg!.patchLen / kFotaChunkData).ceil();
     bool mode = _selectionMode;
     String? error;
+    bool loading = false;
     await showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -500,6 +582,59 @@ class _FotaScreenState extends State<FotaScreen> {
                   isDense: true,
                 ),
               ),
+              if (widget.repeater != null) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: loading
+                        ? null
+                        : () async {
+                            setLocal(() {
+                              loading = true;
+                              error = null;
+                            });
+                            final c = Provider.of<MeshCoreConnector>(context,
+                                listen: false);
+                            final rep = _resolveRepeater(c);
+                            if (rep == null || !c.isConnected) {
+                              setLocal(() {
+                                error = 'Nepripojené k repeateru.';
+                                loading = false;
+                              });
+                              return;
+                            }
+                            try {
+                              final resp = await _commandService!
+                                  .sendCommand(rep, 'fota missall', retries: 1)
+                                  .timeout(const Duration(seconds: 10));
+                              _selectionController.text = resp.trim();
+                              setLocal(() {
+                                mode = true;
+                                loading = false;
+                              });
+                            } on TimeoutException {
+                              setLocal(() {
+                                error = 'Repeater neodpovedal do 10 s.';
+                                loading = false;
+                              });
+                            } catch (e) {
+                              setLocal(() {
+                                error = '$e';
+                                loading = false;
+                              });
+                            }
+                          },
+                    icon: loading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.download_for_offline),
+                    label: const Text('Get missing Chunks (fota missall)'),
+                  ),
+                ),
+              ],
               if (error != null) ...[
                 const SizedBox(height: 8),
                 Text(error!,
@@ -538,6 +673,13 @@ class _FotaScreenState extends State<FotaScreen> {
   @override
   Widget build(BuildContext context) {
     final pkg = _pkg;
+    // Live repeater route (null = Broadcast). Watched so it refreshes when the
+    // companion discovers the path after a flood login.
+    final repPathBytes = widget.repeater == null
+        ? null
+        : (_resolveRepeater(context.watch<MeshCoreConnector>())
+                ?.pathBytesForDisplay ??
+            Uint8List(0));
     return Scaffold(
       appBar: AppBar(title: Text('FOTA → ${widget.headerTarget}'), centerTitle: true),
       body: Padding(
@@ -642,6 +784,24 @@ class _FotaScreenState extends State<FotaScreen> {
                   onChanged:
                       _busy ? null : (v) => setState(() => _scope = v ?? FotaScope.zerohop),
                 ),
+                if (repPathBytes != null) ...[
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(
+                      child: Text(
+                        'Cesta k ${widget.repeater!.name}: '
+                        '${repPathBytes.isEmpty ? "flood / neznáma" : fotaDirectPathFromBytes(repPathBytes)}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: (_busy || repPathBytes.isEmpty)
+                          ? null
+                          : () => _useRepeaterPath(repPathBytes),
+                      child: const Text('Použiť cestu'),
+                    ),
+                  ]),
+                ],
                 if (_scope == FotaScope.region) ...[
                   const SizedBox(height: 8),
                   DropdownButtonFormField<bool>(

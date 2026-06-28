@@ -278,8 +278,11 @@ class RepeaterHubScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          FotaScreen(headerTarget: repeater.name),
+                      builder: (context) => FotaScreen(
+                        headerTarget: repeater.name,
+                        repeater: repeater,
+                        password: password,
+                      ),
                     ),
                   );
                 },

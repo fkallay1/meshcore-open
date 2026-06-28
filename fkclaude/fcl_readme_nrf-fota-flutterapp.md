@@ -79,6 +79,32 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-28 (Úloha B: repeater-aware — auto Direct path + Get missing Chunks)** — keď je
+  FOTA spustené z hubu repeatera (`FotaScreen.repeater != null`). Spec:
+  `fkclaude/docs/superpowers/specs/2026-06-28-fota-repeater-aware-design.md`. **Verified:
+  `flutter test test/fota` 94/94, `flutter analyze` (dotknuté súbory) clean.** Inline TDD,
+  commity na `feature/nrf-fota-sender`.
+  - **`FotaScreen` rozšírený** o `Contact? repeater` + `String? password` (Broadcast = null →
+    obe funkcie skryté). `repeater_hub_screen.dart` odovzdá `repeater`+`password` (jediný dotknutý
+    upstream súbor). Cesta sa číta **live** cez `_resolveRepeater(connector.contacts)` (nie zo
+    snapshotu `widget.repeater`) — rieši obavu, že po flood logine je cesta najprv neznáma a
+    companion ju zistí neskôr.
+  - **3a auto Direct (`fotaDirectPathFromBytes` v `fota_types.dart`):** path bajty contactu (1
+    hop-hash/bajt, hashsize 1) → `"3f,a1"`. Pri otvorení (postFrameCallback) ak je známa direct
+    cesta → scope=Direct + path predvyplnené. V scope sekcii **live riadok „Cesta k <rptr>: …"**
+    (flood/neznáma ak prázdne) + tlačidlo **„Použiť cestu"** → keď companion zistí cestu neskôr,
+    jedným klikom sa natiahne (a po `_adoptPkgScope` z balíka sa dá znova použiť).
+  - **3b Get missing Chunks:** v Selection dialógu (len keď repeater != null) tlačidlo →
+    `RepeaterCommandService.sendCommand(rep, 'fota missall', retries:1).timeout(10s)` → odpoveď
+    (`FOTA miss=2/33: 12 29`) sa vloží do poľa a prepne mód na Selection; parser z Úlohy A ju
+    znesie. Frame listener (`receivedFrames` → `parseContactMessageText` → prefix match →
+    `commandService.handleResponse`) + `RepeaterCommandService` sa zriadia v `initState` (vzor z
+    `repeater_cli_screen`), uvoľnia v `dispose`. Timeout 10 s / nepripojené → červená chyba v dialógu.
+  - **⚠️ NEOTESTOVANÉ NA HW:** auto Direct predvyplnenie + „Použiť cestu" + `fota missall`
+    request/response cez companion. Unit-pokrytý len `fotaDirectPathFromBytes` + parser odpovede;
+    request/response je integračné → HW test (prihlásiť admin na repeater, otvoriť FOTA z hubu,
+    skúsiť „Get missing Chunks" + „Použiť cestu").
+
 - **2026-06-28 (Send obrazovka: výber chunkov/H/S + APPLY tlačidlo + Cancel)** — Úloha A
   z brainstormingu (spec+plán: `fkclaude/docs/superpowers/{specs,plans}/2026-06-28-fota-selection-*`).
   **Verified: `flutter test test/fota` 90/90, `flutter analyze lib test/fota` clean** (len 2
