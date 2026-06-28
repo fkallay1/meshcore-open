@@ -30,6 +30,14 @@ void main() {
     expect(find.text('Vyber .fotapkg.json'), findsOneWidget);
   });
 
+  testWidgets('selection toggle button is present and defaults to All',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: FotaScreen(headerTarget: 'Broadcast'),
+    ));
+    expect(find.text('Výber na odoslanie: All'), findsOneWidget);
+  });
+
   testWidgets('Create FOTA package button is enabled once a selection exists',
       (tester) async {
     // The button is disabled with no selection; this asserts the new

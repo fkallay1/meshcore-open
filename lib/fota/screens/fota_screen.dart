@@ -71,6 +71,11 @@ class _FotaScreenState extends State<FotaScreen> {
   final _cyclesController = TextEditingController(text: '1'); // --cycles
   final _headerEveryController = TextEditingController(text: '0'); // --header-every
 
+  // Selection: false = send All (today's behavior), true = only the list below.
+  bool _selectionMode = false;
+  final _selectionController = TextEditingController();
+  FotaSender? _activeSender; // non-null while a send runs (for cancel)
+
   @override
   void dispose() {
     _pathController.dispose();
@@ -78,6 +83,7 @@ class _FotaScreenState extends State<FotaScreen> {
     _delayController.dispose();
     _cyclesController.dispose();
     _headerEveryController.dispose();
+    _selectionController.dispose();
     super.dispose();
   }
 
@@ -283,7 +289,7 @@ class _FotaScreenState extends State<FotaScreen> {
     return Uint8List.fromList(bytes);
   }
 
-  Future<void> _send({required bool apply}) async {
+  Future<void> _send({required bool apply, FotaSelection? selectionOverride}) async {
     final pkg = _pkg;
     if (pkg == null) return;
     final c = Provider.of<MeshCoreConnector>(context, listen: false);
@@ -300,6 +306,22 @@ class _FotaScreenState extends State<FotaScreen> {
       regionKey = _resolveRegionKey();
       if (regionKey == null) return;
     }
+    // Resolve the selection: an explicit override (APPLY-only button) wins;
+    // otherwise parse the text field when in Selection mode; else null = All.
+    FotaSelection? sel = selectionOverride;
+    if (sel == null && _selectionMode) {
+      final total = (pkg.patchLen / kFotaChunkData).ceil();
+      try {
+        sel = parseFotaSelection(_selectionController.text, totalChunks: total);
+      } on FormatException catch (e) {
+        _append('ERROR: ${e.message}');
+        return;
+      }
+      if (sel.reportedTotal != null && sel.reportedTotal != total) {
+        _append('POZOR: repeater hlási total=${sel.reportedTotal}, '
+            'balík má $total — iná session?');
+      }
+    }
     setState(() {
       _busy = true;
       _progress = 0;
@@ -307,7 +329,9 @@ class _FotaScreenState extends State<FotaScreen> {
     try {
       Uint8List? seed;
       if (pkg.meta == null) seed = await FotaKeyStore().loadSeed(); // raw → need key
-      await FotaSender(_ConnectorFotaSink(c)).send(
+      final sender = FotaSender(_ConnectorFotaSink(c));
+      _activeSender = sender;
+      await sender.send(
         pkg.toJob(),
         FotaSendConfig(
           channelName: pkg.channelName,
@@ -335,17 +359,115 @@ class _FotaScreenState extends State<FotaScreen> {
           // apart so a fresh epoch base keeps every session's packets unique.
           tsBase: DateTime.now().millisecondsSinceEpoch ~/ 1000,
           seed32: seed,
+          selection: sel,
         ),
         onProgress: (p) => setState(() {
           _progress = p.total == 0 ? 0 : (p.sent / p.total).clamp(0.0, 1.0);
         }),
       );
       _append(apply ? 'Done — APPLY sent (repeater will reboot).' : 'Done — all packets sent.');
+    } on FotaCancelled {
+      _append('Zrušené.');
     } catch (e) {
       _append('ERROR: $e');
     } finally {
+      _activeSender = null;
       setState(() => _busy = false);
     }
+  }
+
+  Future<bool> _confirmApply() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Poslať APPLY?'),
+        content: const Text('Repeater po APPLY nahrá patch a reštartuje sa.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Zrušiť')),
+          ElevatedButton(
+              style:
+                  ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('APPLY')),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
+  // APPLY-only: send just the APPLY packet (empty selection, applyAfter=true)
+  // so it routes through the same sender path (channel/ts/cancel handling).
+  Future<void> _sendApplyOnly() async {
+    if (_pkg == null) return;
+    if (!await _confirmApply()) return;
+    await _send(
+        apply: true,
+        selectionOverride:
+            const FotaSelection([], meta: false, sig: false));
+  }
+
+  Future<void> _openSelectionDialog() async {
+    final total = _pkg == null ? 0 : (_pkg!.patchLen / kFotaChunkData).ceil();
+    bool mode = _selectionMode;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Výber na odoslanie'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioGroup<bool>(
+                groupValue: mode,
+                onChanged: (v) => setLocal(() => mode = v ?? false),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<bool>(
+                      value: false,
+                      title: Text('Všetko (Select All)'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    RadioListTile<bool>(
+                      value: true,
+                      title: Text('Len výber nižšie (Only Selection below)'),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ],
+                ),
+              ),
+              TextField(
+                controller: _selectionController,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  labelText: 'Zoznam (chunky + H + S)',
+                  helperText: total > 0
+                      ? 'napr. 0 5 7-12 H S — balík má $total chunkov: 0..${total - 1}'
+                      : 'napr. 0 5 7-12 H S',
+                  helperMaxLines: 2,
+                  border: const OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Zrušiť')),
+            ElevatedButton(
+              onPressed: () {
+                setState(() => _selectionMode = mode);
+                Navigator.pop(ctx);
+              },
+              child: const Text('Potvrdiť'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -409,6 +531,17 @@ class _FotaScreenState extends State<FotaScreen> {
             onPressed: _busy ? null : _pickPkg,
             icon: const Icon(Icons.folder_open),
             label: Text(_pkgLabel ?? 'Vyber .fotapkg.json'),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: (_busy || pkg == null) ? null : _openSelectionDialog,
+              icon: const Icon(Icons.checklist),
+              label: Text(_selectionMode
+                  ? 'Výber na odoslanie: Selection'
+                  : 'Výber na odoslanie: All'),
+            ),
           ),
           if (pkg != null) ...[
             const SizedBox(height: 8),
@@ -549,7 +682,18 @@ class _FotaScreenState extends State<FotaScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                       child: ElevatedButton(
-                          onPressed: _busy ? null : () => _send(apply: true),
+                          onPressed: _busy ? null : _sendApplyOnly,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange),
+                          child: const Text('APPLY'))),
+                  const SizedBox(width: 8),
+                  Expanded(
+                      child: ElevatedButton(
+                          onPressed: _busy
+                              ? null
+                              : () async {
+                                  if (await _confirmApply()) _send(apply: true);
+                                },
                           style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.deepOrange),
                           child: const Text('Odoslať + APPLY'))),
@@ -558,7 +702,15 @@ class _FotaScreenState extends State<FotaScreen> {
             ),
           ],
           const SizedBox(height: 8),
-          if (_busy) LinearProgressIndicator(value: _progress),
+          if (_busy)
+            Row(children: [
+              Expanded(child: LinearProgressIndicator(value: _progress)),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => _activeSender?.cancel(),
+                child: const Text('Zrušiť odosielanie'),
+              ),
+            ]),
           const SizedBox(height: 8),
           SizedBox(
             height: 140,
