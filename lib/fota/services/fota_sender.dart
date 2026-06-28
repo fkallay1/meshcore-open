@@ -4,6 +4,11 @@ import '../../connector/meshcore_protocol.dart';
 import 'fota_payload_builder.dart';
 import '../models/fota_types.dart';
 
+class FotaCancelled implements Exception {
+  @override
+  String toString() => 'FotaCancelled';
+}
+
 abstract class FotaFrameSink {
   Future<void> sendFrame(Uint8List frame);
   Future<void> setRadio(int freqVal, int bwVal, int sf, int cr);
@@ -34,6 +39,9 @@ class FotaSendConfig {
   //   cycleDelayMs → --cycle-delay  : pause between cycles
   final int headerEvery, cycles, cycleDelayMs;
   final Uint8List? seed32; // Ed25519 seed for raw signing; null → zero sig
+  // null → full send (all chunks + header). Non-null → send only the chosen
+  // chunks, then H/S per the selection, then optional APPLY (headerEvery ignored).
+  final FotaSelection? selection;
   FotaSendConfig({
     required this.channelName,
     required this.channelIdx,
@@ -53,6 +61,7 @@ class FotaSendConfig {
     this.cycleDelayMs = 2000,
     this.tsBase = 0,
     this.seed32,
+    this.selection,
   });
 }
 
@@ -68,6 +77,12 @@ class FotaSender {
   final FotaFrameSink _sink;
   final FotaPayloadBuilder _b = FotaPayloadBuilder();
   FotaSender(this._sink);
+
+  bool _cancelled = false;
+
+  /// Request cancellation of the running [send]: the next packet is not sent and
+  /// [send] throws [FotaCancelled]. Packets already broadcast stay out.
+  void cancel() => _cancelled = true;
 
   Future<void> send(FotaJob job, FotaSendConfig cfg,
       {void Function(FotaProgress)? onProgress}) async {
@@ -93,6 +108,7 @@ class FotaSender {
     final (pathLen, path) =
         fotaScopePath(cfg.scope, cfg.pathHex, cfg.pathHashSize);
     Future<void> snd(Uint8List payload) async {
+      if (_cancelled) throw FotaCancelled();
       ts += 1; // increasing ts → unique packet (anti-dedup), matches python
       final data = (BytesBuilder()
             ..add(_u32le(ts))
@@ -121,31 +137,54 @@ class FotaSender {
     }
 
     final cycles = cfg.cycles < 1 ? 1 : cfg.cycles;
-    final grandTotal = total * cycles;
+    final sel = cfg.selection;
+    final perCycle = sel == null
+        ? total
+        : sel.chunks.length + (sel.meta ? 1 : 0) + (sel.sig ? 1 : 0);
+    final grandTotal = perCycle * cycles;
     int doneChunks = 0;
 
+    Future<void> sendChunk(int i) async {
+      final start = i * kFotaChunkData;
+      final end = (start + kFotaChunkData).clamp(0, patch.length);
+      await snd(_b.buildChunk(
+          i, Uint8List.sublistView(patch, start, end), job.oldFwSize, oldPrefix));
+      doneChunks++;
+      onProgress?.call(FotaProgress(FotaPhase.chunks, doneChunks, grandTotal));
+    }
+
     for (int cycle = 0; cycle < cycles; cycle++) {
-      // chunks (hend order: chunks first)
-      for (int i = 0; i < total; i++) {
-        final start = i * kFotaChunkData;
-        final end = (start + kFotaChunkData).clamp(0, patch.length);
-        await snd(_b.buildChunk(
-            i, Uint8List.sublistView(patch, start, end), job.oldFwSize, oldPrefix));
-        doneChunks++;
-        onProgress?.call(FotaProgress(FotaPhase.chunks, doneChunks, grandTotal));
-        // HEADER redundancy: META+SIG is the single critical packet (total=0
-        // blocks everything) and has no accumulation advantage like chunks.
-        if (cfg.headerEvery > 0 && (i + 1) % cfg.headerEvery == 0) {
-          await sendHeader();
+      if (sel == null) {
+        // ── full send (chunks → header → optional APPLY) ──
+        for (int i = 0; i < total; i++) {
+          await sendChunk(i);
+          // HEADER redundancy: META+SIG is the single critical packet (total=0
+          // blocks everything) and has no accumulation advantage like chunks.
+          if (cfg.headerEvery > 0 && (i + 1) % cfg.headerEvery == 0) {
+            await sendHeader();
+          }
         }
-      }
-
-      onProgress?.call(FotaProgress(FotaPhase.header, doneChunks, grandTotal));
-      await sendHeader();
-
-      if (cfg.applyAfter) {
-        onProgress?.call(FotaProgress(FotaPhase.apply, doneChunks, grandTotal));
-        await snd(_b.buildApply(patchSha));
+        onProgress?.call(FotaProgress(FotaPhase.header, doneChunks, grandTotal));
+        await sendHeader();
+        if (cfg.applyAfter) {
+          onProgress?.call(FotaProgress(FotaPhase.apply, doneChunks, grandTotal));
+          await snd(_b.buildApply(patchSha));
+        }
+      } else {
+        // ── selection send: only chosen chunks, then H, then S, then APPLY ──
+        // (headerEvery is ignored — H/S are requested explicitly here)
+        for (final i in sel.chunks) {
+          await sendChunk(i);
+        }
+        if (sel.meta) {
+          onProgress?.call(FotaProgress(FotaPhase.header, doneChunks, grandTotal));
+          await snd(meta);
+        }
+        if (sel.sig) await snd(sig);
+        if (cfg.applyAfter) {
+          onProgress?.call(FotaProgress(FotaPhase.apply, doneChunks, grandTotal));
+          await snd(_b.buildApply(patchSha));
+        }
       }
 
       if (cycle < cycles - 1 && cfg.cycleDelayMs > 0) {

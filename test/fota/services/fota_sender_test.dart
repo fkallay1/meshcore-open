@@ -10,8 +10,19 @@ class _FakeSink implements FotaFrameSink {
   final frames = <Uint8List>[];
   int? freqVal, bwVal, sf, cr, chIdx;
   String? chName;
+  void Function(int count)? onSent;
   @override
-  Future<void> sendFrame(Uint8List f) async => frames.add(f);
+  Future<void> sendFrame(Uint8List f) async {
+    frames.add(f);
+    onSent?.call(frames.length);
+  }
+
+  // For zerohop frames (path_len=0, no path) the layout is fixed:
+  //   [62][chIdx][0x00][dataType 2B][ts 4B][payload...]
+  // so the payload type byte sits at index 9 and a chunk's index at 10..11 LE.
+  List<int> payloadTypes() => [for (final f in frames) f[9]];
+  List<int> chunkIndices() =>
+      [for (final f in frames) if (f[9] == 0x11) f[10] | (f[11] << 8)];
   @override
   Future<void> setRadio(int f, int b, int s, int c) async {
     freqVal = f;
@@ -35,7 +46,100 @@ class _FakeSink implements FotaFrameSink {
   }
 }
 
+// Build a zerohop config from the fixture package, overriding only the
+// selection / timing knobs the selection tests vary. Forces zerohop so the
+// frame layout is fixed (payload type byte at index 9).
+FotaSendConfig _selCfg(
+  FotaPkg pkg, {
+  FotaSelection? selection,
+  bool applyAfter = false,
+  int cycles = 1,
+  int headerEvery = 0,
+}) =>
+    FotaSendConfig(
+      channelName: pkg.channelName,
+      channelIdx: pkg.channelIdx,
+      freqMHz: pkg.freqMHz,
+      bwKHz: pkg.bwKHz,
+      sf: pkg.sf,
+      cr: pkg.cr,
+      scope: FotaScope.zerohop,
+      delayMs: 0,
+      cycleDelayMs: 0,
+      cycles: cycles,
+      headerEvery: headerEvery,
+      applyAfter: applyAfter,
+      applyRadio: false,
+      tsBase: 1,
+      selection: selection,
+      seed32: Uint8List.fromList(List<int>.generate(32, (i) => i)),
+    );
+
+FotaPkg _samplePkg() => FotaPkg.fromJsonString(
+    File('test/fixtures/sample.fotapkg.json').readAsStringSync());
+
 void main() {
+  test('selection: only listed chunks, no header/apply', () async {
+    final sink = _FakeSink();
+    await FotaSender(sink).send(_samplePkg().toJob(),
+        _selCfg(_samplePkg(), selection: const FotaSelection([0, 2], meta: false, sig: false)));
+    expect(sink.payloadTypes(), [0x11, 0x11]);
+    expect(sink.chunkIndices(), [0, 2]);
+  });
+
+  test('selection: chunks then META then SIG', () async {
+    final sink = _FakeSink();
+    await FotaSender(sink).send(_samplePkg().toJob(),
+        _selCfg(_samplePkg(), selection: const FotaSelection([1], meta: true, sig: true)));
+    expect(sink.payloadTypes(), [0x11, 0x10, 0x13]);
+  });
+
+  test('selection: applyAfter sends APPLY last', () async {
+    final sink = _FakeSink();
+    await FotaSender(sink).send(
+        _samplePkg().toJob(),
+        _selCfg(_samplePkg(),
+            selection: const FotaSelection([1], meta: false, sig: false),
+            applyAfter: true));
+    expect(sink.payloadTypes(), [0x11, 0x12]);
+  });
+
+  test('selection: cycles=2 repeats set, headerEvery ignored', () async {
+    final sink = _FakeSink();
+    await FotaSender(sink).send(
+        _samplePkg().toJob(),
+        _selCfg(_samplePkg(),
+            selection: const FotaSelection([0], meta: true, sig: false),
+            cycles: 2,
+            headerEvery: 1));
+    expect(sink.payloadTypes(), [0x11, 0x10, 0x11, 0x10]);
+  });
+
+  test('apply-only selection sends exactly one APPLY', () async {
+    final sink = _FakeSink();
+    await FotaSender(sink).send(
+        _samplePkg().toJob(),
+        _selCfg(_samplePkg(),
+            selection: const FotaSelection([], meta: false, sig: false),
+            applyAfter: true));
+    expect(sink.payloadTypes(), [0x12]);
+  });
+
+  test('cancel after first packet throws FotaCancelled, stops sending',
+      () async {
+    final sink = _FakeSink();
+    final sender = FotaSender(sink);
+    sink.onSent = (count) {
+      if (count == 1) sender.cancel();
+    };
+    await expectLater(
+      sender.send(_samplePkg().toJob(),
+          _selCfg(_samplePkg(), selection: const FotaSelection([0, 1, 2], meta: false, sig: false))),
+      throwsA(isA<FotaCancelled>()),
+    );
+    expect(sink.frames.length, 1);
+  });
+
   test('sends chunks then META+SIG (hend), correct count and radio units', () async {
     final pkg = FotaPkg.fromJsonString(File('test/fixtures/sample.fotapkg.json').readAsStringSync());
     final g = jsonDecode(File('test/fixtures/fota_golden.json').readAsStringSync());
