@@ -83,6 +83,90 @@ Uint8List fotaRegionKeyFromName(String name) {
   }
 }
 
+/// A per-send selection: which chunk indices, and whether to (re)send the META
+/// (H) and SIG (S) header packets. [reportedTotal] is the total parsed from a
+/// pasted `fota miss=N/T` CLI line (null if absent).
+class FotaSelection {
+  final List<int> chunks; // sorted ascending, de-duplicated
+  final bool meta; // H — send META packet
+  final bool sig; // S — send SIG packet
+  final int? reportedTotal;
+  const FotaSelection(this.chunks,
+      {required this.meta, required this.sig, this.reportedTotal});
+}
+
+/// Parse a space-separated selection list. Tokens (case-insensitive), after
+/// stripping ':' from each token and skipping empties:
+///   N      → chunk N
+///   A-B    → chunks A..B inclusive (descending B-A is normalized)
+///   H / S  → META / SIG
+/// CLI noise so a whole `fota miss` reply can be pasted, IGNORED:
+///   FOTA, miss, missall, miss=N/T (yields reportedTotal=T), +N
+/// Throws [FormatException] on an unknown token, malformed range, out-of-range
+/// chunk, or an empty selection (no chunk and neither H nor S).
+FotaSelection parseFotaSelection(String input, {required int totalChunks}) {
+  final chunks = <int>{};
+  bool meta = false, sig = false;
+  int? reportedTotal;
+
+  void addChunk(int v) {
+    if (v < 0 || v >= totalChunks) {
+      throw FormatException('chunk $v mimo rozsahu 0..${totalChunks - 1}');
+    }
+    chunks.add(v);
+  }
+
+  for (final raw in input.split(RegExp(r'\s+'))) {
+    final tok = raw.replaceAll(':', '').trim();
+    if (tok.isEmpty) continue;
+    final low = tok.toLowerCase();
+
+    if (low == 'h') {
+      meta = true;
+      continue;
+    }
+    if (low == 's') {
+      sig = true;
+      continue;
+    }
+    if (low == 'fota') continue;
+    if (low.startsWith('+')) continue; // "+N" overflow marker
+    if (low.startsWith('miss')) {
+      // "miss", "missall", "miss=N/T", "missall=N/T"
+      final m = RegExp(r'=(\d+)/(\d+)').firstMatch(low);
+      if (m != null) reportedTotal = int.parse(m.group(2)!);
+      continue;
+    }
+
+    if (tok.contains('-')) {
+      final parts = tok.split('-');
+      if (parts.length != 2) throw FormatException('neplatný rozsah: "$tok"');
+      final a = int.tryParse(parts[0]);
+      final b = int.tryParse(parts[1]);
+      if (a == null || b == null) {
+        throw FormatException('neplatný rozsah: "$tok"');
+      }
+      final lo = a < b ? a : b;
+      final hi = a < b ? b : a;
+      for (var i = lo; i <= hi; i++) {
+        addChunk(i);
+      }
+      continue;
+    }
+
+    final n = int.tryParse(tok);
+    if (n == null) throw FormatException('neznámy token: "$tok"');
+    addChunk(n);
+  }
+
+  if (chunks.isEmpty && !meta && !sig) {
+    throw const FormatException('prázdny výber (zadaj chunky a/alebo H/S)');
+  }
+  final sorted = chunks.toList()..sort();
+  return FotaSelection(sorted,
+      meta: meta, sig: sig, reportedTotal: reportedTotal);
+}
+
 class FotaJob {
   final Uint8List patch;
   final Uint8List oldSha256;
