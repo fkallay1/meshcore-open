@@ -44,13 +44,18 @@ class FotaSelection {
   final List<int> chunks; // zoradené, bez duplikátov; konkrétne chunk id
   final bool meta;        // H — pošli META paket
   final bool sig;         // S — pošli SIG paket
-  const FotaSelection(this.chunks, {required this.meta, required this.sig});
+  final int? reportedTotal; // total z "miss=N/T" v CLI výstupe (null ak chýba)
+  const FotaSelection(this.chunks,
+      {required this.meta, required this.sig, this.reportedTotal});
 }
 
-/// Parsuje zoznam oddelený medzerami (case-insensitive). Tokeny:
+/// Parsuje zoznam oddelený medzerami (case-insensitive). Najprv z každého tokenu
+/// odstráni ':' (a prázdne tokeny preskočí), potom interpretuje:
 ///   N        → chunk N
 ///   A-B      → chunky A..B vrátane (aj zostupné B-A zvládne, znormalizuje)
 ///   H        → META, S → SIG
+/// CLI „šum" (aby sa dal skopírovať celý riadok odpovede repeatera) sa IGNORUJE:
+///   FOTA, miss, missall, miss=N/T (z neho sa vyzobne reportedTotal=T), +N
 /// Validácia: každý chunk id musí byť v rozsahu 0..totalChunks-1.
 /// Hodí [FormatException] pri: neznámom tokene, nečíselnom rozsahu, chunku mimo
 /// rozsahu, a pri prázdnom výbere (žiadny chunk a ani H ani S).
@@ -61,13 +66,17 @@ Príklady (`totalChunks = 41`):
 - `"0 5 7-12 H S"` → chunks `[0,5,7,8,9,10,11,12]`, meta=true, sig=true
 - `"H"` → chunks `[]`, meta=true, sig=false
 - `"3 7 19-22"` → chunks `[3,7,19,20,21,22]`, meta=false, sig=false
+- `"FOTA miss=2/33: 12 29"` → chunks `[12,29]`, meta=false, sig=false, reportedTotal=33
+- `"FOTA missall=14/41: H S 3 7 19-22 +5"` → chunks `[3,7,19,20,21,22]`, meta=true,
+  sig=true, reportedTotal=41 (`FOTA`, `missall=…`, `+5` odignorované)
 - `"99"` → `FormatException('chunk 99 mimo rozsahu 0..40')`
 - `""` → `FormatException` (prázdny výber)
 - `"x"` → `FormatException('neznámy token: "x"')`
 
-Robustnosť pre Úlohu B: parser ignoruje tokeny `FOTA`, `miss=…`/`miss` a `+N` keby do
-poľa prenikli z odpovede repeatera? — **Nie.** Čisté: B si odpoveď oseká sama pred
-vložením do poľa. Parser ostáva striktný (chytá preklepy používateľa).
+Tolerancia k CLI šumu je zámerná: odpoveď z `fota miss`/`fota missall` má tvar
+`FOTA miss=2/33: 12 29` a používateľ ju môže celú skopírovať do poľa, alebo zadať len
+`12 29`. Striktnosť voči *neznámym* tokenom ostáva (chytá preklepy). `reportedTotal`
+sa kontroluje až pri odoslaní (viď §4.4), NIE počas písania.
 
 ## 3. Sender (`lib/fota/services/fota_sender.dart`)
 
@@ -165,6 +174,11 @@ try {
 ```
 inak `sel = null`. Predať `selection: sel` do `FotaSendConfig`.
 
+Po úspešnom parsovaní, ak `sel.reportedTotal != null && sel.reportedTotal != total`:
+`_append('POZOR: repeater hlási total=${sel.reportedTotal}, balík má $total — iná session?')`.
+Je to len **varovanie** (neblokuje odoslanie) — chytá prípad, že do poľa skopírovaný
+`fota miss` výstup patrí k inej FOTA session, než je práve načítaný balík.
+
 Sender vytvoriť a uložiť: `_activeSender = FotaSender(_ConnectorFotaSink(c));`
 v `finally` `_activeSender = null`. `FotaCancelled` zachytiť samostatne →
 `_append('Zrušené.')` (nie ako ERROR).
@@ -181,6 +195,10 @@ Tlačidlá Odoslať/APPLY/Výber sú počas behu disabled (ako dnes cez `_busy`)
   case-insensitivita, viacnásobné medzery, duplikáty (zlúčia sa), zoradenie,
   chunk mimo rozsahu → `FormatException`, prázdny vstup → `FormatException`,
   neznámy token → `FormatException`.
+- parser CLI šum: celý riadok `"FOTA miss=2/33: 12 29"` → chunks `[12,29]`,
+  reportedTotal=33; `"FOTA missall=14/41: H S 3 7 19-22 +5"` → chunks+H+S,
+  reportedTotal=41; čisté `"12 29"` → reportedTotal=null. Token `+5`, `FOTA`,
+  `miss`/`missall`, dvojbodka — odignorované.
 
 `test/fota/services/fota_sender_test.dart` (rozšíriť):
 - `selection: null` → identické správanie ako dnes (regresný guard).
