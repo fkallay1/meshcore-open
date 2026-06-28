@@ -79,6 +79,38 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-06-28 (Send obrazovka: výber chunkov/H/S + APPLY tlačidlo + Cancel)** — Úloha A
+  z brainstormingu (spec+plán: `fkclaude/docs/superpowers/{specs,plans}/2026-06-28-fota-selection-*`).
+  **Verified: `flutter test test/fota` 90/90, `flutter analyze lib test/fota` clean** (len 2
+  známe pre-existujúce `unnecessary_non_null_assertion` v `fota_asset_download_test.dart`).
+  Inline TDD (RED→GREEN), 3 commity na `feature/nrf-fota-sender`.
+  - **Výber na odoslanie** (`parseFotaSelection` v `lib/fota/models/fota_types.dart`):
+    textový zoznam oddelený medzerami — `N` (chunk), `A-B` (rozsah, aj zostupný), `H`=META,
+    `S`=SIG. Tolerantný k CLI šumu, takže sa dá skopírovať **celý** výstup `fota miss`/`fota
+    missall` z repeatera (`FOTA miss=2/33: 12 29` → chunks `[12,29]`, `reportedTotal=33`);
+    ignoruje `FOTA`/`miss*`/`+N`/`:`. Neznámy token / chunk mimo rozsahu / prázdny výber →
+    `FormatException`. `FotaSelection{chunks(sorted,dedup), meta, sig, reportedTotal}`.
+  - **Sender** (`lib/fota/services/fota_sender.dart`): `FotaSendConfig.selection` (null = dnešný
+    full send, beze zmeny). Selection → pošli len vybrané chunky (vzostupne) → H → S → APPLY;
+    `headerEvery` sa v selection ignoruje, `cycles` rešpektuje. `grandTotal` prepočítaný pre
+    progress. **Cancel:** `FotaSender.cancel()` + `FotaCancelled`; `snd()` kontroluje flag pred
+    každým paketom (už odoslané pakety ostávajú — LoRa broadcast sa nevracia).
+  - **Screen** (`lib/fota/screens/fota_screen.dart`): tlačidlo „Výber na odoslanie: All/Selection"
+    (hneď pod výberom balíka, vždy viditeľné; dialóg s RadioGroup All/Selection + textové pole,
+    helper ukazuje počet chunkov balíka). Pri Selection sa parsuje až pri Odoslať (nie počas
+    písania); `reportedTotal != total` → varovanie do logu (neblokuje). **Tretie tlačidlo APPLY**
+    (len APPLY paket, cez sender s prázdnou selekciou) + potvrdzovací dialóg „Repeater sa
+    reštartuje" pri APPLY aj „Odoslať + APPLY". **Cancel UI:** tlačidlo „Zrušiť odosielanie"
+    vedľa progress baru počas behu.
+  - **Pozn. RadioGroup:** `RadioListTile.groupValue/onChanged` je deprecated po Flutter 3.32 →
+    použitý `RadioGroup<bool>` ancestor (analyze clean).
+  - **⏳ ODLOŽENÉ (Úloha B, vlastný spec/plán):** repeater-aware funkcie, ktoré potrebujú, aby
+    `FotaScreen` poznal `Contact` + heslo (dnes len `headerTarget`): (3a) auto-predvyplnenie
+    scope=Direct + path z `Contact.outPath` keď je z repeater hubu; (3b) tlačidlo „Get missing
+    Chunks" → `fota missall` cez `RepeaterCommandService` (timeout 10 s) → naplní Selection pole.
+    Formát odpovede repeatera je zámerne zhodný s gramatikou parsera (overené vo firmvéri
+    `../MeshCore/.../nrffota/FotaMesh.cpp` + `FotaReceiver.cpp::fota_format_missing`).
+
 - **2026-06-27 (FOTA scope: region + path-hashsize + comma path)** — Dorobené 3 veci do send
   obrazovky, aby scope zodpovedal `fota_sender.py`. **Verified: `flutter test test/fota` 73/73,
   `flutter analyze lib` clean** (tie isté 2 pre-existujúce warningy v `fota_asset_download_test.dart`).
