@@ -167,6 +167,12 @@ FotaSelection parseFotaSelection(String input, {required int totalChunks}) {
       meta: meta, sig: sig, reportedTotal: reportedTotal);
 }
 
+/// Convert raw contact path bytes (one hop-hash per byte, hashsize 1) to the
+/// comma-separated hex form the Direct scope path field expects, e.g.
+/// [0x3f, 0xa1] → "3f,a1". Empty input → "" (no known direct path → flood).
+String fotaDirectPathFromBytes(Uint8List pathBytes) =>
+    pathBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(',');
+
 class FotaJob {
   final Uint8List patch;
   final Uint8List oldSha256;

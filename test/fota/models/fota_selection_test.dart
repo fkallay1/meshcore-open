@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meshcore_open/fota/models/fota_types.dart';
 
@@ -65,6 +66,29 @@ void main() {
     test('range endpoint out of range throws', () {
       expect(() => parseFotaSelection('38-45', totalChunks: 41),
           throwsFormatException);
+    });
+  });
+
+  group('fotaDirectPathFromBytes', () {
+    test('formats one hop-hash per byte as 2-hex, comma-joined', () {
+      expect(fotaDirectPathFromBytes(Uint8List.fromList([0x3f, 0xa1])), '3f,a1');
+    });
+
+    test('zero-pads single hop', () {
+      expect(fotaDirectPathFromBytes(Uint8List.fromList([0x00])), '00');
+      expect(fotaDirectPathFromBytes(Uint8List.fromList([0x05])), '05');
+    });
+
+    test('empty path → empty string', () {
+      expect(fotaDirectPathFromBytes(Uint8List(0)), '');
+    });
+
+    test('round-trips through fotaScopePath (direct, hashsize 1)', () {
+      final bytes = Uint8List.fromList([0x3f, 0xa1, 0xb2]);
+      final str = fotaDirectPathFromBytes(bytes);
+      final (pathLen, path) = fotaScopePath(FotaScope.direct, str, 1);
+      expect(path, bytes);
+      expect(pathLen, 3); // ((1-1)<<6)|3
     });
   });
 }
