@@ -130,6 +130,14 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
     vedľa progress baru počas behu.
   - **Pozn. RadioGroup:** `RadioListTile.groupValue/onChanged` je deprecated po Flutter 3.32 →
     použitý `RadioGroup<bool>` ancestor (analyze clean).
+  - **Následné UX úpravy (per feedback, ďalšie commity):** default delay 300→**3000 ms**;
+    poradie tlačidiel Odoslať patch | Odoslať+APPLY | **APPLY** (samotné APPLY vpravo); validácia
+    výberu už pri „Potvrdiť" v dialógu (predtým až pri Odoslať); nový balík resetuje výber na All
+    (`_resetSelection`). **Výpis výsledku s počtami** `Req`/`Sent`/`All` (Sent počíta wrapper
+    `_ConnectorFotaSink.sent`, setup rámce ho obchádzajú): **farebný riadok** nad logom
+    `Sent -  OK.`(green, 2 medzery kvôli zarovnaniu s ERR)/`Sent - ERR. … Cancel`(orange)/
+    `… Error: …`(red) — `_setResult`. Riadok ide **aj do logu** (čierny — log je jeden `Text`,
+    farby per-riadok by chceli RichText). **Log otočený: najnovšie prvé** (`_append` prepend).
   - **⏳ ODLOŽENÉ (Úloha B, vlastný spec/plán):** repeater-aware funkcie, ktoré potrebujú, aby
     `FotaScreen` poznal `Contact` + heslo (dnes len `headerTarget`): (3a) auto-predvyplnenie
     scope=Direct + path z `Contact.outPath` keď je z repeater hubu; (3b) tlačidlo „Get missing
