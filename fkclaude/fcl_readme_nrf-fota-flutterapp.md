@@ -79,6 +79,29 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **2026-07-04 (return PATH pred „Get missing Chunks" — repeater odpovedá direct)** — rieši
+  malú návratnosť `fota missall` odpovedí: po flood logine repeater NEPOZNÁ cestu ku klientovi
+  (`out_path` sa plní len z PATH paketu, `onPeerPathRecv`), takže odpovede floodí a tie zomierajú
+  kolíziami. Návod: `../MeshCore/fkclaude/docs/fota-repeater-return-path-handoff.md` (Možnosť A).
+  **Verified: `flutter test test/fota` 100/100, analyze clean (len 2 známe warningy); firmvér
+  `pio run -e Xiao_nrf52_companion_radio_ble` SUCCESS.** Commity: app `fbdf1cc`, FW `bd5e722e`.
+  - **Nový fork-only companion CMD `CMD_SEND_RETURN_PATH = 0x70`** (`../MeshCore/examples/
+    companion_radio/MyMesh.cpp`, vetva `features/nrf-fota`): `[0x70][pub_key 32B][path_len][path]`
+    → `createPathReturn(recipient->id, pairwise secret, path…)` → sendDirect po forward ceste
+    (flood fallback ak neznáma). Repeater si cestu uloží ako ACL `out_path` → CLI odpovede idú
+    sendDirect. 0x70 zvolené vysoko, aby nekolidovalo s upstream CMD (končia na 65).
+  - **App:** `buildSendReturnPathFrame(pubKey32, path)` v `meshcore_protocol.dart`
+    (+`cmdSendReturnPath`); `fotaReturnPathBytes(pathStr)` v `fota_types.dart` — comma path
+    z Direct poľa **reverznutá** (payload PATH = cesta repeater→klient; forward cesta je opačne).
+    V Selection dialógu **checkbox „Najprv poslať cestu (PATH)"** (default ON, enabled len pri
+    scope=Direct + 1B hopy, inak disabled so subtitle) — pred `fota missall` pošle PATH frame
+    + 1,5 s pauza, aby paket stihol na éter.
+  - **⚠️ VYŽADUJE PREFLASH COMPANIONA** (nový CMD; starý companion vráti ERR unsupported —
+    appka to neblokuje, missall sa pošle aj tak). ⚠️ **Smer cesty pri 2+ hopoch over na HW**
+    cez FOTA_DEBUG (handoff §6): analýza hovorí reverz (incoming-flood akumulovaná cesta =
+    sender→me poradie = čo posiela handleReturnPathRetry bez otočenia; naša forward je opak),
+    pri 1 medzihope je to jedno.
+
 - **2026-06-28 (Úloha B: repeater-aware — auto Direct path + Get missing Chunks)** — keď je
   FOTA spustené z hubu repeatera (`FotaScreen.repeater != null`). Spec:
   `fkclaude/docs/superpowers/specs/2026-06-28-fota-repeater-aware-design.md`. **Verified:
