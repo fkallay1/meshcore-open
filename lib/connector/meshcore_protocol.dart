@@ -215,6 +215,9 @@ const int cmdSetAutoAddConfig = 58;
 const int cmdGetAutoAddConfig = 59;
 const int cmdSetPathHashMode = 61;
 const int cmdSendChannelData = 62;
+// FK fork-only (nrf-fota companion): push a return path to a contact so it
+// replies sendDirect instead of flood. High number to dodge upstream CMDs.
+const int cmdSendReturnPath = 0x70;
 
 // Text message types
 const int txtTypePlain = 0;
@@ -682,6 +685,24 @@ Uint8List buildSendChannelDataFrame(
   writer.writeBytes(path);
   writer.writeUInt16LE(dataType);
   writer.writeBytes(data);
+  return writer.toBytes();
+}
+
+/// CMD_SEND_RETURN_PATH (0x70, FK fork-only): [0x70][pub_key 32B][path_len][path].
+/// The companion builds a PATH packet (createPathReturn) telling [pubKey] the
+/// route back to us; path bytes are 1B hop hashes in recipient->us order.
+Uint8List buildSendReturnPathFrame(Uint8List pubKey, Uint8List path) {
+  if (pubKey.length != 32) {
+    throw ArgumentError('pub key must be 32 bytes, got ${pubKey.length}');
+  }
+  if (path.length > 64) {
+    throw ArgumentError('return path too long: ${path.length} hops (max 64)');
+  }
+  final writer = BufferWriter();
+  writer.writeByte(cmdSendReturnPath);
+  writer.writeBytes(pubKey);
+  writer.writeByte(path.length);
+  writer.writeBytes(path);
   return writer.toBytes();
 }
 

@@ -173,6 +173,15 @@ FotaSelection parseFotaSelection(String input, {required int totalChunks}) {
 String fotaDirectPathFromBytes(Uint8List pathBytes) =>
     pathBytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join(',');
 
+/// Payload path for a return-PATH packet (CMD_SEND_RETURN_PATH): the forward
+/// comma path from the Direct scope field (client→repeater hop order, 1B
+/// hashes) reversed into the repeater→client order the repeater needs to
+/// sendDirect back to us. Throws [FormatException] on an empty/invalid path.
+Uint8List fotaReturnPathBytes(String pathStr) {
+  final (_, bytes) = fotaScopePath(FotaScope.direct, pathStr, 1);
+  return Uint8List.fromList(bytes.reversed.toList());
+}
+
 class FotaJob {
   final Uint8List patch;
   final Uint8List oldSha256;

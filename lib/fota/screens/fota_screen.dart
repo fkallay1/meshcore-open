@@ -91,6 +91,10 @@ class _FotaScreenState extends State<FotaScreen> {
 
   // Selection: false = send All (today's behavior), true = only the list below.
   bool _selectionMode = false;
+  // Before `fota missall`, push our return path to the repeater (PATH packet
+  // via CMD_SEND_RETURN_PATH) so it replies sendDirect instead of flood.
+  // Needs scope=Direct with 1B hop hashes (PATH_HASH_SIZE=1 in firmware).
+  bool _sendReturnPath = true;
   final _selectionController = TextEditingController();
   FotaSender? _activeSender; // non-null while a send runs (for cancel)
 
@@ -585,6 +589,22 @@ class _FotaScreenState extends State<FotaScreen> {
               ),
               if (widget.repeater != null) ...[
                 const SizedBox(height: 8),
+                // PATH first: with a flood login the repeater has no route back
+                // to us and floods its replies (which mostly die in collisions),
+                // so the missall answer rarely arrives. Pushing our return path
+                // makes it answer sendDirect. Needs scope=Direct, 1B hops.
+                CheckboxListTile(
+                  value: _sendReturnPath,
+                  onChanged: _scope == FotaScope.direct && _pathHashSize == 1
+                      ? (v) => setLocal(() => _sendReturnPath = v ?? true)
+                      : null,
+                  title: const Text('Najprv poslať cestu (PATH)'),
+                  subtitle: Text(_scope == FotaScope.direct && _pathHashSize == 1
+                      ? 'repeater potom odpovedá direct, nie flood'
+                      : 'vyžaduje Scope=Direct s 1B hopmi'),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
@@ -604,6 +624,26 @@ class _FotaScreenState extends State<FotaScreen> {
                                 loading = false;
                               });
                               return;
+                            }
+                            if (_sendReturnPath &&
+                                _scope == FotaScope.direct &&
+                                _pathHashSize == 1) {
+                              try {
+                                final ret =
+                                    fotaReturnPathBytes(_pathController.text);
+                                await c.sendFrame(buildSendReturnPathFrame(
+                                    rep.publicKey, ret));
+                                // Let the PATH packet get on air (and be
+                                // processed) before the missall request.
+                                await Future.delayed(
+                                    const Duration(milliseconds: 1500));
+                              } on FormatException catch (e) {
+                                setLocal(() {
+                                  error = 'PATH: ${e.message}';
+                                  loading = false;
+                                });
+                                return;
+                              }
                             }
                             try {
                               final resp = await _commandService!
