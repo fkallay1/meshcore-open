@@ -66,9 +66,12 @@ Pridávame navrch:
 - Companion `CMD_SET_RADIO_PARAMS=11`, `CMD_SET_CHANNEL=32`, `CMD_SEND_CHANNEL_DATA=62`,
   `CMD_SEND_LOGIN=26`, `CMD_SEND_TXT_MSG=2`.
 
-## 5. Portable Flutter toolchain (ešte nenainštalované)
+## 5. Portable Flutter toolchain (NAINŠTALOVANÉ, funkčné)
 
-Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod `D:\FkDev\tools\`):
+Nainštalované pod `D:\FkDev\tools\`: `flutter\bin\flutter`, `jdk` (JAVA_HOME),
+`android-sdk` (ANDROID_SDK_ROOT; adb v `platform-tools\adb.exe`). Release build jedným
+dvojklikom: **`build-apk.bat`** v roote projektu (split-per-abi, machine-specific, necommitnutý).
+Pôvodný setup postup:
 - Flutter stable zip → `D:\FkDev\tools\flutter`, `flutter\bin` do PATH.
 - Android „command line tools only" zip → `D:\FkDev\tools\android-sdk\cmdline-tools\latest\`,
   `ANDROID_SDK_ROOT=...\android-sdk`. `sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"` + `--licenses`.
@@ -78,6 +81,24 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 - VS Code: rozšírenia Dart + Flutter (integrovaný hot reload/debug).
 
 ## 6. Stav / work-log
+
+- **2026-07-06 (MERGE upstream → dev → feature vetvy; APK v telefóne):** `git fetch upstream`
+  (zjs81) → `dev` fast-forward `e1b8d6e..f4cca2f` (15 commitov: alternatívne mapové zdroje
+  StadiaMaps/OSM Dark + cache UI, zerohop location adverty, fonty Inter/JetBrains Mono,
+  iOS ExportOptions.plist, ~65 nových l10n stringov, nové deps `file_selector` +
+  `flutter_secure_storage`). Potom `dev` → `feature/nrf-ota-sender` (`32008bb`) aj
+  `feature/nrf-fota-sender` (`6a0c9d6`) — **oba merge bez konfliktov**, všetko pushnuté na origin.
+  Testy: **343 pass, 1 fail** — `path_history_service_test.dart` („failure to 0 removes the
+  path") je **existujúca upstream chyba** (súbory byte-identické s upstream/dev), nie dôsledok
+  mergu; FOTA testy všetky OK. Release APK (split-per-abi) zbuildovaný a `app-arm64-v8a`
+  nainštalovaný do telefónu `f161f715`. Poznámky:
+  - VS Code extension `pub get` hlási „Building with plugins requires symlink support →
+    enable Developer Mode" (exit 1) — deps sa stiahnu OK, zlyhá len tvorba desktop
+    `.plugin_symlinks`; Android build nedotknutý. **Fix:** zapnúť Windows Developer Mode
+    (`start ms-settings:developers`).
+  - Po merge/pub get sa v Changes objavujú generované `generated_plugin_registrant.*` /
+    `generated_plugins.cmake` / `GeneratedPluginRegistrant.swift` — rozdiel je len EOL
+    (LF↔CRLF), obsahovo prázdny diff; možno ignorovať.
 
 - **KONIEC SESSION 2026-07-06 — COMMITNUTÉ + PUSHNUTÉ** (pôvodné „nekomituj" bolo omylom;
   na záver session commitnuté v oboch repách). Finálne otestované buildy: promicro #261,
