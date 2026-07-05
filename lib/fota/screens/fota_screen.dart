@@ -91,9 +91,9 @@ class _FotaScreenState extends State<FotaScreen> {
 
   // Selection: false = send All (today's behavior), true = only the list below.
   bool _selectionMode = false;
-  // Before `fota missall`, push our return path to the repeater (PATH packet
-  // via CMD_SEND_RETURN_PATH) so it replies sendDirect instead of flood.
-  // Needs scope=Direct with 1B hop hashes (PATH_HASH_SIZE=1 in firmware).
+  // Append our return path to the `fota missall` request (fork repeater CLI
+  // stores it as the ACL out_path) so it replies sendDirect instead of flood.
+  // Needs scope=Direct; hop token width (2/4/6 hex) carries the hash size.
   bool _sendReturnPath = true;
   final _selectionController = TextEditingController();
   FotaSender? _activeSender; // non-null while a send runs (for cancel)
@@ -580,8 +580,8 @@ class _FotaScreenState extends State<FotaScreen> {
                 decoration: InputDecoration(
                   labelText: 'Zoznam (chunky + H + S)',
                   helperText: total > 0
-                      ? 'napr. 0 5 7-12 H S — balík má $total chunkov: 0..${total - 1}'
-                      : 'napr. 0 5 7-12 H S',
+                      ? 'napr. 0,5,7-12,H,S — balík má $total chunkov: 0..${total - 1}'
+                      : 'napr. 0,5,7-12,H,S',
                   helperMaxLines: 2,
                   border: const OutlineInputBorder(),
                   isDense: true,
@@ -589,19 +589,20 @@ class _FotaScreenState extends State<FotaScreen> {
               ),
               if (widget.repeater != null) ...[
                 const SizedBox(height: 8),
-                // PATH first: with a flood login the repeater has no route back
-                // to us and floods its replies (which mostly die in collisions),
-                // so the missall answer rarely arrives. Pushing our return path
-                // makes it answer sendDirect. Needs scope=Direct, 1B hops.
+                // Return path in the request: with a flood login the repeater
+                // has no route back to us and floods its replies (which mostly
+                // die in collisions), so the missall answer rarely arrives.
+                // `fota missall <cesta>` makes the fork repeater store the path
+                // in its ACL and answer sendDirect. Needs scope=Direct.
                 CheckboxListTile(
                   value: _sendReturnPath,
-                  onChanged: _scope == FotaScope.direct && _pathHashSize == 1
+                  onChanged: _scope == FotaScope.direct
                       ? (v) => setLocal(() => _sendReturnPath = v ?? true)
                       : null,
-                  title: const Text('Najprv poslať cestu (PATH)'),
-                  subtitle: Text(_scope == FotaScope.direct && _pathHashSize == 1
-                      ? 'repeater potom odpovedá direct, nie flood'
-                      : 'vyžaduje Scope=Direct s 1B hopmi'),
+                  title: const Text('Poslať cestu v dopyte'),
+                  subtitle: Text(_scope == FotaScope.direct
+                      ? 'missall ponesie spätnú cestu — repeater odpovie direct'
+                      : 'vyžaduje Scope=Direct s cestou'),
                   contentPadding: EdgeInsets.zero,
                   dense: true,
                 ),
@@ -625,21 +626,15 @@ class _FotaScreenState extends State<FotaScreen> {
                               });
                               return;
                             }
+                            var cmd = 'fota missall';
                             if (_sendReturnPath &&
-                                _scope == FotaScope.direct &&
-                                _pathHashSize == 1) {
+                                _scope == FotaScope.direct) {
                               try {
-                                final ret =
-                                    fotaReturnPathBytes(_pathController.text);
-                                await c.sendFrame(buildSendReturnPathFrame(
-                                    rep.publicKey, ret));
-                                // Let the PATH packet get on air (and be
-                                // processed) before the missall request.
-                                await Future.delayed(
-                                    const Duration(milliseconds: 1500));
+                                cmd =
+                                    'fota missall ${fotaReturnPathArg(_pathController.text, _pathHashSize)}';
                               } on FormatException catch (e) {
                                 setLocal(() {
-                                  error = 'PATH: ${e.message}';
+                                  error = 'Cesta: ${e.message}';
                                   loading = false;
                                 });
                                 return;
@@ -647,9 +642,14 @@ class _FotaScreenState extends State<FotaScreen> {
                             }
                             try {
                               final resp = await _commandService!
-                                  .sendCommand(rep, 'fota missall', retries: 1)
+                                  .sendCommand(rep, cmd, retries: 1)
                                   .timeout(const Duration(seconds: 10));
-                              _selectionController.text = resp.trim();
+                              // Pre-META replies mark the unknown tail as
+                              // "N-??" (N = exact tail start) — the app knows
+                              // the package total, so expand it to the real
+                              // missing range (or drop it when N > total-1).
+                              _selectionController.text =
+                                  fotaExpandMissTail(resp.trim(), total);
                               setLocal(() {
                                 mode = true;
                                 loading = false;

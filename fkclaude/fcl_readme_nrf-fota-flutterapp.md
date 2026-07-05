@@ -79,6 +79,86 @@ Upstream CLAUDE.md používa `~/flutter/bin/flutter` (portable SDK). Setup (pod 
 
 ## 6. Stav / work-log
 
+- **KONIEC SESSION 2026-07-06 — COMMITNUTÉ + PUSHNUTÉ** (pôvodné „nekomituj" bolo omylom;
+  na záver session commitnuté v oboch repách). Finálne otestované buildy: promicro #261,
+  sensecap #262, xiao #263; APK s parserom/expandom nainštalovaný v telefóne. **HW overené:**
+  missall s cestou → ACL → direct odpovede; tag `NN|`; META odhad; FOTA update 250→251→…;
+  celé to funguje. (`build-apk.bat` v roote ostáva zámerne necommitnutý — machine-specific.)
+
+- **2026-07-05 (REDIZAJN spätnej cesty: repeater-only `fota setpath/getpath/missall <cesta>`; NECOMMITNUTÉ)** —
+  per feedback: do companiona nezasahovať (veľa zariadení; repeatre sú malá spravovaná flotila).
+  Zistenia: companion posiela PATH len ako reakciu na flood od repeatera (5 miest, všetky na 2-3
+  hopoch zlyhávajú — flood zomiera); repeater zapisuje ACL `out_path` JEDINE v `onPeerPathRecv`
+  (`MyMesh.cpp:781`) a flood login ju MAŽE (`:132`); anon `clock` reply-path je jednorazová
+  (member `reply_path`, do ACL nič); direct paket cestu do cieľa neprinesie (`removeSelfFromPath`).
+  → cesta musí ísť v payloade CLI (vzor anon regions/owner/clock, `MyMesh.cpp:147-163`).
+  **Zmeny (VŠETKO UNCOMMITTED v oboch repách, na želanie):**
+  - **Companion** (`../MeshCore/examples/companion_radio/MyMesh.cpp`): CMD_SEND_RETURN_PATH 0x70
+    PONECHANÝ, ale celý obalený `#ifdef WITH_LORA_FOTA` → štandardné companion buildy = upstream správanie.
+  - **Repeater** (`../MeshCore/.../nrffota/FotaMyMesh.cpp|.h`, `FotaMesh.cpp`): LoRa-only inline
+    príkazy (potrebujú živý ACL záznam; `fotaHandleLoRaCli` klient už non-const):
+    `fota getpath` (vypíše ACL out_path/unknown), `fota setpath nn,nn|nnnn,…|nnnnnn,…`
+    (šírka tokenu 2/4/6 hex = hashsize 1/2/3 B; zapíše ACL out_path + ENCODED len, odpoveď ide
+    už novou cestou), `fota missall <cesta>` (cestu uloží do ACL, defer-ne holé missall —
+    snapshot skopíruje čerstvú cestu → zoznam chýbajúcich ide direct). Parser
+    `fota_parse_path_arg` (static). Usage string doplnený.
+  - **Appka**: ťupka premenovaná „Poslať cestu v dopyte" (enabled pri scope=Direct, aj 2/3B hopy);
+    posiela `fota missall <otočená cesta>` cez RepeaterCommandService (CMD 0x70 sa už NEvolá;
+    builder+testy ostávajú). Nový helper `fotaReturnPathArg(pathStr,hashSize)` (validácia cez
+    fotaScopePath + reverz tokenov). Testy 103/103, analyze čistý.
+  - Hopy v argumente = poradie, v akom ich REPEATER vysiela (repeater→klient) = forward cesta otočená.
+  - **⚠️ NEOTESTOVANÉ NA HW**; repeater treba flashnúť FOTA buildom (`Xiao_nrf52_repeater_fota` /
+    `ProMicro_repeater_fota` / `SenseCap_Solar_repeater_fota`). Companion flash NETREBA (stock stačí).
+  - **HW BUG + FIX (2026-07-05): `NN|` tag lámal LoRa FOTA hook.** Appkin
+    `RepeaterCommandService` balí príkazy ako `NN|cmd` a odpoveď páruje podľa zrkadleného tagu;
+    `MyMesh::handleCommand:1239` tag pozná, ale `fotaHandleLoRaCli` bežal PRED ním a nie →
+    `12|fota missall 216d,6363` prepadol do inline CommonCLI hooku (missall-s-cestou sa
+    neparsoval → usage reply; cesta v ACL nezapisaná — na HW ostala stará z PATH handshaku).
+    Vedľajší dopad: tagované `fota` príkazy doteraz VŽDY bežali inline na hlbokom RX callstacku
+    (defer sa obchádzal — pri `fota verify` stack riziko!). **Fix:** `fotaHandleLoRaCli` tag
+    strippe (zrkadlo :1239), zrkadlí ho v inline odpovediach (posunutý `reply`; `reply_all[0]=0`
+    pri deferi bez INFO_MSG) a nesie ho v `FotaCliDefer.tag[4]` → deferred odpoveď z `fotaLoop`
+    má prefix tiež. Tagované príkazy tým zároveň konečne idú cez defer. Buildy: promicro #248,
+    sensecap #249, xiao #250; do telefónu pushnuté `237-250.xiao`, `232-249.sensecap` a
+    `247-250.xiao` (OTA update dosky bežiacej #247).
+  - **missall pred hlavičkou (HW nález + fix, buildy #252-254):** pred overením SIG je
+    `total_chunks=0` (bezpečnostný invariant `try_verify_header`), takže missall nevidel
+    chvostové chunky (vrátil `S 0-1` hoci chýbal aj 3) a marker `(pred HEADER)`/`(no hdr)` mýlil.
+    Fix: `fota_total_est()` (FotaReceiver) = promotnutý total, inak NEOVERENÝ odhad
+    `ceil(patch_size/144)` z prijatej META (len diagnostika — completion/flash gating nezmenený);
+    `fota_missing_range` počíta voči odhadu → miss report kompletný hneď po META. Texty:
+    serial `/~4 (no S)` / `(no H)` / `(no H S)`; LoRa reply `/~4(noS)` / `(noH)` / `(noHS)`
+    (bez medzier, prilepené k `miss=` tokenu). Future idea (zamietnuté zatiaľ): total v každom
+    chunku cez 2×10 bitov (FOTA_MAX_CHUNKS=1024 už sedí) — wire break; radšej CHUNK2 typ alebo
+    horné bity old_fw_size, ak niekedy treba.
+  - **App parser fix:** `parseFotaSelection` padal na legacy `(no hdr)` (token `hdr)`).
+    Teraz skipuje `no`/`(no`/`hdr*` a `reportedTotal` regex berie aj `~T` (`=(\d+)/~?(\d+)`).
+    Testy 106/106. Nový APK v telefóne.
+  - **Čiarkové zoznamy + `N-??` chvost (2026-07-06, finálne buildy #261-263):** miss/missall
+    zoznam je po novom oddelený čiarkami (`H,S,0-4,6-9`), dvojica za sebou ako `a,b` (nie
+    `a-b`), a keď repeater nepozná total ani odhad (chýba META), na koniec pridá **`N-??`**
+    (N = najvyšší prijatý + 1). Medzikrok s holým `??` (buildy #258-260) VRÁTENÝ per feedback:
+    pri prijatých „ostrovoch" (recv 1,3,7-15 → missing `0,2,4-6`) by appka hádala chvost od
+    najvyššieho CHÝBAJÚCEHO a preposlala celé ostrovy (7-15); `N-??` nesie presný začiatok,
+    a ak N presahuje total balíka, appka marker len zahodí. FW:
+    `fota_print_missing`/`fota_format_missing` majú param `lead` (lepidlo pred prvým tokenom),
+    tail marker mimo token-limitu. Appka: `parseFotaSelection` splituje `[\s,]+` a strippe `():`;
+    **`fotaExpandMissTail(text,total)`** nahradí `??`/(legacy `N-??`) reálnym rozsahom z totalu
+    balíka (pár → `a,b`, single, prázdny → zmaže marker aj separátor; pri holom `??` chvost
+    začína od najvyššieho SPOMENUTÉHO+1 → môže duplicitne poslať pár už prijatých chunkov —
+    prijímač ich DUP-skipne, neškodné) — volané pri vložení missall odpovede do Selection poľa.
+    Helper text poľa → čiarkový príklad. Testy 113/113; APK s touto logikou už v telefóne.
+  - **RAW log rozšírený o 1B hashe** (`fota_log_raw_line`, spoločné RX aj TX): za `type=` a pred
+    `route=` sa vypíše `dsth=`/`srch=` (PATH/REQ/RESPONSE/TXT_MSG; ANON_REQ srch=pub_key[0];
+    ADVERT len srch=), `chah=` (GRP_TXT/GRP_DATA channel hash). ACK/ostatné nič — hash tam nie je.
+  - **Serial debug CLI (doplnené, gated `#if FOTA_DEBUG`)** — serial konzola nemá ACL kontext
+    klienta, preto berú explicitný hex prefix pub_key (2-12 hex znakov, ACL prefix-match):
+    `fota getacl` (výpis ACL: idx, pubkey6B, perm, admin, cesta — riadky cez FOTA_DEBUG_PRINTLN,
+    krátka reply), `fota getpath <pfx>`, `fota setpath <pfx> <cesta>` (rovnaký parser/formát ako
+    LoRa varianty). Implementácia: `fotaHandleSerialPathCli` (FotaMyMesh.cpp, volaný z
+    `fotaHandleCliCommand` pred `runFotaCli`); helpery `fota_client_path_str`,
+    `fota_client_by_prefix`. Cez LoRa tieto prefix-varianty neexistujú (tam sú klientské inline).
+
 - **2026-07-04 (return PATH pred „Get missing Chunks" — repeater odpovedá direct)** — rieši
   malú návratnosť `fota missall` odpovedí: po flood logine repeater NEPOZNÁ cestu ku klientovi
   (`out_path` sa plní len z PATH paketu, `onPeerPathRecv`), takže odpovede floodí a tie zomierajú

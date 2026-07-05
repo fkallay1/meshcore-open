@@ -95,8 +95,8 @@ class FotaSelection {
       {required this.meta, required this.sig, this.reportedTotal});
 }
 
-/// Parse a space-separated selection list. Tokens (case-insensitive), after
-/// stripping ':' from each token and skipping empties:
+/// Parse a selection list separated by spaces and/or commas. Tokens
+/// (case-insensitive), after stripping ':' from each token and skipping empties:
 ///   N      → chunk N
 ///   A-B    → chunks A..B inclusive (descending B-A is normalized)
 ///   H / S  → META / SIG
@@ -116,8 +116,10 @@ FotaSelection parseFotaSelection(String input, {required int totalChunks}) {
     chunks.add(v);
   }
 
-  for (final raw in input.split(RegExp(r'\s+'))) {
-    final tok = raw.replaceAll(':', '').trim();
+  for (final raw in input.split(RegExp(r'[\s,]+'))) {
+    // Strip CLI punctuation so pasted reply/serial lines tokenize cleanly
+    // ("S)" → "S", "(no" → "no", "0-4:" → "0-4").
+    final tok = raw.replaceAll(RegExp(r'[():]'), '').trim();
     if (tok.isEmpty) continue;
     final low = tok.toLowerCase();
 
@@ -131,9 +133,14 @@ FotaSelection parseFotaSelection(String input, {required int totalChunks}) {
     }
     if (low == 'fota') continue;
     if (low.startsWith('+')) continue; // "+N" overflow marker
+    // Header-marker noise from `fota miss` replies: legacy "(no hdr)" splits into
+    // "…(no" + "hdr)" tokens; newer "(noH)/(noS)/(noHS)" ride glued on the miss=
+    // token (skipped below).
+    if (low == 'no' || low == '(no' || low.startsWith('hdr')) continue;
     if (low.startsWith('miss')) {
-      // "miss", "missall", "miss=N/T", "missall=N/T"
-      final m = RegExp(r'=(\d+)/(\d+)').firstMatch(low);
+      // "miss", "missall", "miss=N/T", "missall=N/T"; "~T" = unverified estimate
+      // from META (pre-SIG) — still the best total available, so extract it too.
+      final m = RegExp(r'=(\d+)/~?(\d+)').firstMatch(low);
       if (m != null) reportedTotal = int.parse(m.group(2)!);
       continue;
     }
@@ -167,6 +174,49 @@ FotaSelection parseFotaSelection(String input, {required int totalChunks}) {
       meta: meta, sig: sig, reportedTotal: reportedTotal);
 }
 
+/// Expand the unknown-tail marker of a pre-META `fota miss` reply. Without a
+/// received META the repeater cannot see chunks above the highest received one
+/// and marks the tail as "N-??" (N = first unknown index; bare "??" = legacy /
+/// unknown start). The app knows the package's [totalChunks], so it rewrites
+/// the marker to the real missing range — "10-14", a pair as "10,11", a single
+/// as "10", or drops it (with its separator) when nothing is actually missing.
+String fotaExpandMissTail(String text, int totalChunks) {
+  if (totalChunks <= 0) return text;
+  final m = RegExp(r'(\d+)-\?\?|\?\?').firstMatch(text);
+  if (m == null) return text;
+  int lo;
+  if (m.group(1) != null) {
+    lo = int.parse(m.group(1)!);
+  } else {
+    // bare "??": best effort — tail starts above the highest chunk mentioned
+    var maxIdx = -1;
+    for (final raw in text.split(RegExp(r'[\s,]+'))) {
+      final t = raw.replaceAll(':', '');
+      final r = RegExp(r'^(\d+)(?:-(\d+))?$').firstMatch(t);
+      if (r == null) continue;
+      final a = int.parse(r.group(1)!);
+      final b = r.group(2) != null ? int.parse(r.group(2)!) : a;
+      if (a > maxIdx) maxIdx = a;
+      if (b > maxIdx) maxIdx = b;
+    }
+    lo = maxIdx + 1;
+  }
+  final hi = totalChunks - 1;
+  final String repl;
+  if (lo > hi) {
+    repl = '';
+  } else if (lo == hi) {
+    repl = '$lo';
+  } else if (lo + 1 == hi) {
+    repl = '$lo,$hi';
+  } else {
+    repl = '$lo-$hi';
+  }
+  var out = text.replaceFirst(m.group(0)!, repl);
+  if (repl.isEmpty) out = out.replaceFirst(RegExp(r'[\s,]+$'), '');
+  return out;
+}
+
 /// Convert raw contact path bytes (one hop-hash per byte, hashsize 1) to the
 /// comma-separated hex form the Direct scope path field expects, e.g.
 /// [0x3f, 0xa1] → "3f,a1". Empty input → "" (no known direct path → flood).
@@ -180,6 +230,21 @@ String fotaDirectPathFromBytes(Uint8List pathBytes) =>
 Uint8List fotaReturnPathBytes(String pathStr) {
   final (_, bytes) = fotaScopePath(FotaScope.direct, pathStr, 1);
   return Uint8List.fromList(bytes.reversed.toList());
+}
+
+/// Return-path argument for the repeater CLI (`fota missall <cesta>`,
+/// `fota setpath <cesta>`): the forward comma path reversed into
+/// repeater->client hop order, kept as comma tokens whose width (2/4/6 hex
+/// chars per hop) tells the repeater the hash size. Validates via
+/// [fotaScopePath]; throws [FormatException] on an empty/invalid path.
+String fotaReturnPathArg(String pathStr, int hashSize) {
+  fotaScopePath(FotaScope.direct, pathStr, hashSize);
+  final toks = pathStr
+      .split(',')
+      .map((t) => t.trim())
+      .where((t) => t.isNotEmpty)
+      .toList();
+  return toks.reversed.join(',');
 }
 
 class FotaJob {
