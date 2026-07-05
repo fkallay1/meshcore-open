@@ -1030,6 +1030,18 @@ abstract class AppLocalizations {
   /// **'Include location in advert.'**
   String get settings_advertLocationSubtitle;
 
+  /// No description provided for @settings_autoZeroHopAdvertOnGpsUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Zero-Hop Advert On GPS Update'**
+  String get settings_autoZeroHopAdvertOnGpsUpdate;
+
+  /// No description provided for @settings_autoZeroHopAdvertOnGpsUpdateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When GPS location changes, send a zero-hop advert (requires Advert Location).'**
+  String get settings_autoZeroHopAdvertOnGpsUpdateSubtitle;
+
   /// No description provided for @settings_multiAck.
   ///
   /// In en, this message translates to:
@@ -1791,6 +1803,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last week'**
   String get appSettings_lastWeek;
+
+  /// No description provided for @appSettings_rasterTileSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Raster Tile Source'**
+  String get appSettings_rasterTileSource;
+
+  /// No description provided for @appSettings_stadiaEndpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Stadia Endpoint'**
+  String get appSettings_stadiaEndpoint;
+
+  /// No description provided for @appSettings_stadiaApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Stadia API Key'**
+  String get appSettings_stadiaApiKey;
+
+  /// No description provided for @appSettings_stadiaApiKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Required for Stadia Maps usage'**
+  String get appSettings_stadiaApiKeyRequired;
+
+  /// No description provided for @appSettings_stadiaApiKeyConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured: {maskedKey}'**
+  String appSettings_stadiaApiKeyConfigured(String maskedKey);
+
+  /// No description provided for @appSettings_stadiaApiKeyDialogDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your Stadia Maps API key. This app uses it for raster tile requests.'**
+  String get appSettings_stadiaApiKeyDialogDescription;
 
   /// No description provided for @appSettings_offlineMapCache.
   ///
@@ -3795,6 +3843,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed downloads: {count}'**
   String mapCache_failedDownloads(int count);
+
+  /// No description provided for @mapCache_cachedTilesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached tiles'**
+  String get mapCache_cachedTilesLabel;
+
+  /// No description provided for @mapCache_cachedTileSummaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached tile summary'**
+  String get mapCache_cachedTileSummaryLabel;
+
+  /// No description provided for @mapCache_bulkDownloadDisabledForSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline bulk downloads are disabled for {source}.'**
+  String mapCache_bulkDownloadDisabledForSource(String source);
+
+  /// No description provided for @mapCache_bulkDownloadDisabledInConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline bulk downloads are disabled for {source} in this app configuration.'**
+  String mapCache_bulkDownloadDisabledInConfig(String source);
+
+  /// No description provided for @mapCache_summarySource.
+  ///
+  /// In en, this message translates to:
+  /// **'Source: {source}'**
+  String mapCache_summarySource(String source);
+
+  /// No description provided for @mapCache_summaryCachedTilesForSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached tiles for source: {count}'**
+  String mapCache_summaryCachedTilesForSource(int count);
+
+  /// No description provided for @mapCache_summaryCachedInSelection.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached in selected area/zoom: {count}'**
+  String mapCache_summaryCachedInSelection(int count);
+
+  /// No description provided for @mapCache_summaryApproxCacheSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Approx cache size: {size}'**
+  String mapCache_summaryApproxCacheSize(String size);
 
   /// No description provided for @mapCache_boundsLabel.
   ///

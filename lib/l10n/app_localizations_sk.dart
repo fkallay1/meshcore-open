@@ -500,6 +500,14 @@ class AppLocalizationsSk extends AppLocalizations {
   String get settings_advertLocationSubtitle => 'Zahrnúť polohu do inzerátu';
 
   @override
+  String get settings_autoZeroHopAdvertOnGpsUpdate =>
+      'Automatický zero-hop inzerát pri aktualizácii GPS';
+
+  @override
+  String get settings_autoZeroHopAdvertOnGpsUpdateSubtitle =>
+      'Keď sa GPS poloha zmení, odoslať zero-hop inzerát (vyžaduje polohu v inzeráte).';
+
+  @override
   String get settings_multiAck => 'Viaceré ACK';
 
   @override
@@ -923,6 +931,28 @@ class AppLocalizationsSk extends AppLocalizations {
 
   @override
   String get appSettings_lastWeek => 'Minul týždeň';
+
+  @override
+  String get appSettings_rasterTileSource => 'Zdroj rastrových dlaždíc';
+
+  @override
+  String get appSettings_stadiaEndpoint => 'Koncový bod Stadia';
+
+  @override
+  String get appSettings_stadiaApiKey => 'Kľúč API Stadia';
+
+  @override
+  String get appSettings_stadiaApiKeyRequired =>
+      'Vyžaduje sa na používanie Stadia Maps';
+
+  @override
+  String appSettings_stadiaApiKeyConfigured(String maskedKey) {
+    return 'Nakonfigurované: $maskedKey';
+  }
+
+  @override
+  String get appSettings_stadiaApiKeyDialogDescription =>
+      'Zadajte svoj kľúč API pre Stadia Maps. Aplikácia ho používa na požiadavky na rastrové dlaždice.';
 
   @override
   String get appSettings_offlineMapCache => 'Offline Mapa Pamäť';
@@ -2075,6 +2105,42 @@ class AppLocalizationsSk extends AppLocalizations {
   @override
   String mapCache_failedDownloads(int count) {
     return 'Neúspešné stiahnutia: $count';
+  }
+
+  @override
+  String get mapCache_cachedTilesLabel => 'Cached tiles';
+
+  @override
+  String get mapCache_cachedTileSummaryLabel => 'Cached tile summary';
+
+  @override
+  String mapCache_bulkDownloadDisabledForSource(String source) {
+    return 'Offline bulk downloads are disabled for $source.';
+  }
+
+  @override
+  String mapCache_bulkDownloadDisabledInConfig(String source) {
+    return 'Offline bulk downloads are disabled for $source in this app configuration.';
+  }
+
+  @override
+  String mapCache_summarySource(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String mapCache_summaryCachedTilesForSource(int count) {
+    return 'Cached tiles for source: $count';
+  }
+
+  @override
+  String mapCache_summaryCachedInSelection(int count) {
+    return 'Cached in selected area/zoom: $count';
+  }
+
+  @override
+  String mapCache_summaryApproxCacheSize(String size) {
+    return 'Approx cache size: $size';
   }
 
   @override

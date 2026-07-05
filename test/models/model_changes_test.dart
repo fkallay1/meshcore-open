@@ -5,6 +5,9 @@ import 'package:meshcore_open/models/contact.dart';
 import 'package:meshcore_open/models/path_history.dart';
 import 'package:meshcore_open/models/app_settings.dart';
 import 'package:meshcore_open/connector/meshcore_protocol.dart';
+import 'package:meshcore_open/services/app_settings_service.dart';
+import 'package:meshcore_open/storage/prefs_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Builds a valid contact frame with the given pathLen and optional overrides.
 // Frame layout: [respCode(1)][pubKey(32)][type(1)][flags(1)][pathLen(1)][path(64)][name(32)][timestamp(4)][lat(4)][lon(4)]
@@ -38,6 +41,14 @@ Uint8List _buildContactFrame({
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    PrefsManager.reset();
+    await PrefsManager.initialize();
+  });
+
   group('Contact.fromFrame — pathLen mapping', () {
     test('pathLen == 0 → pathLength == 0 (direct, NOT flood)', () {
       final frame = _buildContactFrame(pathLen: 0);
@@ -356,6 +367,46 @@ void main() {
       final updated = settings.copyWith(maxMessageRetries: 10);
       expect(updated.maxMessageRetries, equals(10));
       expect(updated.maxRouteWeight, equals(settings.maxRouteWeight));
+    });
+  });
+
+  group('AppSettingsService — gps interval fallback', () {
+    test('resolvedGpsIntervalSeconds prefers device custom var', () {
+      final service = AppSettingsService();
+
+      expect(
+        service.resolvedGpsIntervalSeconds(const {'gps_interval': '120'}),
+        equals(120),
+      );
+    });
+
+    test('resolvedGpsIntervalSeconds falls back to stored value', () async {
+      final service = AppSettingsService();
+      await service.updateSettings(AppSettings(gpsIntervalSeconds: 900));
+
+      expect(service.resolvedGpsIntervalSeconds(null), equals(900));
+      expect(
+        service.resolvedGpsIntervalSeconds(const {'gps_interval': 'bad'}),
+        equals(900),
+      );
+    });
+
+    test('resolvedGpsIntervalSeconds keeps an explicit device zero', () async {
+      final service = AppSettingsService();
+      await service.updateSettings(AppSettings(gpsIntervalSeconds: 900));
+
+      expect(
+        service.resolvedGpsIntervalSeconds(const {'gps_interval': '0'}),
+        equals(0),
+      );
+    });
+
+    test('toJson/fromJson preserves gpsIntervalSeconds', () {
+      final settings = AppSettings(gpsIntervalSeconds: 321);
+
+      final restored = AppSettings.fromJson(settings.toJson());
+
+      expect(restored.gpsIntervalSeconds, equals(321));
     });
   });
 }

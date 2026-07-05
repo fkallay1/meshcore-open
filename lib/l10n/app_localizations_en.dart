@@ -497,6 +497,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_advertLocationSubtitle => 'Include location in advert.';
 
   @override
+  String get settings_autoZeroHopAdvertOnGpsUpdate =>
+      'Auto Zero-Hop Advert On GPS Update';
+
+  @override
+  String get settings_autoZeroHopAdvertOnGpsUpdateSubtitle =>
+      'When GPS location changes, send a zero-hop advert (requires Advert Location).';
+
+  @override
   String get settings_multiAck => 'Multi-ACKs';
 
   @override
@@ -918,6 +926,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appSettings_lastWeek => 'Last week';
+
+  @override
+  String get appSettings_rasterTileSource => 'Raster Tile Source';
+
+  @override
+  String get appSettings_stadiaEndpoint => 'Stadia Endpoint';
+
+  @override
+  String get appSettings_stadiaApiKey => 'Stadia API Key';
+
+  @override
+  String get appSettings_stadiaApiKeyRequired =>
+      'Required for Stadia Maps usage';
+
+  @override
+  String appSettings_stadiaApiKeyConfigured(String maskedKey) {
+    return 'Configured: $maskedKey';
+  }
+
+  @override
+  String get appSettings_stadiaApiKeyDialogDescription =>
+      'Enter your Stadia Maps API key. This app uses it for raster tile requests.';
 
   @override
   String get appSettings_offlineMapCache => 'Offline Map Cache';
@@ -2049,6 +2079,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String mapCache_failedDownloads(int count) {
     return 'Failed downloads: $count';
+  }
+
+  @override
+  String get mapCache_cachedTilesLabel => 'Cached tiles';
+
+  @override
+  String get mapCache_cachedTileSummaryLabel => 'Cached tile summary';
+
+  @override
+  String mapCache_bulkDownloadDisabledForSource(String source) {
+    return 'Offline bulk downloads are disabled for $source.';
+  }
+
+  @override
+  String mapCache_bulkDownloadDisabledInConfig(String source) {
+    return 'Offline bulk downloads are disabled for $source in this app configuration.';
+  }
+
+  @override
+  String mapCache_summarySource(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String mapCache_summaryCachedTilesForSource(int count) {
+    return 'Cached tiles for source: $count';
+  }
+
+  @override
+  String mapCache_summaryCachedInSelection(int count) {
+    return 'Cached in selected area/zoom: $count';
+  }
+
+  @override
+  String mapCache_summaryApproxCacheSize(String size) {
+    return 'Approx cache size: $size';
   }
 
   @override
