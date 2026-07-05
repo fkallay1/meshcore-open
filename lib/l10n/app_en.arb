@@ -206,6 +206,8 @@
   "settings_telemetryEnvironmentMode": "Telemetry Environment Mode",
   "settings_advertLocation": "Advert Location",
   "settings_advertLocationSubtitle": "Include location in advert.",
+  "settings_autoZeroHopAdvertOnGpsUpdate": "Auto Zero-Hop Advert On GPS Update",
+  "settings_autoZeroHopAdvertOnGpsUpdateSubtitle": "When GPS location changes, send a zero-hop advert (requires Advert Location).",
   "settings_multiAck": "Multi-ACKs",
   "settings_telemetryModeUpdated": "Telemetry mode updated",
   "settings_actions": "Actions",
@@ -361,6 +363,19 @@
   "appSettings_last6Hours": "Last 6 hours",
   "appSettings_last24Hours": "Last 24 hours",
   "appSettings_lastWeek": "Last week",
+  "appSettings_rasterTileSource": "Raster Tile Source",
+  "appSettings_stadiaEndpoint": "Stadia Endpoint",
+  "appSettings_stadiaApiKey": "Stadia API Key",
+  "appSettings_stadiaApiKeyRequired": "Required for Stadia Maps usage",
+  "appSettings_stadiaApiKeyConfigured": "Configured: {maskedKey}",
+  "@appSettings_stadiaApiKeyConfigured": {
+    "placeholders": {
+      "maskedKey": {
+        "type": "String"
+      }
+    }
+  },
+  "appSettings_stadiaApiKeyDialogDescription": "Enter your Stadia Maps API key. This app uses it for raster tile requests.",
   "appSettings_offlineMapCache": "Offline Map Cache",
   "appSettings_unitsTitle": "Units",
   "appSettings_unitsMetric": "Metric (m / km)",
@@ -1088,6 +1103,56 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "mapCache_cachedTilesLabel": "Cached tiles",
+  "mapCache_cachedTileSummaryLabel": "Cached tile summary",
+  "mapCache_bulkDownloadDisabledForSource": "Offline bulk downloads are disabled for {source}.",
+  "@mapCache_bulkDownloadDisabledForSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "mapCache_bulkDownloadDisabledInConfig": "Offline bulk downloads are disabled for {source} in this app configuration.",
+  "@mapCache_bulkDownloadDisabledInConfig": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "mapCache_summarySource": "Source: {source}",
+  "@mapCache_summarySource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "mapCache_summaryCachedTilesForSource": "Cached tiles for source: {count}",
+  "@mapCache_summaryCachedTilesForSource": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapCache_summaryCachedInSelection": "Cached in selected area/zoom: {count}",
+  "@mapCache_summaryCachedInSelection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapCache_summaryApproxCacheSize": "Approx cache size: {size}",
+  "@mapCache_summaryApproxCacheSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
       }
     }
   },

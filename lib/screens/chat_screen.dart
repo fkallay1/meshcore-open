@@ -546,15 +546,15 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: context.l10n.chat_typeMessage,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(MeshRadii.pill),
+                          borderRadius: BorderRadius.circular(MeshRadii.md),
                           borderSide: BorderSide(color: scheme.outlineVariant),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(MeshRadii.pill),
+                          borderRadius: BorderRadius.circular(MeshRadii.md),
                           borderSide: BorderSide(color: scheme.outlineVariant),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(MeshRadii.pill),
+                          borderRadius: BorderRadius.circular(MeshRadii.md),
                           borderSide: BorderSide(
                             color: scheme.primary,
                             width: 1.5,

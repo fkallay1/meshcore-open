@@ -129,6 +129,10 @@ A dedicated sub-screen for app-level preferences (nothing here is sent to the de
 - **Show Other Nodes**: Toggle room/sensor markers
 - **Time Filter**: All time / Last 1h / Last 6h / Last 24h / Last week
 - **Units**: Metric / Imperial
+- **Raster Tile Source**: Sets the MAP theme and with that from where to get the map tile data:
+  - OpenStreetMap (Auto/Standard/Dark) is provided by the free OpenStreetMap tile server. (Can only be used for live view or already cached.)
+  - Stamen Terrain / AlidadeSmooth Dark / Outdoors / OSM Bright are [StadiaMaps.com raster tile maps](https://stadiamaps.com/products/maps/interactive-basemaps/) for which you can choose an Hosted Endpoint (Worldwide / Europe hosted) and have to provide the API key to your subscription. (You can cache these maps for offline Map usage.)
+  There will be no account provided by meshcore-open. You will have to get you own subscription. StadiaMaps offers a [free](https://stadiamaps.com/pricing/) subscription to download up to 200'000 Standart Raster Basemap tiles.
 - **Offline Map Cache**: Navigate to tile download screen
 
 ### Translation

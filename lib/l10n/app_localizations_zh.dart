@@ -477,6 +477,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_advertLocationSubtitle => '在广告中包含位置';
 
   @override
+  String get settings_autoZeroHopAdvertOnGpsUpdate => 'GPS 更新时自动发送零跳广告';
+
+  @override
+  String get settings_autoZeroHopAdvertOnGpsUpdateSubtitle =>
+      '当 GPS 位置变化时，发送零跳广告（需要在广告中包含位置）。';
+
+  @override
   String get settings_multiAck => '多重ACK';
 
   @override
@@ -870,6 +877,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appSettings_lastWeek => '上周';
+
+  @override
+  String get appSettings_rasterTileSource => '栅格瓦片源';
+
+  @override
+  String get appSettings_stadiaEndpoint => 'Stadia 端点';
+
+  @override
+  String get appSettings_stadiaApiKey => 'Stadia API 密钥';
+
+  @override
+  String get appSettings_stadiaApiKeyRequired => '使用 Stadia Maps 时必需';
+
+  @override
+  String appSettings_stadiaApiKeyConfigured(String maskedKey) {
+    return '已配置：$maskedKey';
+  }
+
+  @override
+  String get appSettings_stadiaApiKeyDialogDescription =>
+      '请输入你的 Stadia Maps API 密钥。该应用会使用它来请求栅格瓦片。';
 
   @override
   String get appSettings_offlineMapCache => '离线地图缓存';
@@ -1976,6 +2004,42 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String mapCache_failedDownloads(int count) {
     return '下载失败：$count';
+  }
+
+  @override
+  String get mapCache_cachedTilesLabel => 'Cached tiles';
+
+  @override
+  String get mapCache_cachedTileSummaryLabel => 'Cached tile summary';
+
+  @override
+  String mapCache_bulkDownloadDisabledForSource(String source) {
+    return 'Offline bulk downloads are disabled for $source.';
+  }
+
+  @override
+  String mapCache_bulkDownloadDisabledInConfig(String source) {
+    return 'Offline bulk downloads are disabled for $source in this app configuration.';
+  }
+
+  @override
+  String mapCache_summarySource(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String mapCache_summaryCachedTilesForSource(int count) {
+    return 'Cached tiles for source: $count';
+  }
+
+  @override
+  String mapCache_summaryCachedInSelection(int count) {
+    return 'Cached in selected area/zoom: $count';
+  }
+
+  @override
+  String mapCache_summaryApproxCacheSize(String size) {
+    return 'Approx cache size: $size';
   }
 
   @override
