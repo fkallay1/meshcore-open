@@ -15,6 +15,7 @@ import '../services/fota_sender.dart';
 import '../models/fota_types.dart';
 import '../services/fota_github_source.dart';
 import '../models/fotapkg.dart';
+import '../services/fota_ed25519_expanded.dart';
 import '../services/fota_key_store.dart';
 import 'fota_fw_picker.dart';
 
@@ -78,6 +79,9 @@ class _FotaScreenState extends State<FotaScreen> {
   Color? _resultColor;
   double _progress = 0;
   bool _busy = false;
+  // Raw (nepodpísané) balíky: false = v0-prefix (key_id=0, nový formát),
+  // true = legacy key_id=1 (staré FW). Presigned balíky formát nesú v sebe.
+  bool _legacySig = false;
 
   // Send-mode / timing options (mirror fota_sender.py CLI flags).
   FotaScope _scope = FotaScope.zerohop; // --scope (ZeroHop default)
@@ -455,12 +459,13 @@ class _FotaScreenState extends State<FotaScreen> {
       _result = null;
     });
     try {
-      Uint8List? seed;
-      if (pkg.meta == null) seed = await FotaKeyStore().loadSeed(); // raw → need key
+      FotaSignKey? key;
+      if (pkg.meta == null) key = await FotaKeyStore().loadSignKey(); // raw → need key
       final sender = FotaSender(sink);
       _activeSender = sender;
       await sender.send(
-        pkg.toJob(),
+        // raw: key_id podľa kľúča/checkboxu — bez kľúča len legacy zero-sig
+        pkg.toJob(keyIdOverride: (key == null || _legacySig) ? 1 : 0),
         FotaSendConfig(
           channelName: pkg.channelName,
           channelIdx: pkg.channelIdx,
@@ -486,7 +491,7 @@ class _FotaScreenState extends State<FotaScreen> {
           // the re-send as duplicates (repeater showed only RAW). Re-sends are >=1s
           // apart so a fresh epoch base keeps every session's packets unique.
           tsBase: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          seed32: seed,
+          signKey: key,
           selection: sel,
         ),
         onProgress: (p) => setState(() {
@@ -711,6 +716,76 @@ class _FotaScreenState extends State<FotaScreen> {
     );
   }
 
+  // Správa podpisového kľúča: import companion identity hexu (64=seed / 128=
+  // expanded) alebo .der seed hexu; zobrazí typ + 4B pubkey prefix aktuálneho.
+  Future<void> _showKeyDialog() async {
+    final store = FotaKeyStore();
+    final ctrl = TextEditingController();
+    String status = 'načítavam…';
+    Future<String> describe() async {
+      final k = await store.loadSignKey();
+      if (k == null) return 'žiadny kľúč';
+      final t = k is FotaExpandedKey ? 'expanded' : 'seed';
+      final pfx = k.pub.sublist(0, 4).map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+      return '$t, pub prefix $pfx';
+    }
+    status = await describe();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          title: const Text('Podpisový kľúč'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Aktuálny: $status', style: const TextStyle(fontSize: 13)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: ctrl,
+                decoration: const InputDecoration(
+                  labelText: 'hex kľúča (64 = seed, 128 = companion expanded)',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await store.clearSignKey();
+                final s = await describe();
+                setLocal(() => status = s);
+              },
+              child: const Text('Zmazať'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await store.importHex(ctrl.text);
+                  ctrl.clear();
+                  final s = await describe();
+                  setLocal(() => status = s);
+                } catch (e) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(content: Text('Import zlyhal: $e')));
+                  }
+                }
+              },
+              child: const Text('Import'),
+            ),
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('Zavrieť')),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pkg = _pkg;
@@ -722,7 +797,17 @@ class _FotaScreenState extends State<FotaScreen> {
                 ?.pathBytesForDisplay ??
             Uint8List(0));
     return Scaffold(
-      appBar: AppBar(title: Text('FOTA → ${widget.headerTarget}'), centerTitle: true),
+      appBar: AppBar(
+        title: Text('FOTA → ${widget.headerTarget}'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.key),
+            tooltip: 'Podpisový kľúč',
+            onPressed: _busy ? null : _showKeyDialog,
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -800,6 +885,17 @@ class _FotaScreenState extends State<FotaScreen> {
                 Text('Patch: ${pkg.patchLen} B   '
                     'chunkov: ${(pkg.patchLen / kFotaChunkData).ceil()}   '
                     'signed: ${pkg.meta != null}'),
+                // Raw balík sa podpisuje pri odoslaní — voľba formátu SIG.
+                if (pkg.meta == null)
+                  CheckboxListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Legacy podpis (staré FW, key_id=1)'),
+                    value: _legacySig,
+                    onChanged: _busy
+                        ? null
+                        : (v) => setState(() => _legacySig = v ?? false),
+                  ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<FotaScope>(
                   initialValue: _scope,

@@ -1,3 +1,6 @@
+// Curve constants keep their canonical single-letter names (p, L, I, B, d)
+// from the ed25519 reference math for readability — hence the lint opt-out.
+// ignore_for_file: non_constant_identifier_names
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import 'package:pinenacl/ed25519.dart' as nacl;

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meshcore_open/fota/services/fota_ed25519_expanded.dart';
 import 'package:meshcore_open/fota/services/fota_payload_builder.dart';
 
 void main() {
@@ -19,7 +20,7 @@ void main() {
   test('buildSig matches python (99B) — pointycastle == pycryptodome rfc8032', () {
     final b = FotaPayloadBuilder();
     final meta = _h(g['meta_hex']);
-    final sig = b.buildSig(meta, _h(g['seed_hex']), g['inputs']['key_id']);
+    final sig = b.buildSig(meta, FotaSeedKey(_h(g['seed_hex'])), g['inputs']['key_id']);
     expect(sig.length, 99);
     expect(_x(sig), g['sig_hex']);
   });

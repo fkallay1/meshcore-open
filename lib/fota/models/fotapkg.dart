@@ -96,12 +96,15 @@ class FotaPkg {
     );
   }
 
-  FotaJob toJob() => FotaJob(
+  /// [keyIdOverride] — raw (unsigned) packages only: the send screen picks
+  /// key_id 0 (v0-prefix) or 1 (legacy) by the available key. Ignored for
+  /// pre-signed packages (their SIG already carries the format).
+  FotaJob toJob({int? keyIdOverride}) => FotaJob(
         patch: patch,
         oldSha256: oldSha256,
         newSha256: newSha256,
         oldFwSize: oldFwSize,
-        keyId: keyId,
+        keyId: (meta == null && keyIdOverride != null) ? keyIdOverride : keyId,
         presignedMeta: meta,
         presignedSig: sig,
       );

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
 import '../../connector/meshcore_protocol.dart';
+import 'fota_ed25519_expanded.dart';
 import 'fota_payload_builder.dart';
 import '../models/fota_types.dart';
 
@@ -38,7 +39,7 @@ class FotaSendConfig {
   //   cycles       → --cycles       : repeat the whole broadcast N times (fire-and-forget)
   //   cycleDelayMs → --cycle-delay  : pause between cycles
   final int headerEvery, cycles, cycleDelayMs;
-  final Uint8List? seed32; // Ed25519 seed for raw signing; null → zero sig
+  final FotaSignKey? signKey; // raw signing key (seed/expanded); null → zero sig
   // null → full send (all chunks + header). Non-null → send only the chosen
   // chunks, then H/S per the selection, then optional APPLY (headerEvery ignored).
   final FotaSelection? selection;
@@ -60,7 +61,7 @@ class FotaSendConfig {
     this.cycles = 1,
     this.cycleDelayMs = 2000,
     this.tsBase = 0,
-    this.seed32,
+    this.signKey,
     this.selection,
   });
 }
@@ -130,7 +131,7 @@ class FotaSender {
     final patchSha = FotaPayloadBuilder.sha256(patch);
     final meta = job.presignedMeta ??
         _b.buildMeta(patch.length, patchSha, job.newSha256, job.oldSha256);
-    final sig = job.presignedSig ?? _b.buildSig(meta, cfg.seed32, job.keyId);
+    final sig = job.presignedSig ?? _b.buildSig(meta, cfg.signKey, job.keyId);
     Future<void> sendHeader() async {
       await snd(meta);
       await snd(sig);

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:meshcore_open/fota/services/fota_ed25519_expanded.dart';
 import 'package:meshcore_open/fota/services/fota_sender.dart';
 import 'package:meshcore_open/fota/models/fota_types.dart';
 import 'package:meshcore_open/fota/models/fotapkg.dart';
@@ -72,7 +73,7 @@ FotaSendConfig _selCfg(
       applyRadio: false,
       tsBase: 1,
       selection: selection,
-      seed32: Uint8List.fromList(List<int>.generate(32, (i) => i)),
+      signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i))),
     );
 
 FotaPkg _samplePkg() => FotaPkg.fromJsonString(
@@ -162,7 +163,7 @@ void main() {
         delayMs: 0,
         applyRadio: true,
         tsBase: g['inputs']['ts'],
-        seed32: Uint8List.fromList(List<int>.generate(32, (i) => i)),
+        signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i))),
       ),
     );
 
@@ -196,7 +197,7 @@ void main() {
             delayMs: 0,
             applyRadio: false,
             tsBase: 1,
-            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+            signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i)))));
     expect(sink.frames.length, total + 3); // + APPLY
     expect(sink.freqVal, null); // applyRadio false → no setRadio
   });
@@ -221,7 +222,7 @@ void main() {
             cycles: 3,
             applyRadio: false,
             tsBase: 1,
-            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+            signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i)))));
     // 3 cycles, each = chunks + META + SIG (no APPLY)
     expect(sink.frames.length, 3 * (total + 2));
     // setChannel only happens once (setup is outside the cycle loop)
@@ -248,7 +249,7 @@ void main() {
             headerEvery: every,
             applyRadio: false,
             tsBase: 1,
-            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+            signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i)))));
     // chunks + (total ~/ every) redundancy header pairs + final META + SIG
     final redundant = (total ~/ every) * 2;
     expect(sink.frames.length, total + redundant + 2);
@@ -273,7 +274,7 @@ void main() {
             delayMs: 0,
             applyRadio: false,
             tsBase: 1,
-            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+            signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i)))));
     expect(sink.floodScopeCalls, 1);
     expect(sink.lastFloodScopeKey, key);
     // region floods (path_len byte at frame index 2 = 0xFF; companion adds code)
@@ -297,7 +298,7 @@ void main() {
             delayMs: 0,
             applyRadio: false,
             tsBase: 1,
-            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+            signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i)))));
     expect(sink.floodScopeCalls, 1);
     expect(sink.lastFloodScopeKey, isNull);
     expect(sink.frames.every((f) => f[2] == 0xFF), true);
@@ -320,7 +321,7 @@ void main() {
             delayMs: 0,
             applyRadio: false,
             tsBase: 1,
-            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+            signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i)))));
     expect(sink.lastFloodScopeKey, isNull);
     expect(sink.frames.every((f) => f[2] == 0x00), true);
   });
@@ -345,7 +346,7 @@ void main() {
             delayMs: 0,
             applyRadio: false,
             tsBase: 1,
-            seed32: Uint8List.fromList(List<int>.generate(32, (i) => i))));
+            signKey: FotaSeedKey(Uint8List.fromList(List<int>.generate(32, (i) => i)))));
     // ((2-1)<<6)|2 = 0x42
     expect(sink.frames.every((f) => f[2] == 0x42), true);
     expect(sink.frames.first.sublist(3, 7), [0x3f, 0xa1, 0xb2, 0xc3]);

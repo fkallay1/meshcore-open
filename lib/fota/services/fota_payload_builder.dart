@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
-import 'package:pinenacl/ed25519.dart' as nacl;
 import '../models/fota_types.dart';
+import 'fota_ed25519_expanded.dart';
 
 class FotaPayloadBuilder {
   static Uint8List sha256(Uint8List data) => Uint8List.fromList(c.sha256.convert(data).bytes);
@@ -20,19 +20,21 @@ class FotaPayloadBuilder {
     return out;
   }
 
-  /// RFC8032 Ed25519 signature of [meta] (64B). Zeros if [seed32] is null.
+  /// RFC8032 Ed25519 signature of [meta] (64B). Zeros if [key] is null.
   ///
-  /// Uses pinenacl (TweetNaCl) — pointycastle 4.0.0 has no Ed25519. Ed25519 is
-  /// deterministic, so this matches pycryptodome `eddsa 'rfc8032'` byte-for-byte
-  /// (verified by the golden-vector test `buildSig`).
-  Uint8List signMeta(Uint8List meta, Uint8List? seed32) {
-    if (seed32 == null) return Uint8List(64);
-    final sk = nacl.SigningKey(seed: seed32);
-    return Uint8List.fromList(sk.sign(meta).signature);
-  }
+  /// [key] is either FotaSeedKey (pinenacl, matches pycryptodome `eddsa
+  /// 'rfc8032'` byte-for-byte) or FotaExpandedKey (companion identity hex) —
+  /// both verified by golden-vector tests.
+  Uint8List signMeta(Uint8List meta, FotaSignKey? key) =>
+      key == null ? Uint8List(64) : key.sign(meta);
 
-  Uint8List buildSig(Uint8List meta, Uint8List? seed32, int keyId) {
-    final sig = signMeta(meta, seed32);
+  /// SIG payload. keyId==0 (v0-prefix): +4B signer pubkey prefix -> 103 B;
+  /// keyId>=1 (legacy, old FW): 99 B, s_authors[keyId-1] on the receiver.
+  Uint8List buildSig(Uint8List meta, FotaSignKey? key, int keyId) {
+    if (keyId == 0 && key == null) {
+      throw ArgumentError('key_id=0 (v0-prefix) requires a signing key');
+    }
+    final sig = signMeta(meta, key);
     final oldSha256 = meta.sublist(70, 102);
     final b = BytesBuilder();
     b.addByte(kFotaPktHdrSig);
@@ -40,8 +42,10 @@ class FotaPayloadBuilder {
     b.add(oldSha256);
     b.addByte(keyId & 0xFF);
     b.add(sig);
+    if (keyId == 0) b.add(key!.pub.sublist(0, 4));
     final out = b.toBytes();
-    assert(out.length == 99, 'SIG must be 99B, is ${out.length}');
+    assert(out.length == (keyId == 0 ? 103 : 99),
+        'SIG must be ${keyId == 0 ? 103 : 99}B, is ${out.length}');
     return out;
   }
 
