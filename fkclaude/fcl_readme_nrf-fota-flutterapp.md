@@ -82,6 +82,35 @@ Pôvodný setup postup:
 
 ## 6. Stav / work-log
 
+- **2026-07-15 (v0-prefix podpis + companion identity kľúč + ACL; APK v telefóne):**
+  Nový podpisový formát **v0-prefix** (`key_id=0` → za 99B SIG +4B prefix pubkey
+  podpisovateľa = 103B). Repeater (FW build ≥ 335) overuje voči zakompilovaným
+  `s_authors[]` aj voči **ACL adminom** (`PERM_ACL_ADMIN`). Zmeny v appke (`lib/fota/`):
+  - `services/fota_ed25519_expanded.dart` — nový `FotaSignKey` interface + `FotaSeedKey`
+    (pinenacl, seed) + **`FotaExpandedKey`** (BigInt port orlp ed25519 pre **companion
+    identity kľúč** = expandovaný 64B, „dlhý hex"). Golden vektory z Pythonu
+    (`test/fota/services/fota_ed25519_expanded_test.dart`).
+  - `services/fota_key_store.dart` — `importHex()` (autodetekcia 64=seed / 128=expanded),
+    `loadSignKey()` (nový slot `fota_sign_key`, fallback na starý seed slot).
+  - `services/fota_payload_builder.dart` — `buildSig(meta, FotaSignKey?, keyId)`:
+    keyId=0 → 103B (+prefix), keyId≥1 → 99B legacy.
+  - `screens/fota_screen.dart` — v AppBar tlačidlo **kľúč** (dialóg import/zmazať/stav,
+    zobrazí typ + 4B prefix); pre raw balíky checkbox **„Legacy podpis (staré FW)"**
+    (key_id=1) — default v0-prefix. `seed32` → `signKey` v `FotaSendConfig`.
+  - `.fotapkg.json` `signed{}` blok má navyše `signer_prefix` + `key_id`.
+  - **Testy:** `flutter test test/fota` = **115 pass**; `flutter analyze lib/fota` čisté.
+  - **HW OVERENÉ (obe cesty)** cez Xiao companion (COM3) → ProMicro repeater (COM5):
+    builtin `test_key` (prefix C22F8AE0) → `HEADER signer=builtin[0]`; ACL admin
+    (companion identity prefix BA3DC5DA, `acl[3] perm=0x03 admin`) → `HEADER signer=ACL admin`.
+  - **APK v telefóne** (`f161f715`): `flutter build apk --release` (248,9 MB) →
+    `adb install -r -d` (**`-d` nutné** — telefón mal appku s vyšším versionCode 2013 vs
+    tento build 13; keď sa má appka aktualizovať bez `-d`, bumpni `version` v pubspec.yaml).
+  - PC strana (MeshCore repo): `test_nrf-fota/fota_ed25519_expanded.py` (signer),
+    `fota_keytool.py` (gen/der2hex/pub; hex→der NEJDE), `--privkey-hex` vo všetkých
+    sendroch, `fota_texts.py` (EN-default katalóg, `FOTA_LANG=sk`). 4 admin kľúče
+    `fota_signkey1..4.der` (gitignored), pubkey v `s_authors` index 1–4.
+  - Spec+plán: `../MeshCore/fkclaude/docs/superpowers/{specs,plans}/2026-07-15-fota-acl-sign*`.
+
 - **2026-07-06 (MERGE upstream → dev → feature vetvy; APK v telefóne):** `git fetch upstream`
   (zjs81) → `dev` fast-forward `e1b8d6e..f4cca2f` (15 commitov: alternatívne mapové zdroje
   StadiaMaps/OSM Dark + cache UI, zerohop location adverty, fonty Inter/JetBrains Mono,
