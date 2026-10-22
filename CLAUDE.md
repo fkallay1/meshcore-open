@@ -382,7 +382,8 @@ The firmware + the authoritative wire format are in **`../MeshCore`** (sibling o
   `fkclaude/docs/superpowers/specs|plans/`. NEVER use the upstream `docs/` tree or repo root for
   fork-helper material.
 - **Autonomous commits** on the feature branch (commit/push milestones without asking; OneDrive
-  history hygiene). Never commit to `dev`/`main` directly. Co-Author trailer per global rules.
+  history hygiene). Never commit to `dev`/`main` directly. No author trailers, tool attribution,
+  `#NN` references or URLs in commit messages (global rule — this is a public fork).
 - **Save the work log:** keep `fkclaude/fcl_readme_nrf-fota-flutterapp.md` updated with what was
   advised, done, and why (so context survives a Reload Window / new session).
 - **Isolation discipline:** ALL FOTA logic is self-contained under `lib/fota/`, split into
