@@ -662,6 +662,14 @@ android-sdk: platform-36, build-tools 36.0.0, NDK 29.0.14206865). Výsledky:
   `terminal.integrated.env.windows` (cez `${env:DEV_ROOT}`).
 - **APK build vyžaduje Windows „Developer Mode"** (symlink support pre pluginy) — `start ms-settings:developers`.
   Bez neho `flutter build apk`/`run` zlyhá; `flutter test` (pure Dart) beží aj bez neho.
+- **Windows desktop build nejde** — chýba MSVC/Visual Studio a Flutter Windows build je viazaný
+  na registrovanú VS (nie portable); `flserial`/`blue_plus_winrt` by desktop podporili. Na PC sa
+  appka skúša ako **web** (`flutter build web` → statický server `localhost:8085`, Web Serial
+  v Chrome cez `usb_serial_service_web.dart`); Chrome s Web Serial drží COM3 (`Access denied`
+  pre iné nástroje → najprv Disconnect).
+- **Mesh = `869.618/SF8`** (default firmvéru, nie 869.525/SF7) — balík musí mať tieto rádio
+  parametre. adb iba cez PowerShell (Git Bash mangluje `/sdcard` → `C:/Program Files/Git/`);
+  adb = `platform-tools\adb.exe` v android-sdk alebo `D:\FkDev\00_Downloads\scrcpy-win64-v4.0\adb.exe`.
 
 ## 7. Otvorené / pozor
 
