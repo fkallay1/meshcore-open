@@ -25,6 +25,28 @@ class Channel {
 
   bool get isEmpty => name.isEmpty && psk.every((b) => b == 0);
 
+  /// Key for this channel's persisted data (messages, settings, region,
+  /// order, images). Derived from the PSK so it follows the channel across
+  /// radio slots; null for an empty slot.
+  late final String? storageId = storageIdForPsk(psk);
+
+  static const String _storageIdDomain = 'meshcore-channel:';
+
+  /// First 8 bytes of SHA-256("meshcore-channel:" + psk) as 16 hex chars, or
+  /// null for an all-zero PSK. Not the 1-byte on-air channel hash, which
+  /// collides.
+  static String? storageIdForPsk(Uint8List psk) {
+    if (psk.every((b) => b == 0)) return null;
+    final digest = crypto.sha256.convert([
+      ...utf8.encode(_storageIdDomain),
+      ...psk,
+    ]);
+    return _bytesToHex(Uint8List.fromList(digest.bytes.sublist(0, 8)));
+  }
+
+  /// Key used for per-channel notification muting.
+  String get muteKey => name.isEmpty ? 'Channel $index' : name;
+
   bool get isPublicChannel => pskHex == publicChannelPsk;
 
   bool get isHashtagChannel => name.startsWith('#');
@@ -107,7 +129,7 @@ class Channel {
   /// Normalize a hashtag name for consistent community PSK derivation.
   /// Strips leading #, converts to lowercase, trims whitespace.
   static String _normalizeCommunityHashtag(String hashtag) {
-    return hashtag.replaceFirst(RegExp(r'^#'), '').toLowerCase().trim();
+    return hashtag.trim().replaceFirst(RegExp(r'^#'), '').toLowerCase().trim();
   }
 
   static String formatPskHex(Uint8List psk) {

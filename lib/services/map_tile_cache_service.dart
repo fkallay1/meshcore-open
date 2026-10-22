@@ -12,12 +12,15 @@ enum MapRasterSourcePreset {
   osmAuto('osm_auto'),
   osmStandard('osm_standard'),
   osmDark('osm_dark'),
+  osmDarkHC('osm_darkHC'),
   stamenTerrain('stamen_terrain'),
   alidadeSmoothDark('alidade_smooth_dark'),
   outdoors('outdoors'),
   osmBright('osm_bright'),
   outdoorsDark('outdoors_dark'),
-  osmBrightDark('osm_bright_dark');
+  outdoorsDarkHC('outdoors_darkHC'),
+  osmBrightDark('osm_bright_dark'),
+  osmBrightDarkHC('osm_bright_darkHC');
 
   const MapRasterSourcePreset(this.id);
 
@@ -101,6 +104,12 @@ class MapRasterSourceCatalog {
     label: 'OpenStreetMap Dark',
     description: 'Standard OpenStreetMap tiles with an inverted dark filter',
   );
+  static const MapRasterSourceDefinition osmDarkHC = MapRasterSourceDefinition(
+    id: 'osm_darkHC',
+    label: 'OpenStreetMap Dark High Contrast',
+    description:
+        'Standard OpenStreetMap tiles with an inverted high contrast dark filter',
+  );
   static const MapRasterSourceDefinition stamenTerrain =
       MapRasterSourceDefinition(
         id: 'stamen_terrain',
@@ -139,11 +148,27 @@ class MapRasterSourceCatalog {
         isStadia: true,
         allowsBulkDownload: true,
       );
+  static const MapRasterSourceDefinition outdoorsDarkHC =
+      MapRasterSourceDefinition(
+        id: 'outdoors',
+        label: 'Outdoors Dark High Contrast',
+        description: 'High contrast dark version of the Outdoors map style',
+        isStadia: true,
+        allowsBulkDownload: true,
+      );
   static const MapRasterSourceDefinition osmBrightDark =
       MapRasterSourceDefinition(
         id: 'osm_bright',
         label: 'OSM Bright Dark',
         description: 'Dark version of the OSM Bright map style',
+        isStadia: true,
+        allowsBulkDownload: true,
+      );
+  static const MapRasterSourceDefinition osmBrightDarkHC =
+      MapRasterSourceDefinition(
+        id: 'osm_bright',
+        label: 'OSM Bright Dark High Contrast',
+        description: 'High contrast dark version of the OSM Bright map style',
         isStadia: true,
         allowsBulkDownload: true,
       );
@@ -156,16 +181,22 @@ class MapRasterSourceCatalog {
         return osmStandard;
       case MapRasterSourcePreset.osmDark:
         return osmDark;
+      case MapRasterSourcePreset.osmDarkHC:
+        return osmDarkHC;
       case MapRasterSourcePreset.alidadeSmoothDark:
         return alidadeSmoothDark;
       case MapRasterSourcePreset.outdoors:
         return outdoors;
       case MapRasterSourcePreset.outdoorsDark:
         return outdoorsDark;
+      case MapRasterSourcePreset.outdoorsDarkHC:
+        return outdoorsDarkHC;
       case MapRasterSourcePreset.osmBright:
         return osmBright;
       case MapRasterSourcePreset.osmBrightDark:
         return osmBrightDark;
+      case MapRasterSourcePreset.osmBrightDarkHC:
+        return osmBrightDarkHC;
       case MapRasterSourcePreset.stamenTerrain:
         return stamenTerrain;
     }
@@ -244,12 +275,24 @@ class MapTileCacheResult {
   final int total;
   final int downloaded;
   final int failed;
+  final bool cancelled;
 
   const MapTileCacheResult({
     required this.total,
     required this.downloaded,
     required this.failed,
+    this.cancelled = false,
   });
+}
+
+/// Cooperative cancellation flag for [MapTileCacheService.downloadRegion].
+/// Tiles already in flight finish; no new tiles are queued after [cancel].
+class MapTileDownloadCancelToken {
+  bool _cancelled = false;
+
+  bool get isCancelled => _cancelled;
+
+  void cancel() => _cancelled = true;
 }
 
 class CachedTileInfo {
@@ -284,6 +327,10 @@ class MapTileCacheService extends ChangeNotifier {
   static const String userAgentPackageName = 'com.meshcore.open';
   static const int defaultMinZoom = 10;
   static const int defaultMaxZoom = 15;
+
+  /// Largest bulk download the UI allows in one go. Keeps a single request
+  /// within tile-server usage policies and avoids filling the device.
+  static const int maxBulkDownloadTiles = 20000;
 
   final AppSettingsService appSettingsService;
   final BaseCacheManager cacheManager;
@@ -327,6 +374,19 @@ class MapTileCacheService extends ChangeNotifier {
 
   String get urlTemplate => _buildUrlTemplate(appSettingsService.settings);
 
+  /// Cache key for a tile URL: the URL without its `api_key`, so rotating the
+  /// Stadia key does not orphan every offline tile.
+  static String tileCacheKey(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.queryParameters.containsKey('api_key')) return url;
+    final params = Map<String, String>.of(uri.queryParameters)
+      ..remove('api_key');
+    final stripped = params.isEmpty
+        ? uri.replace(query: '')
+        : uri.replace(queryParameters: params);
+    return stripped.toString().replaceFirst(RegExp(r'\?$'), '');
+  }
+
   TileBuilder? get tileBuilder => null;
 
   static bool shouldApplyDarkFilterForSettings(
@@ -335,8 +395,11 @@ class MapTileCacheService extends ChangeNotifier {
   ) {
     switch (MapRasterSourcePreset.fromId(settings.mapRasterSourceId)) {
       case MapRasterSourcePreset.osmDark:
+      case MapRasterSourcePreset.osmDarkHC:
       case MapRasterSourcePreset.outdoorsDark:
+      case MapRasterSourcePreset.outdoorsDarkHC:
       case MapRasterSourcePreset.osmBrightDark:
+      case MapRasterSourcePreset.osmBrightDarkHC:
         return true;
       case MapRasterSourcePreset.osmAuto:
         return brightness == Brightness.dark;
@@ -345,6 +408,25 @@ class MapTileCacheService extends ChangeNotifier {
       case MapRasterSourcePreset.alidadeSmoothDark:
       case MapRasterSourcePreset.outdoors:
       case MapRasterSourcePreset.osmBright:
+        return false;
+    }
+  }
+
+  static bool _isHighContrastDarkPreset(MapRasterSourcePreset preset) {
+    switch (preset) {
+      case MapRasterSourcePreset.osmDarkHC:
+      case MapRasterSourcePreset.outdoorsDarkHC:
+      case MapRasterSourcePreset.osmBrightDarkHC:
+        return true;
+      case MapRasterSourcePreset.osmAuto:
+      case MapRasterSourcePreset.osmStandard:
+      case MapRasterSourcePreset.osmDark:
+      case MapRasterSourcePreset.stamenTerrain:
+      case MapRasterSourcePreset.alidadeSmoothDark:
+      case MapRasterSourcePreset.outdoors:
+      case MapRasterSourcePreset.outdoorsDark:
+      case MapRasterSourcePreset.osmBright:
+      case MapRasterSourcePreset.osmBrightDark:
         return false;
     }
   }
@@ -365,6 +447,28 @@ class MapTileCacheService extends ChangeNotifier {
     -0.0397,
     0,
     170,
+    0,
+    0,
+    0,
+    1,
+    0,
+  ]);
+  static const ColorFilter _darkHCMapFilter = ColorFilter.matrix([
+    0.7634200013,
+    -1.9008999332,
+    -0.1915199924,
+    0,
+    338.15,
+    -0.5665799987,
+    -0.5720999709,
+    -0.1915199924,
+    0,
+    338.15,
+    -0.5665799987,
+    -1.9008999332,
+    1.1384799335,
+    0,
+    338.15,
     0,
     0,
     0,
@@ -393,7 +497,13 @@ class MapTileCacheService extends ChangeNotifier {
     );
 
     if (shouldApplyDarkFilter) {
-      layer = ColorFiltered(colorFilter: _darkMapFilter, child: layer);
+      final activePreset = MapRasterSourcePreset.fromId(
+        appSettingsService.settings.mapRasterSourceId,
+      );
+      final filter = _isHighContrastDarkPreset(activePreset)
+          ? _darkHCMapFilter
+          : _darkMapFilter;
+      layer = ColorFiltered(colorFilter: filter, child: layer);
     }
 
     if (opacity < 1) {
@@ -520,6 +630,7 @@ class MapTileCacheService extends ChangeNotifier {
     int concurrentDownloads = 8,
     Map<String, String>? headers,
     void Function(MapTileCacheProgress progress)? onProgress,
+    MapTileDownloadCancelToken? cancelToken,
   }) async {
     final safeMin = math.min(minZoom, maxZoom);
     final safeMax = math.max(minZoom, maxZoom);
@@ -533,7 +644,7 @@ class MapTileCacheService extends ChangeNotifier {
     final pending = <Future<void>>[];
     Future<void> queueDownload(String url) async {
       final future = cacheManager
-          .downloadFile(url, key: url, authHeaders: authHeaders)
+          .downloadFile(url, key: tileCacheKey(url), authHeaders: authHeaders)
           .then((_) {
             completed += 1;
           })
@@ -558,10 +669,17 @@ class MapTileCacheService extends ChangeNotifier {
       }
     }
 
+    var stoppedEarly = false;
+
+    outer:
     for (int zoom = safeMin; zoom <= safeMax; zoom++) {
       final tileBounds = _tileBoundsForBounds(bounds, zoom);
       for (int x = tileBounds.minX; x <= tileBounds.maxX; x++) {
         for (int y = tileBounds.minY; y <= tileBounds.maxY; y++) {
+          if (cancelToken?.isCancelled ?? false) {
+            stoppedEarly = true;
+            break outer;
+          }
           final url = _buildTileUrl(x, y, zoom, urlTemplate: currentTemplate);
           await queueDownload(url);
         }
@@ -576,6 +694,7 @@ class MapTileCacheService extends ChangeNotifier {
       total: total,
       downloaded: completed - failed,
       failed: failed,
+      cancelled: stoppedEarly,
     );
   }
 
@@ -747,6 +866,7 @@ class CachedNetworkTileProvider extends TileProvider {
     final url = getTileUrl(coordinates, options);
     return CachedNetworkImageProvider(
       url,
+      cacheKey: MapTileCacheService.tileCacheKey(url),
       cacheManager: cacheManager,
       headers: headers,
     );

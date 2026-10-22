@@ -133,9 +133,8 @@ class BufferWriter {
   void writeCString(String string, int maxLength) {
     final bytes = Uint8List(maxLength);
     final encoded = utf8.encode(string);
-    for (var i = 0; i < maxLength - 1 && i < encoded.length; i++) {
-      bytes[i] = encoded[i];
-    }
+    final len = utf8BoundaryLength(encoded, maxLength - 1);
+    bytes.setRange(0, len, encoded);
     writeBytes(bytes);
   }
 
@@ -213,11 +212,13 @@ const int cmdGetStats = 56;
 const int cmdSendAnonReq = 57;
 const int cmdSetAutoAddConfig = 58;
 const int cmdGetAutoAddConfig = 59;
+const int cmdGetAllowedRepeatFreq = 60;
 const int cmdSetPathHashMode = 61;
-const int cmdSendChannelData = 62;
 // FK fork-only (nrf-fota companion): push a return path to a contact so it
 // replies sendDirect instead of flood. High number to dodge upstream CMDs.
 const int cmdSendReturnPath = 0x70;
+const int cmdSetDefaultFloodScope = 63; // FIRMWARE_VER_CODE 11+
+const int cmdGetDefaultFloodScope = 64; // FIRMWARE_VER_CODE 11+
 
 // Text message types
 const int txtTypePlain = 0;
@@ -266,7 +267,14 @@ const int respCodeChannelMsgRecvV3 = 17;
 const int respCodeChannelInfo = 18;
 const int respCodeCustomVars = 21;
 const int respCodeAutoAddConfig = 25;
+const int respCodeAllowedRepeatFreq = 26;
 const int respCodeStats = 24;
+const int respCodeDefaultFloodScope = 28;
+
+/// Region name field width in SET/GET_DEFAULT_FLOOD_SCOPE frames (NUL padded,
+/// so at most 30 name bytes).
+const int defaultFloodScopeNameSize = 31;
+const int floodScopeKeySize = 16;
 
 const int statsTypeCore = 0;
 const int statsTypeRadio = 1;
@@ -286,6 +294,8 @@ const int pushCodeNewAdvert = 0x8A;
 const int pushCodeTelemetryResponse = 0x8B;
 const int pushCodeBinaryResponse = 0x8C;
 const int pushCodeControlData = 0x8E;
+const int pushCodeContactDeleted = 0x8F;
+const int pushCodeContactsFull = 0x90;
 
 // Contact/advertisement types
 const int advTypeChat = 1;
@@ -333,16 +343,41 @@ const int autoAddRoomServerFlag =
 const int autoAddSensorFlag =
     1 << 4; // 0x10 - auto-add Sensor (ADV_TYPE_SENSOR)
 
+/// Returns the largest prefix length of [bytes] that is at most [maxBytes]
+/// and does not end in the middle of a UTF-8 encoded character.
+int utf8BoundaryLength(List<int> bytes, int maxBytes) {
+  if (bytes.length <= maxBytes) return bytes.length;
+  if (maxBytes <= 0) return 0;
+  var len = maxBytes;
+  // Back up over continuation bytes (10xxxxxx) to the lead byte, then drop
+  // that lead byte too since its character would be cut short.
+  while (len > 0 && (bytes[len] & 0xC0) == 0x80) {
+    len--;
+  }
+  return len;
+}
+
 // Sizes
 const int pubKeySize = 32;
 const int signatureSize = 64;
 const int maxPathSize = 64;
 const int pathHashSize = 1;
 const int maxNameSize = 32;
+// Largest frame the app sends. Kept at 172 so commands still fit radios on
+// firmware built before MAX_FRAME_SIZE grew to 176.
 const int maxFrameSize = 172;
+// Largest frame current firmware may send (MAX_FRAME_SIZE 176, +4 bytes for
+// region transport codes). Receive paths must accept frames up to this size.
+const int maxRxFrameSize = 176;
+// Widest per-hop path hash firmware accepts on air (mode 2); 4 is reserved.
+const int maxPathHashWidth = 3;
 const int appProtocolVersion = 4;
 // Matches firmware MAX_TEXT_LEN (10 * CIPHER_BLOCK_SIZE).
 const int maxTextPayloadBytes = 160;
+// From attempt 4 on the firmware appends [0][attempt] to the DM payload, so
+// the text must fit in MAX_TEXT_LEN - 2 (BaseChatMesh::composeMsgPacket).
+const int maxFullLengthTextAttempt = 3;
+const int maxTextPayloadBytesAfterFullLengthAttempts = maxTextPayloadBytes - 2;
 const int _sendTextMsgOverheadBytes =
     1 + 1 + 1 + 4 + 6 + 1 + 2; // +2 safety margin
 const int _sendChannelTextMsgOverheadBytes =
@@ -536,8 +571,12 @@ Uint8List buildSendTextMsgFrame(
 
 // Build CMD_SEND_CHANNEL_TXT_MSG frame
 // Format: [cmd][txt_type][channel_idx][timestamp x4][text...]
-Uint8List buildSendChannelTextMsgFrame(int channelIndex, String text) {
-  final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+Uint8List buildSendChannelTextMsgFrame(
+  int channelIndex,
+  String text, {
+  int? timestamp,
+}) {
+  timestamp ??= DateTime.now().millisecondsSinceEpoch ~/ 1000;
   final writer = BufferWriter();
   writer.writeByte(cmdSendChannelTxtMsg);
   writer.writeByte(txtTypePlain);
@@ -591,9 +630,10 @@ Uint8List buildGetStatsFrame(int statsType) {
   return Uint8List.fromList([cmdGetStats, statsType & 0xFF]);
 }
 
-/// Path hash width on air: [61][0][mode], mode 0..2 → (mode+1) bytes per hop hash.
+/// Path hash width on air: [61][0][mode], mode 0..2 → (mode+1) bytes per hop
+/// hash. Firmware rejects mode 3 (4-byte hashes are reserved).
 Uint8List buildSetPathHashModeFrame(int mode) {
-  final m = mode.clamp(0, 2);
+  final m = mode.clamp(0, 2).toInt();
   return Uint8List.fromList([cmdSetPathHashMode, 0, m]);
 }
 
@@ -615,9 +655,7 @@ Uint8List buildSendSelfAdvertFrame({bool flood = false}) {
 // Format: [cmd][name...]
 Uint8List buildSetAdvertNameFrame(String name) {
   final nameBytes = utf8.encode(name);
-  final nameLen = nameBytes.length < maxNameSize
-      ? nameBytes.length
-      : maxNameSize - 1;
+  final nameLen = utf8BoundaryLength(nameBytes, maxNameSize - 1);
   final writer = BufferWriter();
   writer.writeByte(cmdSetAdvertName);
   writer.writeBytes(Uint8List.fromList(nameBytes.sublist(0, nameLen)));
@@ -671,20 +709,6 @@ Uint8List buildSetChannelFrame(int channelIndex, String name, Uint8List psk) {
     pskPadded[i] = psk[i];
   }
   writer.writeBytes(pskPadded);
-  return writer.toBytes();
-}
-
-/// CMD_SEND_CHANNEL_DATA (62): [62][channelIndex][pathLen][path][dataType u16le][data].
-/// Mirrors test_nrf-fota/fota_sender_mcpy.py companion_chan_data_frame.
-Uint8List buildSendChannelDataFrame(
-    int channelIndex, int pathLen, Uint8List path, int dataType, Uint8List data) {
-  final writer = BufferWriter();
-  writer.writeByte(cmdSendChannelData);
-  writer.writeByte(channelIndex & 0xFF);
-  writer.writeByte(pathLen & 0xFF);
-  writer.writeBytes(path);
-  writer.writeUInt16LE(dataType);
-  writer.writeBytes(data);
   return writer.toBytes();
 }
 
@@ -749,7 +773,9 @@ Uint8List buildResetPathFrame(Uint8List pubKey) {
 }
 
 // Build CMD_ADD_UPDATE_CONTACT frame to set custom path
-// Format: [cmd][pub_key x32][type][flags][path_len][path x64][name x32][Lat? x4, Lon? x4][timestamp? x4]
+// Format: [cmd][pub_key x32][type][flags][path_len][path x64][name x32][last_advert x4][Lat? x4, Lon? x4][lastmod? x4]
+// The firmware stores last_advert as the contact's replay guard, so it must be
+// the contact's own advert timestamp (0 when unknown), never the phone clock.
 Uint8List buildUpdateContactPathFrame(
   Uint8List pubKey,
   Uint8List path,
@@ -759,6 +785,7 @@ Uint8List buildUpdateContactPathFrame(
   String name = '',
   double? lat,
   double? lon,
+  DateTime? lastAdvert,
   DateTime? lastModified,
 }) {
   final writer = BufferWriter();
@@ -773,9 +800,10 @@ Uint8List buildUpdateContactPathFrame(
   // Name (32 bytes, null-padded)
   writer.writeCString(name, maxNameSize);
 
-  // Timestamp
-  final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  writer.writeUInt32LE(timestamp);
+  final lastAdvertSeconds = lastAdvert == null
+      ? 0
+      : lastAdvert.millisecondsSinceEpoch ~/ 1000;
+  writer.writeUInt32LE(lastAdvertSeconds.clamp(0, 0xFFFFFFFF).toInt());
 
   // Optional [Lat x4, Lon x4][timestamp x4] tail per the doc comment above.
   // Emit 8 bytes of position (zero-filled when only lastModified is provided)
@@ -813,28 +841,51 @@ Uint8List buildGetAutoAddFlagsFrame() {
   return Uint8List.fromList([cmdGetAutoAddConfig]);
 }
 
+Uint8List buildGetAllowedRepeatFreqFrame() {
+  return Uint8List.fromList([cmdGetAllowedRepeatFreq]);
+}
+
+typedef RepeatFreqRange = ({int lowKHz, int highKHz});
+
+// RESP_ALLOWED_REPEAT_FREQ: [code] then [lower_khz u32][upper_khz u32] pairs.
+List<RepeatFreqRange> parseAllowedRepeatFreqFrame(Uint8List frame) {
+  final ranges = <RepeatFreqRange>[];
+  final data = ByteData.sublistView(frame);
+  for (var i = 1; i + 8 <= frame.length; i += 8) {
+    ranges.add((
+      lowKHz: data.getUint32(i, Endian.little),
+      highKHz: data.getUint32(i + 4, Endian.little),
+    ));
+  }
+  return ranges;
+}
+
 // Calculate LoRa airtime for a packet
 // Based on Semtech SX127x datasheet formula
 // Returns airtime in milliseconds
+// Preamble defaults to the firmware's per-SF length (32 up to SF8, 16 above,
+// RadioLibWrappers.h preambleLengthForSF); LDRO defaults to the RadioLib rule
+// (symbol time > 16 ms).
 int calculateLoRaAirtime({
   required int payloadBytes,
   required int spreadingFactor,
   required int bandwidthHz,
   required int codingRate,
-  int preambleSymbols = 8,
-  bool lowDataRateOptimize = false,
+  int? preambleSymbols,
+  bool? lowDataRateOptimize,
   bool explicitHeader = true,
 }) {
   // Symbol duration (Ts) in milliseconds
   final symbolDuration = (1 << spreadingFactor) / (bandwidthHz / 1000.0);
 
   // Preamble time
-  final preambleTime = (preambleSymbols + 4.25) * symbolDuration;
+  final preamble = preambleSymbols ?? (spreadingFactor <= 8 ? 32 : 16);
+  final preambleTime = (preamble + 4.25) * symbolDuration;
 
   // Payload symbol count
   final headerBytes = explicitHeader ? 0 : 20;
   final crc = 1; // CRC enabled
-  final de = lowDataRateOptimize ? 1 : 0;
+  final de = (lowDataRateOptimize ?? symbolDuration > 16.0) ? 1 : 0;
 
   final numerator =
       8 * payloadBytes - 4 * spreadingFactor + 28 + 16 * crc - headerBytes;
@@ -867,7 +918,6 @@ int calculateMessageTimeout({
     spreadingFactor: sf,
     bandwidthHz: bwHz,
     codingRate: cr,
-    lowDataRateOptimize: sf >= 11,
   );
 
   if (pathLength < 0) {
@@ -936,9 +986,72 @@ Uint8List buildDiscoveryRequestPayload(
   return writer.toBytes();
 }
 
+/// Node types a manual nearby-node scan asks for. Firmware repeaters and
+/// sensors answer DISCOVER_REQ; room servers and companions currently don't,
+/// but the room bit is harmless and lets future firmware reply.
+const int nodeDiscoverScanTypeMask =
+    (1 << advTypeRepeater) | (1 << advTypeRoom) | (1 << advTypeSensor);
+
+/// One DISCOVER_RESP, as pushed by the companion in PUSH_CODE_CONTROL_DATA:
+/// `[0x8E][snr x4 int8][rssi int8][path_len][0x9<type>][snr x4 int8][tag u32 LE][pub_key 8|32]`.
+class NodeDiscoverResponse {
+  NodeDiscoverResponse({
+    required this.nodeType,
+    required this.snr,
+    required this.rssi,
+    required this.remoteSnr,
+    required this.tag,
+    required this.publicKey,
+  });
+
+  final int nodeType;
+
+  /// SNR (dB) of the response as received by our radio.
+  final double snr;
+  final int rssi;
+
+  /// SNR (dB) of our request as heard by the responding node.
+  final double remoteSnr;
+  final int tag;
+
+  /// Full 32-byte key, or an 8-byte prefix when the request was prefix-only.
+  final Uint8List publicKey;
+
+  bool get hasFullKey => publicKey.length == pubKeySize;
+  String get publicKeyHex => pubKeyToHex(publicKey);
+}
+
+/// Parses a PUSH_CODE_CONTROL_DATA frame carrying a DISCOVER_RESP, or returns
+/// null for any other or malformed frame.
+NodeDiscoverResponse? parseNodeDiscoverResponse(Uint8List frame) {
+  // Push header (4) + type, snr, tag (6) + at least an 8-byte key prefix.
+  if (frame.length < 4 + 6 + 8 || frame[0] != pushCodeControlData) {
+    return null;
+  }
+  final reader = BufferReader(frame);
+  reader.skipBytes(1);
+  final snr = reader.readInt8() / 4.0;
+  final rssi = reader.readInt8();
+  reader.skipBytes(1); // path_len: responses are sent zero-hop.
+  final typeByte = reader.readByte();
+  if ((typeByte >> 4) != controlSubtypeDiscoverResp) return null;
+  final remoteSnr = reader.readInt8() / 4.0;
+  final tag = reader.readUInt32LE();
+  final keyBytes = reader.readRemainingBytes();
+  final keyLength = keyBytes.length >= pubKeySize ? pubKeySize : 8;
+  return NodeDiscoverResponse(
+    nodeType: typeByte & 0x0F,
+    snr: snr,
+    rssi: rssi,
+    remoteSnr: remoteSnr,
+    tag: tag,
+    publicKey: Uint8List.fromList(keyBytes.sublist(0, keyLength)),
+  );
+}
+
 Uint8List _reversePathByHop(Uint8List path, int pathHashWidth) {
   if (path.isEmpty) return Uint8List(0);
-  final width = pathHashWidth.clamp(1, 4).toInt();
+  final width = pathHashWidth.clamp(1, maxPathHashWidth).toInt();
   if (path.length % width != 0) {
     return Uint8List.fromList(path.reversed.toList());
   }
@@ -961,7 +1074,7 @@ Uint8List buildSendAnonReqFrame(
   int replyHopCount = 0,
   int pathHashWidth = pathHashSize,
 }) {
-  final width = pathHashWidth.clamp(1, 4).toInt();
+  final width = pathHashWidth.clamp(1, maxPathHashWidth).toInt();
   final path = replyPath ?? Uint8List(0);
   final encodedPathLen = ((width - 1) << 6) | (replyHopCount & 0x3F);
   final writer = BufferWriter();
@@ -1040,6 +1153,7 @@ Uint8List buildSetAutoAddConfigFrame({
   required bool autoAddRoomServer,
   required bool autoAddSensor,
   required bool overwriteOldest,
+  int? maxHops,
 }) {
   final writer = BufferWriter();
   writer.writeByte(cmdSetAutoAddConfig);
@@ -1050,6 +1164,8 @@ Uint8List buildSetAutoAddConfigFrame({
   if (autoAddSensor) flags |= autoAddSensorFlag;
   if (overwriteOldest) flags |= autoAddOverwriteOldestFlag;
   writer.writeByte(flags);
+  // Optional autoadd_max_hops (firmware keeps its value when omitted).
+  if (maxHops != null) writer.writeByte(maxHops.clamp(0, 64).toInt());
   return writer.toBytes();
 }
 
@@ -1076,9 +1192,7 @@ Uint8List buildSetFloodScopeFrame(String region) {
     return Uint8List.fromList([cmdSetFloodScope, 0]);
   }
 
-  final name = region.startsWith('#') ? region : '#$region';
-  final hash = crypto.sha256.convert(utf8.encode(name)).bytes;
-  final scope = Uint8List.fromList(hash.sublist(0, 16));
+  final scope = floodScopeKeyForRegion(region);
 
   return Uint8List.fromList([cmdSetFloodScope, 0, ...scope]);
 }
@@ -1093,7 +1207,81 @@ Uint8List buildSetFloodScopeKeyFrame(Uint8List key16) {
   return Uint8List.fromList([cmdSetFloodScope, 0, ...key16]);
 }
 
-// CMD_SET_FLOOD_SCOPE "force unscoped" (companion firmware ver 12+).
-// Format: [54][1]. Forces plain unscoped flood, ignoring any default scope.
-Uint8List buildSetFloodScopeUnscopedFrame() =>
-    Uint8List.fromList([cmdSetFloodScope, 1]);
+/// CMD_SET_FLOOD_SCOPE variant 1 (FIRMWARE_VER_CODE 12+): send floods with no
+/// transport scope at all, overriding the radio's default flood scope.
+Uint8List buildSetFloodScopeUnscopedFrame() {
+  return Uint8List.fromList([cmdSetFloodScope, 1]);
+}
+
+Uint8List buildGetDefaultFloodScopeFrame() {
+  return Uint8List.fromList([cmdGetDefaultFloodScope]);
+}
+
+/// CMD_SET_DEFAULT_FLOOD_SCOPE: `[63][name 31][key 16]` stores [region] as the
+/// radio's default flood scope; an empty [region] clears it (`[63]`).
+/// The name is stored without a leading '#'; the key uses the same derivation
+/// as [buildSetFloodScopeFrame].
+Uint8List buildSetDefaultFloodScopeFrame(String region) {
+  final name = region.startsWith('#') ? region.substring(1) : region;
+  if (name.isEmpty) return Uint8List.fromList([cmdSetDefaultFloodScope]);
+  final nameBytes = utf8.encode(name);
+  if (nameBytes.length >= defaultFloodScopeNameSize) {
+    throw ArgumentError.value(region, 'region', 'name longer than 30 bytes');
+  }
+  final frame = Uint8List(1 + defaultFloodScopeNameSize + floodScopeKeySize);
+  frame[0] = cmdSetDefaultFloodScope;
+  frame.setRange(1, 1 + nameBytes.length, nameBytes);
+  frame.setRange(
+    1 + defaultFloodScopeNameSize,
+    frame.length,
+    floodScopeKeyForRegion(name),
+  );
+  return frame;
+}
+
+/// Parses RESP_CODE_DEFAULT_FLOOD_SCOPE. Returns null when the radio has no
+/// default scope (`[28]` alone) or the frame is malformed.
+({String name, Uint8List key})? parseDefaultFloodScopeFrame(Uint8List frame) {
+  if (frame.isEmpty || frame[0] != respCodeDefaultFloodScope) return null;
+  if (frame.length < 1 + defaultFloodScopeNameSize + floodScopeKeySize) {
+    return null;
+  }
+  final nameField = frame.sublist(1, 1 + defaultFloodScopeNameSize);
+  final end = nameField.indexOf(0);
+  final name = utf8
+      .decode(
+        end >= 0 ? nameField.sublist(0, end) : nameField,
+        allowMalformed: true,
+      )
+      .trim();
+  if (name.isEmpty) return null;
+  final keyStart = 1 + defaultFloodScopeNameSize;
+  return (
+    name: name,
+    key: Uint8List.fromList(
+      frame.sublist(keyStart, keyStart + floodScopeKeySize),
+    ),
+  );
+}
+
+Uint8List floodScopeKeyForRegion(String region) {
+  final name = region.startsWith('#') ? region : '#$region';
+  final hash = crypto.sha256.convert(utf8.encode(name)).bytes;
+  return Uint8List.fromList(hash.sublist(0, 16));
+}
+
+Uint8List floodTransportCode({
+  required Uint8List scopeKey,
+  required int payloadType,
+  required Uint8List payload,
+}) {
+  final input = Uint8List(1 + payload.length)
+    ..[0] = payloadType
+    ..setRange(1, 1 + payload.length, payload);
+  final code = crypto.Hmac(crypto.sha256, scopeKey).convert(input).bytes;
+  if (code[0] == 0 && code[1] == 0) return Uint8List.fromList([1, 0]);
+  if (code[0] == 0xFF && code[1] == 0xFF) {
+    return Uint8List.fromList([0xFE, 0xFF]);
+  }
+  return Uint8List.fromList(code.sublist(0, 2));
+}

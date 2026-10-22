@@ -2,12 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../l10n/l10n.dart';
 import '../models/contact.dart';
 import '../connector/meshcore_connector.dart';
 import '../connector/meshcore_protocol.dart';
 import '../theme/mesh_theme.dart';
+import '../widgets/confirm_clear_dialog.dart';
 import '../widgets/debug_frame_viewer.dart';
+import '../widgets/radio_disconnected_banner.dart';
 import '../services/repeater_command_service.dart';
 import '../widgets/routing_sheet.dart';
 import '../helpers/snack_bar_builder.dart';
@@ -34,6 +37,8 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
   int _historyIndex = -1;
   StreamSubscription<Uint8List>? _frameSubscription;
   RepeaterCommandService? _commandService;
+  bool _regionLoadActive = false;
+  static final RegExp _regionLoadPattern = RegExp(r'^region +load( |$)');
 
   late final List<Map<String, String>> _quickCommands = [
     {'labelKey': 'advertise', 'command': 'advert'},
@@ -113,8 +118,13 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
   }
 
   void _sendCommand({bool showDebug = false}) async {
+    if (_regionLoadActive) {
+      _sendRegionLoadLine();
+      return;
+    }
     final command = _commandController.text.trim();
     if (command.isEmpty) return;
+    final startsRegionLoad = _regionLoadPattern.hasMatch(command.toLowerCase());
 
     setState(() {
       _commandHistory.add({
@@ -122,12 +132,29 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         'text': command,
         'timestamp': DateTime.now().toString(),
       });
+      // The repeater enters load mode as soon as it receives the command, and
+      // its reply may take a full timeout (or be lost). Switch modes now so
+      // lines typed meanwhile go out verbatim instead of as `XX|` commands; a
+      // blank line always ends it safely.
+      if (startsRegionLoad) {
+        _regionLoadActive = true;
+        _commandHistory.add({
+          'type': 'response',
+          'text': context.l10n.repeater_cliRegionLoadActive,
+          'timestamp': DateTime.now().toString(),
+        });
+      }
     });
+    _commandController.clear();
+    _historyIndex = -1;
+    _commandFocusNode.requestFocus();
 
-    if (showDebug && mounted) {
+    if (showDebug && mounted && _commandService != null) {
+      // Preview the exact framed text the service sends (`XX|` prefix and
+      // clock-sync rewrite), not the bare command.
       final frame = buildSendCliCommandFrame(
         widget.repeater.publicKey,
-        command,
+        _commandService!.previewFramedCommand(command),
       );
       DebugFrameViewer.showFrameDebug(
         context,
@@ -170,12 +197,66 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       }
     }
 
+    _scrollToBottom();
+  }
+
+  /// In `region load` mode lines go out verbatim: no `XX|` prefix and no
+  /// trimming, since indentation encodes the parent. Region lines get no
+  /// reply; a blank line commits the load and is answered with
+  /// "OK - loaded N regions".
+  Future<void> _sendRegionLoadLine() async {
+    final line = _commandController.text;
+    final isTerminator = line.trim().isEmpty;
+    final connector = Provider.of<MeshCoreConnector>(context, listen: false);
+    final repeater = _resolveRepeater(connector);
+    setState(() {
+      _commandHistory.add({
+        'type': 'command',
+        'text': isTerminator ? context.l10n.repeater_cliRegionLoadEnd : line,
+        'timestamp': DateTime.now().toString(),
+      });
+    });
     _commandController.clear();
     _historyIndex = -1;
     _commandFocusNode.requestFocus();
 
+    String? response;
+    var ended = false;
+    try {
+      if (isTerminator) {
+        response = await _commandService!.sendCommand(
+          repeater,
+          '',
+          retries: 1,
+          raw: true,
+        );
+        ended = true;
+      } else {
+        await _commandService!.sendUnansweredLine(repeater, line);
+      }
+    } catch (e) {
+      if (mounted) {
+        response = context.l10n.repeater_cliCommandError(e.toString());
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      if (ended) _regionLoadActive = false;
+      if (response != null) {
+        _commandHistory.add({
+          'type': 'response',
+          'text': response,
+          'timestamp': DateTime.now().toString(),
+        });
+      }
+    });
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
+    if (!mounted) return;
     Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
+      if (mounted && _scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 200),
@@ -228,6 +309,50 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
     });
   }
 
+  Future<void> _confirmClearHistory() async {
+    final l10n = context.l10n;
+    final confirmed = await showConfirmClearDialog(
+      context,
+      title: l10n.repeater_clearHistory,
+      message: l10n.repeater_cliClearHistoryConfirm,
+    );
+    if (confirmed && mounted) _clearHistory();
+  }
+
+  String _transcriptText() {
+    return _commandHistory
+        .map(
+          (entry) => entry['type'] == 'command'
+              ? '> ${entry['text']}'
+              : (entry['text'] ?? ''),
+        )
+        .join('\n');
+  }
+
+  Future<void> _copyTranscript() async {
+    if (_commandHistory.isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: _transcriptText()));
+    if (!mounted) return;
+    showDismissibleSnackBar(
+      context,
+      content: Text(context.l10n.repeater_cliTranscriptCopied),
+    );
+  }
+
+  Future<void> _shareTranscript() async {
+    if (_commandHistory.isEmpty) return;
+    final box = context.findRenderObject() as RenderBox?;
+    await SharePlus.instance.share(
+      ShareParams(
+        text: _transcriptText(),
+        subject: '${context.l10n.repeater_cliTitle} - ${widget.repeater.name}',
+        sharePositionOrigin: box == null
+            ? null
+            : box.localToGlobal(Offset.zero) & box.size,
+      ),
+    );
+  }
+
   String _quickCommandLabel(String key) {
     final l10n = context.l10n;
     switch (key) {
@@ -261,11 +386,15 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
     final connector = context.watch<MeshCoreConnector>();
     final repeater = _resolveRepeater(connector);
     final isFloodMode = repeater.pathOverride == -1;
+    final connected = connector.isConnected;
+    final accent = scheme.primary;
+    final hasHistory = _commandHistory.isNotEmpty;
 
     return Scaffold(
-      backgroundColor: MeshPalette.bg,
+      backgroundColor: scheme.surfaceContainerLowest,
       appBar: AppBar(
-        backgroundColor: MeshPalette.bg1,
+        backgroundColor: scheme.surfaceContainer,
+        foregroundColor: scheme.onSurface,
         title: Text(l10n.repeater_cliTitle),
         centerTitle: true,
         actions: [
@@ -283,25 +412,53 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
           IconButton(
             icon: const Icon(Icons.clear_all),
             tooltip: l10n.repeater_clearHistory,
-            onPressed: _commandHistory.isEmpty ? null : _clearHistory,
+            onPressed: hasHistory ? _confirmClearHistory : null,
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) {
-              if (value == 'debug') {
-                if (_commandController.text.trim().isNotEmpty) {
-                  _sendCommand(showDebug: true);
-                } else {
-                  showDismissibleSnackBar(
-                    context,
-                    content: Text(l10n.repeater_enterCommandFirst),
-                  );
-                }
+              switch (value) {
+                case 'debug':
+                  if (_commandController.text.trim().isNotEmpty) {
+                    _sendCommand(showDebug: true);
+                  } else {
+                    showDismissibleSnackBar(
+                      context,
+                      content: Text(l10n.repeater_enterCommandFirst),
+                    );
+                  }
+                case 'copy':
+                  _copyTranscript();
+                case 'share':
+                  _shareTranscript();
               }
             },
             itemBuilder: (context) => [
               PopupMenuItem(
+                value: 'copy',
+                enabled: hasHistory,
+                child: Row(
+                  children: [
+                    const Icon(Icons.copy),
+                    const SizedBox(width: 8),
+                    Text(l10n.repeater_cliCopyTranscript),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'share',
+                enabled: hasHistory,
+                child: Row(
+                  children: [
+                    const Icon(Icons.share),
+                    const SizedBox(width: 8),
+                    Text(l10n.repeater_cliShareTranscript),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
                 value: 'debug',
+                enabled: connected,
                 child: Row(
                   children: [
                     const Icon(Icons.bug_report),
@@ -316,9 +473,10 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       ),
       body: Column(
         children: [
+          const RadioDisconnectedBanner(),
           // Quick commands bar
           Container(
-            color: MeshPalette.bg1,
+            color: scheme.surfaceContainer,
             padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -331,22 +489,23 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
                       label: Text(
                         label,
                         style: MeshTheme.mono(
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: MeshPalette.blue,
+                          color: accent,
                         ),
                       ),
-                      backgroundColor: MeshPalette.blueBg,
-                      side: const BorderSide(color: MeshPalette.blueLine),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => _useQuickCommand(cmd['command']!),
+                      backgroundColor: accent.withValues(alpha: 0.12),
+                      side: BorderSide(color: accent.withValues(alpha: 0.5)),
+                      onPressed: _regionLoadActive || !connected
+                          ? null
+                          : () => _useQuickCommand(cmd['command']!),
                     ),
                   );
                 }).toList(),
               ),
             ),
           ),
-          Divider(height: 1, color: MeshPalette.line),
+          Divider(height: 1, color: scheme.outlineVariant),
 
           // Output area
           Expanded(
@@ -355,11 +514,11 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
                 : _buildCommandHistory(),
           ),
 
-          Divider(height: 1, color: MeshPalette.line),
+          Divider(height: 1, color: scheme.outlineVariant),
 
           // Command input
           Container(
-            color: MeshPalette.bg1,
+            color: scheme.surfaceContainer,
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
             child: SafeArea(
               child: Row(
@@ -367,22 +526,20 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
                   IconButton(
                     icon: Icon(
                       Icons.arrow_upward,
-                      size: 18,
+                      size: 22,
                       color: scheme.onSurfaceVariant,
                     ),
                     tooltip: l10n.repeater_previousCommand,
                     onPressed: () => _navigateHistory(true),
-                    visualDensity: VisualDensity.compact,
                   ),
                   IconButton(
                     icon: Icon(
                       Icons.arrow_downward,
-                      size: 18,
+                      size: 22,
                       color: scheme.onSurfaceVariant,
                     ),
                     tooltip: l10n.repeater_nextCommand,
                     onPressed: () => _navigateHistory(false),
-                    visualDensity: VisualDensity.compact,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
@@ -390,71 +547,61 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
                       controller: _commandController,
                       focusNode: _commandFocusNode,
                       style: MeshTheme.mono(
-                        fontSize: 13,
-                        color: MeshPalette.ink,
+                        fontSize: 15,
+                        color: scheme.onSurface,
                       ),
                       decoration: InputDecoration(
-                        hintText: context.l10n.repeater_enterCommandHint,
+                        hintText: _regionLoadActive
+                            ? context.l10n.repeater_cliRegionLoadHint
+                            : context.l10n.repeater_enterCommandHint,
                         hintStyle: MeshTheme.mono(
-                          fontSize: 13,
-                          color: MeshPalette.ink4,
+                          fontSize: 15,
+                          color: scheme.onSurfaceVariant,
                         ),
-                        prefixText: '> ',
+                        prefixText: _regionLoadActive ? '' : '> ',
                         prefixStyle: MeshTheme.mono(
-                          fontSize: 13,
-                          color: MeshPalette.blue,
+                          fontSize: 15,
+                          color: accent,
                           fontWeight: FontWeight.w700,
                         ),
                         filled: true,
-                        fillColor: MeshPalette.bg2,
+                        fillColor: scheme.surfaceContainerHigh,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
-                          vertical: 10,
+                          vertical: 12,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(MeshRadii.pill),
-                          borderSide: const BorderSide(
-                            color: MeshPalette.line2,
-                          ),
+                          borderSide: BorderSide(color: scheme.outline),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(MeshRadii.pill),
-                          borderSide: const BorderSide(
-                            color: MeshPalette.line2,
-                          ),
+                          borderSide: BorderSide(color: scheme.outline),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(MeshRadii.pill),
-                          borderSide: const BorderSide(
-                            color: MeshPalette.blue,
-                            width: 1.5,
-                          ),
+                          borderSide: BorderSide(color: accent, width: 1.5),
                         ),
                       ),
                       textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendCommand(),
+                      onSubmitted: (_) {
+                        if (connected) _sendCommand();
+                      },
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Material(
-                    color: MeshPalette.blue.withValues(alpha: 0.15),
-                    shape: const CircleBorder(
-                      side: BorderSide(color: MeshPalette.blueLine),
-                    ),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        _sendCommand();
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Icon(
-                          Icons.send,
-                          size: 18,
-                          color: MeshPalette.blue,
-                        ),
-                      ),
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: IconButton.filledTonal(
+                      tooltip: l10n.repeater_cliSend,
+                      icon: const Icon(Icons.send, size: 24),
+                      onPressed: connected
+                          ? () {
+                              HapticFeedback.lightImpact();
+                              _sendCommand();
+                            }
+                          : null,
                     ),
                   ),
                 ],
@@ -468,27 +615,38 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
 
   Widget _buildEmptyState() {
     final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.terminal, size: 48, color: MeshPalette.ink4),
-          const SizedBox(height: 12),
-          Text(
-            l10n.repeater_noCommandsSent,
-            style: MeshTheme.mono(fontSize: 13, color: MeshPalette.ink3),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            l10n.repeater_typeCommandOrUseQuick,
-            style: const TextStyle(fontSize: 12, color: MeshPalette.ink4),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.terminal, size: 48, color: scheme.onSurfaceVariant),
+            const SizedBox(height: 12),
+            Text(
+              l10n.repeater_noCommandsSent,
+              textAlign: TextAlign.center,
+              style: MeshTheme.mono(fontSize: 15, color: scheme.onSurface),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.repeater_typeCommandOrUseQuick,
+              textAlign: TextAlign.center,
+              style: textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildCommandHistory() {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = scheme.primary;
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -498,7 +656,7 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         final isCommand = entry['type'] == 'command';
 
         return Padding(
-          padding: const EdgeInsets.only(bottom: 2),
+          padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -508,9 +666,9 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
                 child: Text(
                   isCommand ? '>' : ' ',
                   style: MeshTheme.mono(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: isCommand ? MeshPalette.blue : MeshPalette.ink3,
+                    color: isCommand ? accent : scheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -519,8 +677,8 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
                 child: SelectableText(
                   entry['text']!,
                   style: MeshTheme.mono(
-                    fontSize: 12.5,
-                    color: isCommand ? MeshPalette.blue : MeshPalette.ink,
+                    fontSize: 14,
+                    color: isCommand ? accent : scheme.onSurface,
                   ),
                 ),
               ),
@@ -611,22 +769,6 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         command: 'powersaving {on|off}',
         description: l10n.repeater_cliHelpPowersavingOnOff,
       ),
-      _CommandHelpEntry(
-        command: 'erase',
-        description: l10n.repeater_cliHelpErase,
-      ),
-      _CommandHelpEntry(
-        command: 'stats-packets',
-        description: l10n.repeater_cliHelpStatsPackets,
-      ),
-      _CommandHelpEntry(
-        command: 'stats-radio',
-        description: l10n.repeater_cliHelpStatsRadio,
-      ),
-      _CommandHelpEntry(
-        command: 'stats-core',
-        description: l10n.repeater_cliHelpStatsCore,
-      ),
     ];
 
     final settingsCommands = [
@@ -649,6 +791,14 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       _CommandHelpEntry(
         command: 'set flood.max {max-hops}',
         description: l10n.repeater_cliHelpSetFloodMax,
+      ),
+      _CommandHelpEntry(
+        command: 'set flood.max.unscoped {0-64}',
+        description: l10n.repeater_cliHelpSetFloodMaxUnscoped,
+      ),
+      _CommandHelpEntry(
+        command: 'set flood.max.advert {0-64}',
+        description: l10n.repeater_cliHelpSetFloodMaxAdvert,
       ),
       _CommandHelpEntry(
         command: 'set int.thresh {db}',
@@ -703,26 +853,6 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         description: l10n.repeater_cliHelpSetDirectTxDelay,
       ),
       _CommandHelpEntry(
-        command: 'set bridge.enabled {on|off}',
-        description: l10n.repeater_cliHelpSetBridgeEnabled,
-      ),
-      _CommandHelpEntry(
-        command: 'set bridge.delay {0-10000}',
-        description: l10n.repeater_cliHelpSetBridgeDelay,
-      ),
-      _CommandHelpEntry(
-        command: 'set bridge.source {rx|tx}',
-        description: l10n.repeater_cliHelpSetBridgeSource,
-      ),
-      _CommandHelpEntry(
-        command: 'set bridge.baud {speed}',
-        description: l10n.repeater_cliHelpSetBridgeBaud,
-      ),
-      _CommandHelpEntry(
-        command: 'set bridge.secret {shared-secret}',
-        description: l10n.repeater_cliHelpSetBridgeSecret,
-      ),
-      _CommandHelpEntry(
         command: 'set adc.multiplier {factor}',
         description: l10n.repeater_cliHelpSetAdcMultiplier,
       ),
@@ -747,6 +877,14 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         description: l10n.repeater_cliHelpSetRadioRxGain,
       ),
       _CommandHelpEntry(
+        command: 'set radio.fem.rxgain {on|off}',
+        description: l10n.repeater_cliHelpSetRadioFemRxGain,
+      ),
+      _CommandHelpEntry(
+        command: 'set radio.fem.txgain {on|off}',
+        description: l10n.repeater_cliHelpSetRadioFemTxGain,
+      ),
+      _CommandHelpEntry(
         command: 'set owner.info {text}',
         description: l10n.repeater_cliHelpSetOwnerInfo,
       ),
@@ -758,17 +896,57 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         command: 'set loop.detect {off|minimal|moderate|strict}',
         description: l10n.repeater_cliHelpSetLoopDetect,
       ),
+    ];
+
+    final bridgeCommands = [
       _CommandHelpEntry(
-        command: 'set freq {mhz}',
-        description: l10n.repeater_cliHelpSetFreq,
+        command: 'set bridge.enabled {on|off}',
+        description: l10n.repeater_cliHelpSetBridgeEnabled,
+      ),
+      _CommandHelpEntry(
+        command: 'set bridge.delay {0-10000}',
+        description: l10n.repeater_cliHelpSetBridgeDelay,
+      ),
+      _CommandHelpEntry(
+        command: 'set bridge.source {rx|tx}',
+        description: l10n.repeater_cliHelpSetBridgeSource,
+      ),
+      _CommandHelpEntry(
+        command: 'set bridge.baud {speed}',
+        description: l10n.repeater_cliHelpSetBridgeBaud,
+      ),
+      _CommandHelpEntry(
+        command: 'set bridge.secret {shared-secret}',
+        description: l10n.repeater_cliHelpSetBridgeSecret,
       ),
       _CommandHelpEntry(
         command: 'set bridge.channel {1-14}',
         description: l10n.repeater_cliHelpSetBridgeChannel,
       ),
-    ];
-
-    final bridgeCommands = [
+      _CommandHelpEntry(
+        command: 'get bridge.enabled',
+        description: l10n.repeater_cliHelpGetBridgeEnabled,
+      ),
+      _CommandHelpEntry(
+        command: 'get bridge.delay',
+        description: l10n.repeater_cliHelpGetBridgeDelay,
+      ),
+      _CommandHelpEntry(
+        command: 'get bridge.source',
+        description: l10n.repeater_cliHelpGetBridgeSource,
+      ),
+      _CommandHelpEntry(
+        command: 'get bridge.baud',
+        description: l10n.repeater_cliHelpGetBridgeBaud,
+      ),
+      _CommandHelpEntry(
+        command: 'get bridge.channel',
+        description: l10n.repeater_cliHelpGetBridgeChannel,
+      ),
+      _CommandHelpEntry(
+        command: 'get bridge.secret',
+        description: l10n.repeater_cliHelpGetBridgeSecret,
+      ),
       _CommandHelpEntry(
         command: 'get bridge.type',
         description: l10n.repeater_cliHelpGetBridgeType,
@@ -809,6 +987,10 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       _CommandHelpEntry(
         command: 'region load',
         description: l10n.repeater_cliHelpRegionLoad,
+      ),
+      _CommandHelpEntry(
+        command: 'region def {name}[,{jump-prefix}] ...',
+        description: l10n.repeater_cliHelpRegionDef,
       ),
       _CommandHelpEntry(
         command: 'region get {* | name-prefix}',
@@ -874,10 +1056,6 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         description: l10n.repeater_cliHelpGetPublicKey,
       ),
       _CommandHelpEntry(
-        command: 'get prv.key',
-        description: l10n.repeater_cliHelpGetPrvKey,
-      ),
-      _CommandHelpEntry(
         command: 'get repeat',
         description: l10n.repeater_cliHelpGetRepeat,
       ),
@@ -896,6 +1074,14 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       _CommandHelpEntry(
         command: 'get radio.rxgain',
         description: l10n.repeater_cliHelpGetRadioRxGain,
+      ),
+      _CommandHelpEntry(
+        command: 'get radio.fem.rxgain',
+        description: l10n.repeater_cliHelpGetRadioFemRxGain,
+      ),
+      _CommandHelpEntry(
+        command: 'get radio.fem.txgain',
+        description: l10n.repeater_cliHelpGetRadioFemTxGain,
       ),
       _CommandHelpEntry(
         command: 'get af',
@@ -958,6 +1144,14 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
         description: l10n.repeater_cliHelpGetFloodMax,
       ),
       _CommandHelpEntry(
+        command: 'get flood.max.unscoped',
+        description: l10n.repeater_cliHelpGetFloodMaxUnscoped,
+      ),
+      _CommandHelpEntry(
+        command: 'get flood.max.advert',
+        description: l10n.repeater_cliHelpGetFloodMaxAdvert,
+      ),
+      _CommandHelpEntry(
         command: 'get owner.info',
         description: l10n.repeater_cliHelpGetOwnerInfo,
       ),
@@ -968,34 +1162,6 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       _CommandHelpEntry(
         command: 'get loop.detect',
         description: l10n.repeater_cliHelpGetLoopDetect,
-      ),
-      _CommandHelpEntry(
-        command: 'get acl',
-        description: l10n.repeater_cliHelpGetAcl,
-      ),
-      _CommandHelpEntry(
-        command: 'get bridge.enabled',
-        description: l10n.repeater_cliHelpGetBridgeEnabled,
-      ),
-      _CommandHelpEntry(
-        command: 'get bridge.delay',
-        description: l10n.repeater_cliHelpGetBridgeDelay,
-      ),
-      _CommandHelpEntry(
-        command: 'get bridge.source',
-        description: l10n.repeater_cliHelpGetBridgeSource,
-      ),
-      _CommandHelpEntry(
-        command: 'get bridge.baud',
-        description: l10n.repeater_cliHelpGetBridgeBaud,
-      ),
-      _CommandHelpEntry(
-        command: 'get bridge.channel',
-        description: l10n.repeater_cliHelpGetBridgeChannel,
-      ),
-      _CommandHelpEntry(
-        command: 'get bridge.secret',
-        description: l10n.repeater_cliHelpGetBridgeSecret,
       ),
       _CommandHelpEntry(
         command: 'get bootloader.ver',
@@ -1065,115 +1231,207 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       ),
     ];
 
-    showDialog(
+    final sections = <_CommandHelpSection>[
+      _CommandHelpSection(l10n.repeater_general, generalCommands),
+      _CommandHelpSection(l10n.repeater_getCategory, getCommands),
+      _CommandHelpSection(l10n.repeater_settingsCategory, settingsCommands),
+      _CommandHelpSection(l10n.repeater_powerMgmt, powerMgmtCommands),
+      _CommandHelpSection(l10n.repeater_sensors, sensorCommands),
+      _CommandHelpSection(
+        l10n.repeater_bridge,
+        bridgeCommands,
+        note: l10n.repeater_bridgeNote,
+      ),
+      _CommandHelpSection(l10n.repeater_logging, loggingCommands),
+      _CommandHelpSection(
+        l10n.repeater_neighborsRepeaterOnly,
+        neighborCommands,
+      ),
+      _CommandHelpSection(
+        l10n.repeater_regionManagementRepeaterOnly,
+        regionCommands,
+        note: l10n.repeater_regionNote,
+      ),
+      _CommandHelpSection(
+        l10n.repeater_gpsManagement,
+        gpsCommands,
+        note: l10n.repeater_gpsNote,
+      ),
+    ];
+
+    showModalBottomSheet<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.repeater_commandsListTitle),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.repeater_commandsListNote,
-                style: const TextStyle(fontSize: 13),
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) =>
+          _CommandHelpSheet(sections: sections, onSelect: _applyHelpCommand),
+    );
+  }
+}
+
+class _CommandHelpSection {
+  final String title;
+  final List<_CommandHelpEntry> commands;
+  final String? note;
+  const _CommandHelpSection(this.title, this.commands, {this.note});
+}
+
+/// Searchable, lazily built list of CLI commands.
+class _CommandHelpSheet extends StatefulWidget {
+  final List<_CommandHelpSection> sections;
+  final ValueChanged<String> onSelect;
+
+  const _CommandHelpSheet({required this.sections, required this.onSelect});
+
+  @override
+  State<_CommandHelpSheet> createState() => _CommandHelpSheetState();
+}
+
+class _CommandHelpSheetState extends State<_CommandHelpSheet> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// Section headers ([_CommandHelpSection]) interleaved with their matching
+  /// [_CommandHelpEntry] rows.
+  List<Object> _rows() {
+    final q = _query.trim().toLowerCase();
+    final rows = <Object>[];
+    for (final section in widget.sections) {
+      final matches = q.isEmpty
+          ? section.commands
+          : section.commands
+                .where(
+                  (e) =>
+                      e.command.toLowerCase().contains(q) ||
+                      e.description.toLowerCase().contains(q),
+                )
+                .toList();
+      if (matches.isEmpty) continue;
+      rows.add(section);
+      rows.addAll(matches);
+    }
+    return rows;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final rows = _rows();
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.85,
+        minChildSize: 0.4,
+        maxChildSize: 1,
+        builder: (context, scrollController) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.repeater_commandsListTitle,
+                    style: textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.repeater_commandsListNote,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search),
+                      hintText: l10n.repeater_cliSearchCommands,
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear),
+                              tooltip: l10n.common_clearSearch,
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                            ),
+                    ),
+                    onChanged: (value) => setState(() => _query = value),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_general,
-                generalCommands,
-              ),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_getCategory,
-                getCommands,
-              ),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_settingsCategory,
-                settingsCommands,
-              ),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_powerMgmt,
-                powerMgmtCommands,
-              ),
-              const SizedBox(height: 16),
-              _buildHelpSection(context, l10n.repeater_sensors, sensorCommands),
-              const SizedBox(height: 16),
-              _buildHelpSection(context, l10n.repeater_bridge, bridgeCommands),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_logging,
-                loggingCommands,
-              ),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_neighborsRepeaterOnly,
-                neighborCommands,
-              ),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_regionManagementRepeaterOnly,
-                regionCommands,
-                note: l10n.repeater_regionNote,
-              ),
-              const SizedBox(height: 16),
-              _buildHelpSection(
-                context,
-                l10n.repeater_gpsManagement,
-                gpsCommands,
-                note: l10n.repeater_gpsNote,
-              ),
-            ],
-          ),
+            ),
+            Expanded(
+              child: rows.isEmpty
+                  ? Center(
+                      child: Text(
+                        l10n.repeater_cliNoMatchingCommands,
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      itemCount: rows.length,
+                      itemBuilder: (context, index) {
+                        final row = rows[index];
+                        if (row is _CommandHelpSection) {
+                          return _buildHeader(row, isFirst: index == 0);
+                        }
+                        return _buildCommandCard(row as _CommandHelpEntry);
+                      },
+                    ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.common_close),
+      ),
+    );
+  }
+
+  Widget _buildHeader(_CommandHelpSection section, {required bool isFirst}) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: EdgeInsets.only(top: isFirst ? 4 : 16, bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            section.title,
+            style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
+          if (section.note != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              section.note!,
+              style: textTheme.bodyMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildHelpSection(
-    BuildContext context,
-    String title,
-    List<_CommandHelpEntry> commands, {
-    String? note,
-  }) {
+  Widget _buildCommandCard(_CommandHelpEntry entry) {
     final scheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        if (note != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            note,
-            style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
-          ),
-        ],
-        const SizedBox(height: 8),
-        ...commands.map((entry) => _buildHelpCommandCard(context, entry)),
-      ],
-    );
-  }
-
-  Widget _buildHelpCommandCard(BuildContext context, _CommandHelpEntry entry) {
-    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Card(
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 6),
@@ -1184,24 +1442,26 @@ class _RepeaterCliScreenState extends State<RepeaterCliScreen> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(MeshRadii.sm),
-        onTap: () => _applyHelpCommand(entry.command),
+        onTap: () => widget.onSelect(entry.command),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 entry.command,
                 style: MeshTheme.mono(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: MeshPalette.blue,
+                  color: scheme.primary,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 entry.description,
-                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

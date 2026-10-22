@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../l10n/l10n.dart';
 import '../models/contact.dart';
 import '../models/path_selection.dart';
+import '../models/remote_node_stats.dart';
 import '../connector/meshcore_connector.dart';
 import '../connector/meshcore_protocol.dart';
 import '../services/app_settings_service.dart';
@@ -14,8 +15,8 @@ import '../services/repeater_command_service.dart';
 import '../theme/mesh_theme.dart';
 import '../utils/battery_utils.dart';
 import '../widgets/mesh_ui.dart';
+import '../widgets/radio_disconnected_banner.dart';
 import '../widgets/routing_sheet.dart';
-import '../helpers/snack_bar_builder.dart';
 
 class RepeaterStatusScreen extends StatefulWidget {
   final Contact repeater;
@@ -32,10 +33,7 @@ class RepeaterStatusScreen extends StatefulWidget {
 }
 
 class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
-  static const int _statusPayloadOffset = 8;
-  static const int _statusStatsSize = 52;
-  static const int _statusResponseBytes =
-      _statusPayloadOffset + _statusStatsSize;
+  static const int _statusResponseBytes = RemoteNodeStats.payloadOffset + 56;
 
   bool _isLoading = false;
   StreamSubscription<Uint8List>? _frameSubscription;
@@ -50,6 +48,9 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
   int? _noiseFloor;
   int? _txAirSecs;
   int? _rxAirSecs;
+  int? _recvErrors;
+  int? _posted;
+  int? _postPushes;
   int? _packetsSent;
   int? _packetsRecv;
   int? _floodTx;
@@ -60,6 +61,7 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
   int? _dupDirect;
   double? _chanUtil;
   PathSelection? _pendingStatusSelection;
+  String? _loadError;
 
   @override
   void initState() {
@@ -116,7 +118,16 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
     if (parsed == null) return;
     if (!_matchesRepeaterPrefix(parsed.senderPrefix)) return;
     _commandService?.handleResponse(widget.repeater, parsed.text);
-    _parseStatusResponse(parsed.text);
+    // Only a reply that actually carried status fields ends the request;
+    // any other text from this repeater (e.g. a CLI reply) is ignored here.
+    if (!_parseStatusResponse(parsed.text)) return;
+    _statusTimeout?.cancel();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _loadError = null;
+      });
+    }
     _recordStatusResult(true);
   }
 
@@ -124,72 +135,40 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
     if (frame.length < 8) return;
     final prefix = frame.sublist(2, 8);
     if (!_matchesRepeaterPrefix(prefix)) return;
-    if (frame.length < _statusResponseBytes) return;
-
-    final data = ByteData.sublistView(
-      frame,
-      _statusPayloadOffset,
-      _statusResponseBytes,
-    );
-    int offset = 0;
-
-    final batteryMv = data.getUint16(offset, Endian.little);
-    offset += 2;
-    final queueLen = data.getUint16(offset, Endian.little);
-    offset += 2;
-    final noiseFloor = data.getInt16(offset, Endian.little);
-    offset += 2;
-    final lastRssi = data.getInt16(offset, Endian.little);
-    offset += 2;
-    final packetsRecv = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final packetsSent = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final txAirSecs = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final uptimeSecs = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final floodTx = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final directTx = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final floodRx = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final directRx = data.getUint32(offset, Endian.little);
-    offset += 4;
-    final errEvents = data.getUint16(offset, Endian.little);
-    offset += 2;
-    final lastSnrRaw = data.getInt16(offset, Endian.little);
-    offset += 2;
-    final directDups = data.getUint16(offset, Endian.little);
-    offset += 2;
-    final floodDups = data.getUint16(offset, Endian.little);
-    offset += 2;
-    final rxAirSecs = data.getUint32(offset, Endian.little);
+    final stats = RemoteNodeStats.tryParse(frame, isRoom: _isRoom);
+    if (stats == null) return;
 
     _statusTimeout?.cancel();
     if (!mounted) return;
+    final rxAirSecs = stats.rxAirSecs;
     setState(() {
       _isLoading = false;
-      _batteryMv = batteryMv;
-      _queueLen = queueLen;
-      _noiseFloor = noiseFloor;
-      _lastRssi = lastRssi;
-      _packetsRecv = packetsRecv;
-      _packetsSent = packetsSent;
-      _txAirSecs = txAirSecs;
+      _loadError = null;
+      _batteryMv = stats.batteryMv;
+      _queueLen = stats.queueLen;
+      _noiseFloor = stats.noiseFloor;
+      _lastRssi = stats.lastRssi;
+      _packetsRecv = stats.packetsRecv;
+      _packetsSent = stats.packetsSent;
+      _txAirSecs = stats.txAirSecs;
       _rxAirSecs = rxAirSecs;
-      _uptimeSecs = uptimeSecs;
-      _floodTx = floodTx;
-      _directTx = directTx;
-      _floodRx = floodRx;
-      _directRx = directRx;
-      _debugFlags = errEvents;
-      _lastSnr = lastSnrRaw / 4.0;
-      _dupDirect = directDups;
-      _dupFlood = floodDups;
-      _chanUtil = ((txAirSecs + rxAirSecs) / uptimeSecs) * 100;
+      _recvErrors = stats.recvErrors;
+      _posted = stats.posted;
+      _postPushes = stats.postPushes;
+      _uptimeSecs = stats.uptimeSecs;
+      _floodTx = stats.floodTx;
+      _directTx = stats.directTx;
+      _floodRx = stats.floodRx;
+      _directRx = stats.directRx;
+      _debugFlags = stats.errEvents;
+      _lastSnr = stats.lastSnr;
+      _dupDirect = stats.directDups;
+      _dupFlood = stats.floodDups;
+      _chanUtil = rxAirSecs != null && stats.uptimeSecs > 0
+          ? ((stats.txAirSecs + rxAirSecs) / stats.uptimeSecs) * 100
+          : null;
     });
+    final batteryMv = stats.batteryMv;
     final connector = Provider.of<MeshCoreConnector>(context, listen: false);
     connector.updateRepeaterBatterySnapshot(
       widget.repeater.publicKeyHex,
@@ -198,6 +177,8 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
     );
     _recordStatusResult(true);
   }
+
+  bool get _isRoom => widget.repeater.type == advTypeRoom;
 
   bool _matchesRepeaterPrefix(Uint8List prefix) {
     final target = widget.repeater.publicKey;
@@ -208,8 +189,10 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
     return true;
   }
 
-  void _parseStatusResponse(String response) {
+  /// Applies a JSON status reply. Returns true if any status field was set.
+  bool _parseStatusResponse(String response) {
     final trimmed = response.trim();
+    var applied = false;
     if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
       try {
         final data = jsonDecode(trimmed) as Map<String, dynamic>;
@@ -218,6 +201,7 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
           _uptimeSecs = _asInt(data['uptime_secs']);
           _queueLen = _asInt(data['queue_len']);
           _debugFlags = _asInt(data['errors']);
+          applied = true;
           final batteryMv = _batteryMv;
           if (batteryMv != null) {
             final connector = Provider.of<MeshCoreConnector>(
@@ -236,6 +220,7 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
           _lastSnr = _asDouble(data['last_snr']);
           _txAirSecs = _asInt(data['tx_air_secs']);
           _rxAirSecs = _asInt(data['rx_air_secs']);
+          applied = true;
         } else if (data.containsKey('recv') || data.containsKey('sent')) {
           _packetsRecv = _asInt(data['recv']);
           _packetsSent = _asInt(data['sent']);
@@ -245,17 +230,30 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
           _directRx = _asInt(data['direct_rx']);
           _dupFlood = _asInt(data['dup_flood']);
           _dupDirect = _asInt(data['dup_direct']);
+          applied = true;
         }
       } catch (_) {}
     }
-    if (mounted) setState(() {});
+    if (applied && mounted) setState(() {});
+    return applied;
   }
+
+  bool get _hasAnyStatus =>
+      _batteryMv != null ||
+      _uptimeSecs != null ||
+      _queueLen != null ||
+      _lastRssi != null ||
+      _noiseFloor != null ||
+      _txAirSecs != null ||
+      _packetsSent != null ||
+      _packetsRecv != null;
 
   Future<void> _loadStatus() async {
     if (_commandService == null) return;
 
     setState(() {
       _isLoading = true;
+      _loadError = null;
       _pendingStatusSelection = null;
       _batteryMv = null;
       _uptimeSecs = null;
@@ -266,6 +264,9 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
       _noiseFloor = null;
       _txAirSecs = null;
       _rxAirSecs = null;
+      _recvErrors = null;
+      _posted = null;
+      _postPushes = null;
       _packetsSent = null;
       _packetsRecv = null;
       _floodTx = null;
@@ -297,22 +298,18 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
       _statusTimeout?.cancel();
       _statusTimeout = Timer(Duration(milliseconds: timeoutMs), () {
         if (!mounted) return;
-        setState(() => _isLoading = false);
-        showDismissibleSnackBar(
-          context,
-          content: Text(context.l10n.repeater_statusRequestTimeout),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        setState(() {
+          _isLoading = false;
+          _loadError = context.l10n.repeater_statusRequestTimeout;
+        });
         _recordStatusResult(false);
       });
     } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
-        showDismissibleSnackBar(
-          context,
-          content: Text(context.l10n.repeater_errorLoadingStatus(e.toString())),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        );
+        setState(() {
+          _isLoading = false;
+          _loadError = context.l10n.repeater_errorLoadingStatus(e.toString());
+        });
       }
       _recordStatusResult(false);
     }
@@ -366,11 +363,8 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
     final connector = Provider.of<MeshCoreConnector>(context, listen: false);
     final dt = connector.repeaterClockAtLogin(widget.repeater.publicKey);
     if (dt == null) return '—';
-    final local = dt.toLocal();
-    final date = '${local.day}/${local.month}/${local.year}';
-    final time =
-        '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-    return '$date $time';
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat.yMd(locale).add_Hm().format(dt.toLocal());
   }
 
   String _formatDuration(int? seconds) {
@@ -440,6 +434,7 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
     final connector = context.watch<MeshCoreConnector>();
     final repeater = _resolveRepeater(connector);
     final isFloodMode = repeater.pathOverride == -1;
+    final canRefresh = !_isLoading && connector.isConnected;
 
     return Scaffold(
       appBar: AppBar(
@@ -460,18 +455,25 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.refresh),
-            onPressed: _isLoading ? null : _loadStatus,
+            onPressed: canRefresh ? _loadStatus : null,
             tooltip: l10n.repeater_refresh,
           ),
         ],
       ),
       body: SafeArea(
         top: false,
-        child: RefreshIndicator(
-          onRefresh: _loadStatus,
-          child: _isLoading && _batteryMv == null
-              ? const Center(child: CircularProgressIndicator())
-              : _buildBody(l10n, repeater.name),
+        child: Column(
+          children: [
+            const RadioDisconnectedBanner(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: connector.isConnected ? _loadStatus : () async {},
+                child: _isLoading && !_hasAnyStatus
+                    ? const Center(child: CircularProgressIndicator())
+                    : _buildBody(l10n, repeater.name),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -479,9 +481,21 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
 
   Widget _buildBody(dynamic l10n, String name) {
     final scheme = Theme.of(context).colorScheme;
+    final error = _loadError;
+    if (error != null && !_hasAnyStatus) {
+      return ListView(
+        padding: const EdgeInsets.only(top: 16, bottom: 24),
+        children: [_buildErrorCard(error)],
+      );
+    }
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: [
+        if (error != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _buildErrorCard(error),
+          ),
         // ── System ─────────────────────────────────────────────────────────
         SectionHeader(l10n.repeater_systemInformation),
         Padding(
@@ -530,7 +544,7 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
             _StatItem(
               icon: Icons.signal_cellular_alt,
               label: l10n.repeater_lastRssi,
-              value: _formatValue(_lastRssi, suffix: ' dB'),
+              value: _formatValue(_lastRssi, suffix: ' dBm'),
               color: MeshPalette.blue,
             ),
             _StatItem(
@@ -542,7 +556,7 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
             _StatItem(
               icon: Icons.noise_control_off,
               label: l10n.repeater_noiseFloor,
-              value: _formatValue(_noiseFloor, suffix: ' dB'),
+              value: _formatValue(_noiseFloor, suffix: ' dBm'),
               color: scheme.onSurfaceVariant,
             ),
             _StatItem(
@@ -551,12 +565,13 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
               value: _formatDuration(_txAirSecs),
               color: MeshPalette.warn,
             ),
-            _StatItem(
-              icon: Icons.download,
-              label: l10n.repeater_rxAirtime,
-              value: _formatDuration(_rxAirSecs),
-              color: MeshPalette.signal,
-            ),
+            if (!_isRoom)
+              _StatItem(
+                icon: Icons.download,
+                label: l10n.repeater_rxAirtime,
+                value: _formatDuration(_rxAirSecs),
+                color: MeshPalette.signal,
+              ),
           ]),
         ),
 
@@ -583,20 +598,86 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
               value: _duplicateText(),
               color: scheme.onSurfaceVariant,
             ),
-            _StatItem(
-              icon: Icons.percent,
-              label: l10n.repeater_chanUtil,
-              value: _chanUtilText(),
-              color: _chanUtil != null && _chanUtil! > 80
-                  ? MeshPalette.alert
-                  : _chanUtil != null && _chanUtil! > 50
-                  ? MeshPalette.warn
-                  : MeshPalette.signal,
-            ),
+            if (_isRoom) ...[
+              _StatItem(
+                icon: Icons.forum_outlined,
+                label: l10n.room_postsStored,
+                value: _formatValue(_posted),
+                color: MeshPalette.blue,
+              ),
+              _StatItem(
+                icon: Icons.outbox,
+                label: l10n.room_postsPushed,
+                value: _formatValue(_postPushes),
+                color: MeshPalette.signal,
+              ),
+            ] else
+              _StatItem(
+                icon: Icons.error_outline,
+                label: l10n.repeater_recvErrors,
+                value: _formatValue(_recvErrors),
+                color: _recvErrors != null && _recvErrors! > 0
+                    ? MeshPalette.warn
+                    : scheme.onSurfaceVariant,
+              ),
+            if (!_isRoom)
+              _StatItem(
+                icon: Icons.percent,
+                label: l10n.repeater_chanUtil,
+                value: _chanUtilText(),
+                color: _chanUtil != null && _chanUtil! > 80
+                    ? MeshPalette.alert
+                    : _chanUtil != null && _chanUtil! > 50
+                    ? MeshPalette.warn
+                    : MeshPalette.signal,
+              ),
           ]),
         ),
         const SizedBox(height: 8),
       ],
+    );
+  }
+
+  Widget _buildErrorCard(String message) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final connected = context.watch<MeshCoreConnector>().isConnected;
+    return MeshCard(
+      color: scheme.errorContainer,
+      borderColor: scheme.error,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 24,
+                color: scheme.onErrorContainer,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: scheme.onErrorContainer,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: FilledButton.icon(
+              onPressed: _isLoading || !connected ? null : _loadStatus,
+              icon: const Icon(Icons.refresh),
+              label: Text(context.l10n.common_retry),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -618,23 +699,33 @@ class _RepeaterStatusScreenState extends State<RepeaterStatusScreen> {
   }
 
   Widget _buildStatGrid(List<_StatItem> items) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      childAspectRatio: 2.2,
-      children: items
-          .map(
-            (item) => StatTile(
+    final textScaler = MediaQuery.textScalerOf(context);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth / textScaler.scale(1) < 320
+            ? 1
+            : 2;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+            mainAxisExtent: textScaler.scale(52) + 28,
+          ),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return StatTile(
               icon: item.icon,
               label: item.label,
               value: item.value,
               color: item.color,
-            ),
-          )
-          .toList(),
+            );
+          },
+        );
+      },
     );
   }
 }

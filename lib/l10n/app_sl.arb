@@ -434,6 +434,8 @@
   "channels_sortAZ": "A do Z",
   "channels_sortLatestMessages": "Najnovejše sporočilo",
   "channels_sortUnread": "Nerešeno",
+  "chat_noRadioLocation": "Vaš radio nima nastavljene lokacije",
+  "chat_shareMyLocation": "Deli mojo lokacijo",
   "chat_noMessages": "Še ni sporočil.",
   "chat_sendMessageToStart": "Pošlji sporočilo za začetek.",
   "chat_originalMessageNotFound": "Opozorilo: Sporočilo ni bilo najdeno",
@@ -485,6 +487,7 @@
       }
     }
   },
+  "chat_selectSendAction": "Izberite dejanje pošiljanja",
   "chat_sendGif": "Pošlji GIF",
   "chat_reply": "Odgovori",
   "chat_addReaction": "Dodaj reakcijo",
@@ -577,7 +580,7 @@
   "chat_pathManagement": "Upravljanje poti",
   "chat_routingMode": "Navodilo za usmerjevalni način",
   "chat_autoUseSavedPath": "Avto (uporabi shranjeno pot)",
-  "chat_forceFloodMode": "Nasilje obvezati v način",
+  "chat_forceFloodMode": "Vsili flood način",
   "chat_recentAckPaths": "Nedavni poti ACK (tap za uporabo):",
   "chat_pathHistoryFull": "Zapiske o poti so popolni. Izbriši vnose, da dodaš nove.",
   "chat_hopSingular": "skok",
@@ -621,7 +624,7 @@
   "chat_path": "Pot",
   "chat_publicKey": "Ključ javnega tipa",
   "chat_compressOutgoingMessages": "Stisnite izhodne sporočila",
-  "chat_floodForced": "Porolni (nasilje).",
+  "chat_floodForced": "Flood (vsiljeno)",
   "chat_directForced": "Nezglašen (nasilje)",
   "chat_hopsForced": "{count} skoki (nasilje)",
   "@chat_hopsForced": {
@@ -631,7 +634,7 @@
       }
     }
   },
-  "chat_floodAuto": "Preplavljenje (avtomatizirano)",
+  "chat_floodAuto": "Flood (samodejno)",
   "chat_direct": "Neposredni",
   "chat_poiShared": "Deljeno točke MN",
   "chat_unread": "Nerešeno: {count}",
@@ -688,6 +691,7 @@
   "map_shareMarkerHere": "Delite točke tukaj.",
   "map_pinLabel": "Oznaka za pritrditev",
   "map_label": "Oznaka",
+  "map_labelUpdateHint": "Če uporabite enako oznako kot prej, se oznaka na zemljevidu posodobi pri prejemnikih MeshCore Open.",
   "map_pointOfInterest": "Točka zanimivosti",
   "map_sendToContact": "Pošlji v kontakt",
   "map_sendToChannel": "Pošlji v kanal",
@@ -899,7 +903,7 @@
   "login_routing": "Usmerjanje",
   "login_routingMode": "Navodilo za usmerjevalni način",
   "login_autoUseSavedPath": "Avto (uporabi shranjeno pot)",
-  "login_forceFloodMode": "Nasilje obvezati v način",
+  "login_forceFloodMode": "Vsili flood način",
   "login_managePaths": "Upravljajte Potniške Proti",
   "login_login": "Prijava",
   "login_attempt": "Poskušajo {current}/{max}",
@@ -972,7 +976,7 @@
   "repeater_statusTitle": "Status ponovitelja",
   "repeater_routingMode": "Navodilo za usmerjevalni način",
   "repeater_autoUseSavedPath": "Avto (uporabi shranjeno pot)",
-  "repeater_forceFloodMode": "Nasilje obvezati v način",
+  "repeater_forceFloodMode": "Vsili flood način",
   "repeater_pathManagement": "Upravljanje poti",
   "repeater_refresh": "Ponovno obnavljati",
   "repeater_statusRequestTimeout": "Zahtev statusa je iztekla.",
@@ -1017,7 +1021,7 @@
       }
     }
   },
-  "repeater_packetTxTotal": "Skupno: {total}, Poplava: {flood}, Neposredno: {direct}",
+  "repeater_packetTxTotal": "Skupno: {total}, Flood: {flood}, Neposredno: {direct}",
   "@repeater_packetTxTotal": {
     "placeholders": {
       "total": {
@@ -1031,7 +1035,7 @@
       }
     }
   },
-  "repeater_packetRxTotal": "Skupno: {total}, Poplava: {flood}, Neposredno: {direct}",
+  "repeater_packetRxTotal": "Skupno: {total}, Flood: {flood}, Neposredno: {direct}",
   "@repeater_packetRxTotal": {
     "placeholders": {
       "total": {
@@ -1045,7 +1049,7 @@
       }
     }
   },
-  "repeater_duplicatesFloodDirect": "Prah: {flood}, Neposredni: {direct}",
+  "repeater_duplicatesFloodDirect": "Flood: {flood}, Neposredni: {direct}",
   "@repeater_duplicatesFloodDirect": {
     "placeholders": {
       "flood": {
@@ -1102,7 +1106,7 @@
       }
     }
   },
-  "repeater_floodAdvertInterval": "Razpon Obvestil o Poplavah",
+  "repeater_floodAdvertInterval": "Razpon Flood Oglasov",
   "repeater_floodAdvertIntervalHours": "{hours} ur",
   "@repeater_floodAdvertIntervalHours": {
     "placeholders": {
@@ -1172,9 +1176,9 @@
   "repeater_advancedSettings": "Napredno",
   "repeater_advancedSettingsSubtitle": "Gumbi za nastavljanje za izkušene uporabnike",
   "repeater_pathHashMode": "Način ustvarjanja hash-a poti",
-  "repeater_pathHashModeHelper": "Biti, ki so bila uporabljena za kodiranje ID-ja tega releja v oznakah za zaznavanje pot/kroga, imajo naslednje velikosti: 0=1 bit (256 ID-jev, do 64 skokov), 1=2 biti (65.000 ID-jev, do 32 skokov), 2=3 biti (16 milijonov ID-jev, do 21 skokov). V različicah 1.13 in starejših se ustvarjajo večbitne poti – vendar se to zgodi šele, ko je omrežje vklopljeno v različicah 1.14 in kasnejših.",
-  "repeater_txDelay": "Zatemnitevanje zaradi poplav v Texasu",
-  "repeater_txDelayHelper": "Uporaba intervalov za ponovno pošiljanje v primeru prometa zaradi poplav, kot pomnožnik časovne trajanje paketa (0-2, privzeto 0,5). Veje vrednost = manjše kolizije, vendar počasnejše dostavo.",
+  "repeater_pathHashModeHelper": "Bajti, uporabljeni za kodiranje ID-ja tega repetitorja v oznakah flood poti/zaznavanja zank. 0=1 bajt (256 ID-jev, do 64 skokov), 1=2 bajta (65.000 ID-jev, do 32 skokov), 2=3 bajti (16 milijonov ID-jev, do 21 skokov). Vdelana programska oprema pred v1.14 je vedno uporabljala 1-bajtne poti; v1.14 in novejše je mogoče nastaviti na 2- ali 3-bajtne poti.",
+  "repeater_txDelay": "Flood TX zakasnitev",
+  "repeater_txDelayHelper": "Uporaba intervalov za ponovno pošiljanje v primeru flood prometa, kot pomnožnik časovne trajanje paketa (0-2, privzeto 0,5). Veje vrednost = manjše kolizije, vendar počasnejše dostavo.",
   "repeater_directTxDelay": "Neposredni časovno odlašanje",
   "repeater_directTxDelayHelper": "Razdalja za ponovno pošiljanje za neposredno (neobvezen) promet, kot pomnožnik časovne trajanja paketa (0-2, privzeto 0,3).",
   "repeater_intThresh": "Meja, pri kateri nastane motnja",
@@ -1182,8 +1186,8 @@
   "repeater_agcResetInterval": "Interval ponovne kalibracije AGC",
   "repeater_agcResetIntervalHelper": "Kako pogosto je treba ponovno nastaviti samodejno regulacijo občutljivosti, da se vrnete v normalno stanje? Interval je nastavljen na nekaj sekund, natančno na 4. 0 izklopi periodično ponovno nastavljanje.",
   "repeater_actionsTitle": "Dejanja",
-  "repeater_sendAdvert": "Pošlji oglas o poplavah",
-  "repeater_sendAdvertSubtitle": "Razpustite oglas o poplavah preko omrežja.",
+  "repeater_sendAdvert": "Pošlji flood oglas",
+  "repeater_sendAdvertSubtitle": "Razpošlji flood oglas preko omrežja.",
   "repeater_sendAdvertZeroHop": "Pošlji oglas, ki ne potrebuje posrednika.",
   "repeater_sendAdvertZeroHopSubtitle": "Premejte oglas, ki uporablja eno povezavo (brez posrednikov).",
   "repeater_clockSync": "Sinerizirajte uro zdaj",
@@ -1282,19 +1286,19 @@
   "repeater_cliHelpSetTx": "Nastavi moč LoRa oddajanja v dBm. (za ponovni zagon za uporabo)",
   "repeater_cliHelpSetRepeat": "Omogoči ali onemogoči vlogo ponovitelja za tono.",
   "repeater_cliHelpSetAllowReadOnly": "(Osebni strežnik) Če je 'vklopljeno', potem bo dovoljeno prijavo z praznim geslom, vendar ne bo mogoče objaviti v sobo. (samo branje).",
-  "repeater_cliHelpSetFloodMax": "Nastavi največjo število skokov za vstopne poplave (če je >= maks, paket ni usmerjen)",
+  "repeater_cliHelpSetFloodMax": "Nastavi največje število skokov za vhodni flood paket (če je >= maks, paket ni posredovan)",
   "repeater_cliHelpSetIntThresh": "Nastavi Prag Interferencij (v dB). Privzeto je 14. Nastavi na 0 za onemogočitev zaznavanja interferenc kanalov.",
   "repeater_cliHelpSetAgcResetInterval": "Nastavi časovno razdaljo za ponovni zagon nadzornika Avtomatske uteži. Nastavi na 0 za onemogočanje.",
   "repeater_cliHelpSetMultiAcks": "Omogoči ali onemogoči funkcijo \"dvojakih potrdil\".",
   "repeater_cliHelpSetAdvertInterval": "Nastavi časovno obmesto v minutah za pošiljanje lokalnega (brezposrednega) napovednega paketa. Nastavi na 0 za onemogočiti.",
-  "repeater_cliHelpSetFloodAdvertInterval": "Nastavi časovno obmesto v urah za pošiljanje plovilnega oglasnega paketa. Nastavi na 0 za onemogočanje.",
+  "repeater_cliHelpSetFloodAdvertInterval": "Nastavi časovno obmesto v urah za pošiljanje flood oglasnega paketa. Nastavi na 0 za onemogočanje.",
   "repeater_cliHelpSetGuestPassword": "Nastavi/posodobi geslo gosta. (za ponovitve lahko gostov prijavi pošiljajo zahtevo \"Get Stats\")",
   "repeater_cliHelpSetName": "Nastavi ime oglasnika.",
   "repeater_cliHelpSetLat": "Nastavi zemljepisno širino oglaševalskega zemljevida (desetdeljne).",
   "repeater_cliHelpSetLon": "Nastavi zemljevidno širino oglasnika. (desetdelne stopnje)",
   "repeater_cliHelpSetRadio": "Nastavi popolnoma nove radijske parametre in jih shranjuje v nastavitve. Za uporabo je potrebna \"restart\" ukaz.",
   "repeater_cliHelpSetRxDelay": "Nastavitve (eksperimentalne) osnova (mora biti > 1 za učinkovanje) za uporabo rahle zakasnitve prejetih paketov, glede na moč signala/rezultat. Nastavite na 0 za onemogočanje.",
-  "repeater_cliHelpSetTxDelay": "Nastavi faktor, ki se množi s časom delovanja za paket v načinu poplavnega režima in z randomiziranim sistemom slotov, da odvrne njegovo posredovanje. (da se zmanjša verjetnost kolizij)",
+  "repeater_cliHelpSetTxDelay": "Nastavi faktor, ki se množi s časom delovanja za paket v flood načinu in z randomiziranim sistemom slotov, da odvrne njegovo posredovanje. (da se zmanjša verjetnost kolizij)",
   "repeater_cliHelpSetDirectTxDelay": "Ima podobno vrednost kot txdelay, vendar jo lahko uporabite za dodajanje naknadnega zamika pri posredovanju paketov v režimu neposredne prevodi.",
   "repeater_cliHelpSetBridgeEnabled": "Omogoči/Preklopi most.",
   "repeater_cliHelpSetBridgeDelay": "Nastavi zamik pred ponovnim poslanjem paketov.",
@@ -1310,7 +1314,7 @@
   "repeater_cliHelpLogErase": "Izbriše pakete zapisov iz datotek sistema.",
   "repeater_cliHelpNeighbors": "Prikaže seznam drugih ponovnih knopov, do katerih je prišlo preko brezposrednih oglasov. Vsaka vrstica je id-prefix-hex:timestamp:snr-times-4",
   "repeater_cliHelpNeighborRemove": "Izbriše prvo ustreznu postavko (po predpomnilku pubkey (heks),) iz seznama sosedov.",
-  "repeater_cliHelpRegion": "(Serija samo) Navaja vse definirane regije in trenutne poplave dovolilnosti.",
+  "repeater_cliHelpRegion": "(Serija samo) Navaja vse definirane regije in trenutna dovoljenja za flood.",
   "repeater_cliHelpRegionLoad": "Opomba: to je posebna več ukazna pozivna operacija. Vsak naslednji ukaz je ime regije (z lezijami za prikaz hierarhije, z enim ustvarjenim razmislom). Zaključena s pošiljanjem praznega reda/ukaza.",
   "repeater_cliHelpRegionGet": "Išče regijo s podanimi imenimi prefiksom (ali \"\\\" za globalni obseg). Odgovori se s \"-> regija-ime (rodič-ime) 'F'\"",
   "repeater_cliHelpRegionPut": "Dodaja ali posodobi regijsko definicijo s podanim imenom.",
@@ -1482,7 +1486,7 @@
     }
   },
   "channelPath_unknownPath": "Neznano",
-  "channelPath_floodPath": "Prebivalstvo",
+  "channelPath_floodPath": "Flood",
   "channelPath_directPath": "Neposredni",
   "channelPath_observedZeroOf": "0 iz {total} skokov",
   "@channelPath_observedZeroOf": {
@@ -1554,7 +1558,7 @@
       }
     }
   },
-  "repeater_neighborsSubtitle": "Pogledati nič sosednjih hopjev.",
+  "repeater_neighborsSubtitle": "Pogledati nič sosednjih skokov.",
   "repeater_neighbors": "Sosedi",
   "neighbors_receivedData": "Prejeto podatke o sosedih",
   "neighbors_requestTimedOut": "Sosedi zahtevajo izklop po dogovoru.",
@@ -1757,8 +1761,8 @@
   "appSettings_enableMessageTracingSubtitle": "Prikaži podrobne metapodatke o usmerjanju in časovnem usklajevanju sporočil",
   "contacts_contactImported": "Kontakt je bil uvožen.",
   "contacts_contactImportFailed": "Kontakt ni bil uspešno uvožen.",
-  "contacts_zeroHopAdvert": "Reklama brez posrednikov",
-  "contacts_floodAdvert": "Poplavna oglás",
+  "contacts_zeroHopAdvert": "Oglas brez posrednikov",
+  "contacts_floodAdvert": "Flood oglas",
   "contacts_invalidAdvertFormat": "Neveljavni kontaktne podatke",
   "contacts_clipboardEmpty": "Odložišče je prazno.",
   "contacts_copyAdvertToClipboard": "Kopiraj oglas v odložišče",
@@ -1790,7 +1794,7 @@
   "settings_gpxExportNoContacts": "Ni stikov za izvoz.",
   "settings_gpxExportNotAvailable": "Ni podprto na vašem napravi/operacijskem sistemu",
   "settings_gpxExportShareSubject": "meshcore-open izvoz podatkov GPX karte",
-  "pathTrace_someHopsNoLocation": "Ena ali več hmelju manjka lokacija!",
+  "pathTrace_someHopsNoLocation": "Enemu ali več skokom manjka lokacija!",
   "map_tapToAdd": "Pritisnite na vozlišča, da jih dodate poti.",
   "map_removeLast": "Odstrani Zadnji",
   "map_runTrace": "Zaženi sledenje poti",
@@ -2016,7 +2020,47 @@
   "discoveredContacts_Title": "Odkriti stiki",
   "discoveredContacts_searchHint": "Najdeni stiki po iskanju",
   "discoveredContacts_deleteContact": "Izbriši stik",
+  "discoveredContacts_export": "Izvozi odkrite stike",
+  "discoveredContacts_import": "Uvozi odkrite stike",
+  "discoveredContacts_exported": "Odkriti stiki so izvoženi v {path}.",
+  "@discoveredContacts_exported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveredContacts_exportFailed": "Izvoz odkritih stikov ni uspel: {error}",
+  "@discoveredContacts_exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveredContacts_imported": "Uvoženih je bilo {count} odkritih stikov.",
+  "@discoveredContacts_imported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "discoveredContacts_importNoContacts": "V uvozni datoteki ni bilo najdenih stikov.",
+  "discoveredContacts_importInvalidFile": "Datoteka ni izvoz odkritih stikov.",
+  "discoveredContacts_importSummary": "Uvoženo: {imported}, preskočeno (že znani): {skipped}, neberljivi vnosi: {invalid}.",
+  "discoveredContacts_importTooLarge": "Uvozna datoteka je prevelika (največ {maxMb} MB).",
+  "discoveredContacts_importFailed": "Uvoz odkritih stikov ni uspel: {error}",
+  "@discoveredContacts_importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "contactsSettings_overwriteOldestSubtitle": "Ko je seznam stikov poln, bo najstarejši nestarševski stik zamenjan.",
+  "contactsSettings_evictDiscoveredContactsTitle": "Odstrani odkrite stike",
+  "contactsSettings_evictDiscoveredContactsSubtitle": "Ko je ta možnost vklopljena, aplikacija odstrani najstarejše odkrite stike, ko seznam odkritih stikov doseže omejitev {limit} vnosov.",
   "common_deleteAll": "Izbriši vse",
   "discoveredContacts_deleteContactAllContent": "Ste prepričani, da želite izbrisati vse odkrite kontakte?",
   "discoveredContacts_deleteContactAll": "Izbriši vse odkrite kontakte",
@@ -2297,15 +2341,15 @@
   "repeater_cliHelpGetAgcResetInterval": "Prikazuje interval ponovne kalibracije AGC v sekundah.",
   "repeater_cliHelpGetMultiAcks": "Pokaže, ali je vklopljen način dvojnega potrdila (1) ali je izklopljen (0).",
   "repeater_cliHelpGetAllowReadOnly": "Pokaže, ali je omogočen le brani dostop za goste.",
-  "repeater_cliHelpGetAdvertInterval": "Prikazuje časovno obdobje lokalne reklame v minutah.",
-  "repeater_cliHelpGetFloodAdvertInterval": "Prikaže časovno obdobje, ko se prikazuje oglas o poplavah, v urah.",
+  "repeater_cliHelpGetAdvertInterval": "Prikazuje časovno obdobje lokalnega oglasa v minutah.",
+  "repeater_cliHelpGetFloodAdvertInterval": "Prikaže časovno obdobje flood oglasa, v urah.",
   "repeater_cliHelpGetGuestPassword": "Prikaže nastavljeno geslo za gostitelja.",
   "repeater_cliHelpGetLat": "Prikaže določeno zemljepisno širino.",
   "repeater_cliHelpGetLon": "Prikaže določeno merilo dolžine.",
   "repeater_cliHelpGetRxDelay": "Prikazuje osnovno vrednost RX odlašanja.",
-  "repeater_cliHelpGetTxDelay": "Prikazuje faktor zamude v načinu delovanja pri plavlju.",
+  "repeater_cliHelpGetTxDelay": "Prikazuje faktor zamude v flood načinu.",
   "repeater_cliHelpGetDirectTxDelay": "Prikazuje faktor odlašanja signala v režimu neposredne komunikacije.",
-  "repeater_cliHelpGetFloodMax": "Prikazuje največjo število, kolikokrat lahko voda doseže najvišjo višino.",
+  "repeater_cliHelpGetFloodMax": "Prikazuje največje število skokov za flood.",
   "repeater_cliHelpGetOwnerInfo": "Prikazuje niz z informacijami o lastniku.",
   "repeater_cliHelpGetPathHashMode": "Prikaže način delovanja z hashjem poti (0/1/2).",
   "repeater_cliHelpGetLoopDetect": "Prikazuje občutljivost na zaznavanje ciklov.",
@@ -2327,8 +2371,8 @@
   "repeater_cliHelpSensorList": "Navaja vse nastavitve za uporabniške senzorje, razvrščene po želeni začetni indeksu.",
   "repeater_cliHelpRegionDefault": "Prikaže trenutno privzeto območje.",
   "repeater_cliHelpRegionDefaultSet": "Določi privzeto območje. Za izbris uporabite \"<null>\".",
-  "repeater_cliHelpRegionListAllowed": "Navaja regije, ki dovoljujejo promet v času poplav.",
-  "repeater_cliHelpRegionListDenied": "Navaja regije, ki preprečujejo promet zaradi poplav.",
+  "repeater_cliHelpRegionListAllowed": "Navaja regije, ki dovoljujejo flood promet.",
+  "repeater_cliHelpRegionListDenied": "Navaja regije, ki preprečujejo flood promet.",
   "repeater_cliHelpStatsPackets": "(Samo za serijske povezave) Prikazuje statistiko na nivoju paketov.",
   "repeater_cliHelpStatsRadio": "(Samo za serije) Prikazuje statistične podatke o radiju.",
   "repeater_cliHelpStatsCore": "(Samo za serijske naprave) Prikazuje osnovne statistične podatke.",
@@ -2468,7 +2512,7 @@
   "contacts_searchClose": "Izklopi iskanje",
   "routing_title": "Navigacija",
   "routing_modeAuto": "Avto",
-  "routing_modeFlood": "Poplavo",
+  "routing_modeFlood": "Flood",
   "routing_modeManual": "Navodilo",
   "routing_modeAutoHint": "Samodejno izbere najbolj poznano pot, in sicer, ko ni na voljo nobena.",
   "routing_modeFloodHint": "Prenosi preko vseh repetitorjev. Najzanesljivejši način, vendar zahteva več časa.",
@@ -2486,15 +2530,15 @@
   "routing_qualityGood": "Prva uspešna faza",
   "routing_qualityFair": "Prva, uspešna faza",
   "routing_qualityWorked": "Izpolnil",
-  "routing_qualityFlood": "Slišano preko poplave",
+  "routing_qualityFlood": "Slišano prek flooda",
   "routing_qualityUntested": "Ne preizkušen",
   "routing_lastWorked": "delal/a {when}",
   "routing_neverWorked": "nikoli ni bilo potrjeno",
-  "routing_floodDelivery": "Dostava zaradi poplave",
+  "routing_floodDelivery": "Dostava prek flooda",
   "pathEditor_title": "Izgradnja poti",
-  "pathEditor_hopCounter": "{count} od 64 različnih sort hropa",
-  "pathEditor_noHops": "Še niso dodani hmelji. Za dodajanje hmelja v vrstnem redu kliknite na povezavo spodaj, ali pa shranite brez dodanega hmelja, da ga lahko posredujete neposredno.",
-  "pathEditor_addHops": "Dodajte suho travo v skladu s postopkom.",
+  "pathEditor_hopCounter": "{count} od 64 skokov",
+  "pathEditor_noHops": "Še niso dodani skoki. Za dodajanje skokov v vrstnem redu kliknite na ponovitelje spodaj, ali pa shranite brez dodanih skokov, da ga lahko posredujete neposredno.",
+  "pathEditor_addHops": "Dodajte skoke v vrstnem redu.",
   "pathEditor_searchRepeaters": "Iskanje ponovitev",
   "pathEditor_advancedHex": "Napredno: surovi šestnajstni pot",
   "pathEditor_hexLabel": "Predfiks za heksadecimalno šifro",
@@ -2502,7 +2546,7 @@
   "pathEditor_invalidTokens": "Neveljaven: {tokens}",
   "pathEditor_tooManyHops": "Največ 64 hopov",
   "pathEditor_usePath": "Uporabite to poto",
-  "pathEditor_removeHop": "Odstranite hmelj",
+  "pathEditor_removeHop": "Odstranite skok",
   "pathEditor_unknownHop": "Neznani ponovitelj",
   "map_zoomIn": "Povečaj",
   "routing_deliveryCounts": "{successes} delivered, {failures} failed",
@@ -2605,5 +2649,667 @@
   "pathMap_noLocation": "Brez lokacije",
   "pathMap_followPacket": "Zakleni pogled na paket",
   "pathMap_unfollowPacket": "Odkleni pogled od paketa",
-  "pathMap_gpsCount": "{confirmed}/{total} GPS"
+  "pathMap_gpsCount": "{confirmed}/{total} GPS",
+  "@settings_deleteRegionConfirm": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "@channels_regionSetTo": {
+    "placeholders": {
+      "region": {
+        "type": "String",
+        "example": "de-mitte"
+      }
+    }
+  },
+  "@chat_imagePickFailed": {
+    "description": "Shown when picking or reading a photo to send fails"
+  },
+  "@repeater_pubKeyPrefixHelper": {
+    "placeholders": {
+      "tries": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_packetsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_range": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_longSendBody": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_sentConfirmation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_sendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_sendingProgress": {
+    "placeholders": {
+      "sent": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_senderPrefix": {
+    "placeholders": {
+      "prefix": {
+        "type": "String"
+      }
+    }
+  },
+  "@receivedImage_incoming": {
+    "placeholders": {
+      "received": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_incomplete": {
+    "placeholders": {
+      "received": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_awaiting": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      },
+      "packets": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_secondsValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_minutesSecondsValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_regionSettings": "Regioni",
+  "settings_regionSettingsSubtitle": "Upravljanje opisanih regionov",
+  "settings_regionManagement_screenTitle": "Regijonsko upravljanje",
+  "settings_regionNameHint": "Naslov občine",
+  "settings_regionAddRegion": "Dodaj region",
+  "settings_regionFetchRegions": "Pobražujte izvajne področja iz ponavljalnikov",
+  "settings_regionFetchRegionsFail": "Nižnih občin ni izkrali",
+  "settings_regionFetchRegionsAlreadyExists": "Taj oblasi je več pomanjkan.",
+  "settings_regionName": "Naziv Regiona",
+  "settings_regionDeleted": "Oblikačena regija",
+  "settings_deleteRegion": "Prihoda Region",
+  "settings_deleteRegionConfirm": "Ostani {region} iz listy regionov?",
+  "settings_infoHardware": "Hardver",
+  "settings_infoFirmware": "Pravilnik",
+  "repeater_pathHashModeOption0": "0 - 1 bajt",
+  "repeater_pathHashModeOption1": "1 - 2 bite",
+  "repeater_pathHashModeOption2": "2 - 3 bite",
+  "repeater_pathHashModeOption3": "3 - 4 bite",
+  "appSettings_batteryLipoHv": "LiPo HV (3,0–4,35 V)",
+  "channels_regionSetTo": "Osebno: {region}",
+  "channels_regionNotSet": "Region: brak",
+  "channels_regionSelect_Title": "Vablajte region",
+  "channels_clearRegion": "Jasna regija",
+  "chat_sendImageLora": "Pošlji sliko prek MeshCore",
+  "chat_imagePickFailed": "Nispeval sem tega ta slik",
+  "chat_receivedGif": "Otrvljen GIF",
+  "repeater_keySettings": "Zmeničke ključe identitete",
+  "repeater_keySettingsSubtitle": "Zamenjajte publican ali privatni ključni par",
+  "repeater_prvKey": "Privarna ključa",
+  "repeater_prvKeyHelper": "Nova privatna ključa za prekaznik, 128- znakovni šestnastik.",
+  "repeater_generatePrvKey": "Sporočna ključna para",
+  "repeater_stopGeneratingPrvKey": "Prekajanje odkrivanja ključne paro",
+  "repeater_pubKey": "Public key (publična ključa)",
+  "repeater_pubKeyHelper": "Taj je publicna ključ, ki pomeni pripovedno privatno ključ. Ne možeš to vrediti direktno.",
+  "repeater_pubKeyPrefix": "Poželana prefiks",
+  "repeater_pubKeyPrefixHelper": "Najdi publicen ključ, ki začne s tih hexnih čitov. Očekivani pokusi: {tries}.",
+  "imageMessages_enableTitle": "Pozivni izkričile slike",
+  "imageMessages_enableSubtitle": "Prešli vzorce pre mrežo. Potrebno je jednokratno stworiti model vzorca.",
+  "imageMessages_modelSectionTitle": "Obrazni model",
+  "imageMessages_downloadModel": "Storba",
+  "imageMessages_cancelDownload": "Odločite",
+  "imageMessages_removeModel": "Ubrani model",
+  "imageMessages_modelReady": "Gotov",
+  "imageMessages_modelNotPublished": "Jo še niso izdana — ta izdelka te ne može prebaviti.",
+  "imageMessages_downloadFailed": "Obrazni model ne može biti preuzet.",
+  "imageMessages_autoProcessTitle": "Avtomatizirane slike",
+  "imageMessages_autoProcessSubtitle": "Katero je oblikovanje svega oblikov, ko se pošteva. Za drugo okolo časa se koristi ok. 2 GB pamične prostore; odločite se za oblikovanje s tukom.",
+  "imageSend_title": "Sločaji slik",
+  "imageSend_cropNote": "Zadovoljno izmenjeno na 512 × 512 · vzorovni odnos ne ohranjen",
+  "imageSend_originalSize": "Original text:\n\nThe early bird catches the worm.\n\nTranslation:\n\nPojdi prvi, zlati v kroku.",
+  "imageSend_onAirSize": "Na vodi",
+  "imageSend_quality": "Kakovost",
+  "imageSend_qualityStandard": "Standard",
+  "imageSend_qualityHigh": "Vysoko",
+  "imageSend_packetsLabel": "Pakete",
+  "imageSend_airtimeLabel": "Čas v eteru",
+  "imageSend_sizeLabel": "Napravo",
+  "imageSend_packetsCount": "{count} {count, plural, =1{paket} other{paketov}}",
+  "imageSend_range": "{min}–{max}",
+  "imageSend_unknownValue": "—",
+  "imageSend_radioUnknownTitle": "Naslušniki radio neznane",
+  "imageSend_radioUnknownBody": "Poučajte se na stroj, da se lahko izračunuje čas v prikazu.",
+  "imageSend_longSendTitle": "Dluga preposlana",
+  "imageSend_longSendBody": "Ovo bo ohranilo kanal prihodno za obliko {duration}.",
+  "imageSend_floodNote": "Flood usmerjanje: vsak ponovitelj v dosegu znova odda vsak paket, zato je kanal zaseden dlje kot to.",
+  "imageSend_parityTitle": "Pobavni paket zdržbe",
+  "imageSend_paritySubtitle": "Jedna dodatna paczka. Grupni izjasi ne izvajajo potvarnosti, pa ta izdelka omogoča preuzimanju ponovno izgleda, če je zgubjen pojedni paket.",
+  "imageSend_send": "Posyłaj",
+  "imageSend_cancel": "Odločite",
+  "imageSend_encodeFailed": "Ovo slikovo ne more biti zakodirano.",
+  "imageSend_codecDownloading": "Obrazni model še pospeva preborjanje.",
+  "imageSend_codecUnavailable": "Poslanje slike nema na tem zelo naročnem naročnem.",
+  "imageSend_codecDisabled": "Obrazi s pomanjkanjem so v nastavnih.",
+  "imageSend_deviceUnsupported": "Taj radio ne može posredovati slike pakuete. Prepoštijo izbirni napravnik s kompanijskimi programi na čevem 13 ali novšejšim.",
+  "imageSend_directMessagesUnsupported": "Obrazy se pojavijo kot skupnih podatkov, pa lahko ih poslujejo samo na kanal — ne v prilogih.",
+  "imageSend_tooLarge": "Taj slik je zakodiran v viših pakotnih od športne formate, ki omogoča mrežni format.",
+  "imageSend_sentConfirmation": "Slika poslana kot {count} {count, plural, =1{paket} other{paketov}}.",
+  "imageSend_sendFailed": "Obraz ne može biti poslany: {error}",
+  "imageSend_sendingProgress": "Prekazivanje izkaza — paket {sent} od {total}",
+  "receivedImage_senderPrefix": "Vrtitev {prefix}",
+  "receivedImage_incoming": "Otrteno od {received} na {total} poslovanih potokov",
+  "receivedImage_queued": "Čekanje, da se dekodira",
+  "receivedImage_tapToDecode": "Kliknite, da razkrivete",
+  "receivedImage_decoding": "Ostvarjanje… o prihodnosti za okolo 1 s",
+  "receivedImage_incomplete": "Obraz nije kompletan — {received} od {total} poslaničev je prishodil",
+  "receivedImage_corrupt": "Obraz ne more lahko rekonstruirati",
+  "receivedImage_decoderMissing": "Otrgena slika — dekodirana slika je izključena",
+  "receivedImage_evicted": "Obraz ni več niso zakajiren",
+  "receivedImage_retry": "Pokušajte znova",
+  "receivedImage_decodeAgain": "Dekodiraj ponovno",
+  "receivedImage_openSettings": "Nastavite",
+  "receivedImage_tapToProcess": "Kliknij za obravnavanje",
+  "receivedImage_awaiting": "{bytes} bajtov · {packets} {packets, plural, =1{paket} other{paketov}}",
+  "imageSend_secondsValue": "{seconds} s",
+  "imageSend_minutesSecondsValue": "{minutes} m {seconds} s",
+  "channels_noFreeSlots": "Vsa mesta za kanale so zasedena",
+  "chat_longMessageRetryNote": "Nad 158 bajtov: poslano največ {count}-krat",
+  "reaction_report": "Emoji reakcije",
+  "repeater_bridgeNote": "Na voljo samo v vdelani programski opremi, zgrajeni z mostom (RS232 ali ESP-NOW).",
+  "repeater_cliHelpGetFloodMaxAdvert": "Prikaže največje število skokov za flood oglase.",
+  "repeater_cliHelpGetFloodMaxUnscoped": "Prikaže največje število skokov za flood pakete brez določenega regijskega obsega.",
+  "repeater_cliHelpGetRadioFemRxGain": "Prikaže, ali je RX ojačanje LoRa front-end modula vklopljeno.",
+  "repeater_cliHelpGetRadioFemTxGain": "Prikaže, ali je TX ojačanje LoRa front-end modula vklopljeno.",
+  "repeater_cliHelpRegionDef": "Definira verigo regij z enim ukazom: vsako ime se doda pod prejšnje; \"name,parent\" doda ime in nato nadaljuje pod navedeno nadrejeno regijo. Odgovori s seznamom regij.",
+  "repeater_cliHelpSetFloodMaxAdvert": "Nastavi največje število skokov za posredovanje flood oglasov (0-64).",
+  "repeater_cliHelpSetFloodMaxUnscoped": "Nastavi največje število skokov za posredovanje flood paketov brez določenega regijskega obsega (0-64).",
+  "repeater_cliHelpSetRadioFemRxGain": "Preklopi RX ojačanje (LNA) LoRa front-end modula. Plošče brez njega odgovorijo z \"Error: unsupported\".",
+  "repeater_cliHelpSetRadioFemTxGain": "Preklopi TX ojačanje (PA) LoRa front-end modula. Plošče brez njega odgovorijo z \"Error: unsupported\".",
+  "repeater_cliRegionLoadActive": "Način nalaganja regij: pošljite eno ime regije na vrstico, zamaknjeno s presledki pod nadrejeno regijo (dodajte F za imenom, da dovolite flood). Vrstice ne prejmejo odgovora. Pošljite prazno vrstico za konec, nato pa \"region save\", da shranite rezultat.",
+  "repeater_cliRegionLoadEnd": "(konec nalaganja regij)",
+  "repeater_cliRegionLoadHint": "Vrstica regije ali prazna vrstica za konec",
+  "repeater_frequencyInvalid": "Neveljavna frekvenca (150-2500 MHz)",
+  "repeater_frequencyRangeHelper": "150-2500 MHz",
+  "repeater_recvErrors": "Napake sprejema",
+  "repeater_txPowerRangeHelper": "-9 do 30 dBm",
+  "room_postsPushed": "Poslane objave",
+  "room_postsStored": "Objave",
+  "settings_publicKeyCopied": "Javni ključ kopiran",
+  "settings_radioSettingsNotApplied": "Radio teh nastavitev ni uveljavil",
+  "urlImage_enable": "Omogoči slike iz URL",
+  "urlImage_possible": "Mogoča slika iz URL; omogočite jo v Nastavitvah.",
+  "@chat_longMessageRetryNote": {
+    "description": "Shown under the DM composer when the message is too long for the firmware's later retry attempts",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_failedChannel": "Vaše radio ni moglo poslati tega sporočila.",
+  "messageStatus_resending": "Še ni slišano skozi dovolj ponoviteljev. Poslano {resends} od {maxResends}-krat.",
+  "@messageStatus_resending": {
+    "placeholders": {
+      "resends": {
+        "type": "int"
+      },
+      "maxResends": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_hopsNotReached": "Poslano, a nazaj slišano le skozi {hops} od {required} ponoviteljev. Morda je odšlo še dlje, kot vaše radio sliši.",
+  "@contactsSettings_evictDiscoveredContactsSubtitle": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "@messageStatus_hopsNotReached": {
+    "placeholders": {
+      "hops": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_sentChannel": "Poslano. Kanali ne potrjujejo dostave, zato to pomeni le, da je vaše radio poslalo sporočilo.",
+  "messageStatus_sentDirect": "Poslano. Čaka se na potrditev stika.",
+  "messageStatus_heardRepeatedCount": "Slišano večkrat {count, plural, =1{1-krat} =2{2-krat} few{{count}-krat} other{{count}-krat}}. Bližnji ponovitelji so sporočilo posredovali naprej.",
+  "@messageStatus_heardRepeatedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_regionEmptyExplanation": "Regije omejujejo sporočila flood na ponovitelje na določenem območju. Pridobite jih iz bližnjih ponoviteljev ali dodajte regijo po imenu.",
+  "settings_regionFetchFromRepeaters": "Pridobi iz ponoviteljev",
+  "settings_regionDefault": "Privzeta regija",
+  "settings_regionDefaultSubtitle": "Uporabljajo jo kanali brez lastne regije",
+  "settings_regionDefaultNone": "Brez",
+  "settings_telemetryPerContactHint": "Da stiku dovolite, odprite njegov klepet in v meniju izberite Nastavitve stika.",
+  "settings_multiAckSubtitle": "Pošiljajte dodatna potrdila ACK za boljšo dostavo; porabi več časa v etru",
+  "settings_presetCustom": "Po meri",
+  "settings_radioMatchWarning": "Vsa vozlišča, s katerimi komunicirate, morajo uporabljati enako frekvenco, pasovno širino in SF. Hitrost kodiranja (CR) se lahko razlikuje.",
+  "settings_txPowerRangeHelper": "Od {min} do {max} dBm",
+  "@settings_txPowerRangeHelper": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_clientRepeatFrequencyNote": "Frekvenca nastavljena na {freq} MHz za ponavljanje brez omrežja",
+  "@settings_clientRepeatFrequencyNote": {
+    "placeholders": {
+      "freq": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_pathHashModeHelper": "Velikost ID vozlišča, zapisanega v poti pošiljanih paketov flood: 1 bajt (256 ID, do 64 skokov), 2 bajta (65 tisoč, do 32 skokov), 3 bajti (16 milijonov, do 21 skokov). Večja ID zmanjšajo trčenja, vendar ponovitelji s programsko opremo, starejšo od v1.14, zavrnejo pakete z 2- ali 3-bajtnimi ID.",
+  "settings_requiresFirmware": "Zahteva vdelano programsko opremo {version} ali novejšo",
+  "@settings_requiresFirmware": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appSettings_channelMinHops": "Ponovno pošiljaj sporočila kanala, dokler ne pridejo dovolj daleč",
+  "appSettings_channelMinHopsSubtitle": "Če se vaše sporočilo ne vrne skozi dovolj ponoviteljev, ga pošlite ponovno. Porabi več časa v etru.",
+  "appSettings_channelMinHopsCount": "Zahtevani skoki: {count}",
+  "@appSettings_channelMinHopsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appSettings_channelMinHopsRetries": "Pošlite največ {count, plural, =1{1-krat} few{{count}-krat} other{{count}-krat}}",
+  "@appSettings_channelMinHopsRetries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appSettings_batteryOptimization": "Dejavnost v ozadju",
+  "appSettings_batteryOptimizationSubtitle": "V nastavitvah baterije nastavite MeshCore Open na „Ne optimiziraj“, da bodo sporočila še naprej prihajala v ozadju",
+  "contacts_storageFull": "Pomnilnik stikov v vozlišču je poln. Novih vozlišč ni mogoče dodati, dokler ne odstranite stikov.",
+  "contacts_removeFromContacts": "Odstrani iz stikov",
+  "contacts_removeFromContactsConfirm": "{contactName} bo prestavljen med odkriti stike. Zgodovina klepeta bo izbrisana.",
+  "@contacts_removeFromContactsConfirm": {
+    "placeholders": {
+      "contactName": {
+        "type": "String"
+      }
+    }
+  },
+  "contacts_keepChatHistory": "Ohrani zgodovino klepeta",
+  "contacts_remove": "Odstrani",
+  "contacts_discoveredNearby": "Odkriti v bližini ({count})",
+  "@contacts_discoveredNearby": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "contacts_noContactsDiscoveredHint": "Vozlišča, ki jih vaše radio sliši, še pa niste dodali, so navedena med odkritimi stiki",
+  "channels_hashtag": "Hashtag",
+  "channels_addSectionJoin": "Pridruži obstoječemu",
+  "channels_addSectionCreate": "Ustvari novega",
+  "channels_dragToReorder": "Povlecite za preureditev",
+  "channels_regionDefaultSuffix": "(privzeta)",
+  "channels_regionSelectExplanation": "Sporočila flood na tem kanalu bodo posredovana samo s ponovitelji iz izbrane regije.",
+  "channels_regionEmpty": "Regij še ni.",
+  "channels_manageRegions": "Upravljaj regije",
+  "chat_removeGif": "Odstrani GIF",
+  "chat_cancelReply": "Prekliči odgovor",
+  "chat_viewPathOnMap": "Pokaži pot na zemljevidu",
+  "chat_today": "Danes",
+  "chat_yesterday": "Včeraj",
+  "map_centerOnMe": "Centriraj na mojo lokacijo",
+  "map_noNodesLocationHint": "Ni vozlišč z zadnjo lokacijo. Razširite časovni filter ali v Nastavitvah nastavite svojo lokacijo.",
+  "map_clusterNodes": "Združi bližnja vozlišča",
+  "map_groupChip": "Skupine",
+  "map_clusterNodesSubtitle": "Pri manjšem povečanju se bližnja vozlišča prikažejo kot en oštevilčen krog",
+  "map_manageServer": "Upravljaj strežnik",
+  "login_showPassword": "Prikaži geslo",
+  "login_hidePassword": "Skrij geslo",
+  "login_advanced": "Napredno",
+  "common_clearSearch": "Počisti iskanje",
+  "repeater_roleAdmin": "ADMIN",
+  "repeater_roleGuest": "GOST",
+  "repeater_refreshAll": "Osveži vse",
+  "repeater_settingsNotLoaded": "Nastavitve še niso naložene s tega ponovitelja.",
+  "repeater_settingsLoadIncomplete": "Nekaterih nastavitev ni bilo mogoče naložiti. Za poskus uporabite gumbe za osvežitev.",
+  "contacts_scanQrCode": "Skeniraj QR kodo",
+  "contacts_scanQrInstructions": "Usmerite kamero na QR kodo stika MeshCore",
+  "contacts_qrFromGallery": "Skeniraj QR kodo iz galerije",
+  "contacts_noQrCodeFound": "V izbrani sliki ni mogoče najti kode QR.",
+  "contacts_qrGalleryFailed": "Galerije ni bilo mogoče odpreti.",
+  "notification_actionReply": "Odgovori",
+  "notification_actionMarkRead": "Označi kot prebrano",
+  "notification_actionMuteChannel": "Utišaj kanal",
+  "notification_replyHint": "Sporočilo",
+  "notification_you": "Vi",
+  "notification_replyFailedTitle": "Odgovor ni bil poslan",
+  "notification_replyNotConnected": "Ni povezave z radiom. Ponovno se povežite v MeshCore Open in ponovno pošite odgovor.",
+  "notification_replyTooLong": "Vaš odgovor je predolg za pošiljanje iz obvestila. Pošite ga namesto tega iz MeshCore Open.",
+  "notification_replyUnavailable": "Ta pogovor ni več na povezanem radiu.",
+  "notification_replySendFailed": "Vaš odgovor morda ni bil poslan. Preverite v MeshCore Open in poskusite znova.",
+  "notification_replyAppNotRunning": "MeshCore Open ne teče. Odprite ga in ponovno pošite odgovor.",
+  "snrIndicator_nearByRepeatersDescription": "Ponovitelji, ki jih je vaše radio slišalo neposredno, najprej nazadnje slišani.",
+  "radioStats_sectionSignal": "Signal",
+  "radioStats_sectionAirtime": "Čas v etru",
+  "imageSend_lossyNote": "Stisnjeno na približno {bytes} bajtov. Model prejemnika sliko rekonstruira, zato bodo podrobnosti različne.",
+  "@imageSend_lossyNote": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "imageSend_viewOriginal": "Izvirnik",
+  "imageSend_viewReconstruction": "Kaj vidijo prejemniki",
+  "imageSend_reconstructionUnavailable": "Ta naprava ne more prikazati predogleda rekonstrukcije.",
+  "imageSend_modelNotDownloaded": "Obrazni model še ni prenesen. Prenesite ga v Nastavitvah, da boste lahko pošiljali slike.",
+  "receivedImage_save": "Shrani sliko",
+  "receivedImage_shareCaption": "Z umetno inteligenco rekonstruirano iz {bytes} bajtov; drobni detajli so generirani, ne poslani.",
+  "@receivedImage_shareCaption": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "receivedImage_packetInfo": "Podatki o paketu",
+  "receivedImage_parityRecovered": "En paket je bil rekonstruiran iz obnovitvenega paketa.",
+  "receivedImage_decodeTime": "Rekonstruirano v {ms} ms",
+  "@receivedImage_decodeTime": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "receivedImage_saveFailed": "Slike ni bilo mogoče shraniti",
+  "reviewMode_dialogTitle": "Vstop v način pregleda?",
+  "reviewMode_dialogBody": "Način pregleda se poveže s simuliranim radiem z vzorčnimi stiki, kanali in sporočili. Pravi radio ni potreben.",
+  "reviewMode_confirm": "Vstopi",
+  "reviewMode_cancel": "Prekliči",
+  "reviewMode_banner": "Način pregleda — simulirani podatki",
+  "reviewMode_sendTest": "Pošlji testno sporočilo",
+  "reviewMode_testSent": "Kmalu bo prispelo testno sporočilo.",
+  "reviewMode_exit": "Izhod",
+  "reviewMode_connectFailed": "Načina pregleda ni bilo mogoče zagnati: {error}",
+  "settings_regionUseRadioDefault": "Privzeto za radio ({region})",
+  "settings_regionNoRegion": "Brez regije (neomejeno)",
+  "settings_regionRadioDefault": "Privzeta regija radia",
+  "settings_regionRadioDefaultSubtitle": "Shranjeno v radiu. Uporabljajo jo flood sporočila, poslana brez regije, iz te aplikacije in iz vsake druge aplikacije, povezane z radiem.",
+  "settings_regionRadioDefaultUpdated": "Privzeta regija radia je posodobljena",
+  "settings_regionRadioDefaultFailed": "Privzete regije radia ni bilo mogoče posodobiti",
+  "appSettings_channelMinHopsCountRepeaters": "Štej tudi različne ponovitelje v bližini",
+  "appSettings_channelMinHopsCountRepeatersSubtitle": "Sporočilo štej za poslano, ko ga ponovi {count, plural, =1{1 ponovitelj v bližini} two{{count} različna ponovitelja v bližini} few{{count} različni ponovitelji v bližini} other{{count} različnih ponoviteljev v bližini}}, tudi če ne slišite, da potuje naprej.",
+  "appSettings_regionOnHopsLine": "Regija ob številu skokov",
+  "appSettings_regionOnHopsLineSubtitle": "Regijo sporočila kanala prikaži v isti vrstici kot število skokov, ne pod njim.",
+  "channels_regionRadioDefaultSuffix": "(privzeto za radio)",
+  "channels_regionRadioDefaultApplies": "To radio pošilja flood sporočila brez regije v svoji privzeti regiji: {region}.",
+  "chat_futureTimestampWarning": "Čas tega sporočila je v prihodnosti, zato je ura pošiljatelja morda napačna. Prikazano je v vrstnem redu prispetja.",
+  "discoveredContacts_scan": "Poišči vozlišča v bližini",
+  "discoveredContacts_scanTitle": "Vozlišča v bližini",
+  "discoveredContacts_scanExplanation": "Vozlišča v neposrednem dosegu radia prosi, naj se predstavijo. Odgovorijo ponovitelji in senzorji. Strežniki sob in spremljevalci običajno ne.",
+  "discoveredContacts_scanning": "Iskanje …",
+  "discoveredContacts_scanFound": "{count, plural, =1{Najdeno 1 vozlišče} two{Najdeni {count} vozlišči} few{Najdena {count} vozlišča} other{Najdenih {count} vozlišč}}",
+  "discoveredContacts_scanNoResults": "Nobeno vozlišče ni odgovorilo. Ponovitelji omejujejo pogostost odgovorov, zato poskusite znova čez minuto.",
+  "discoveredContacts_scanAgain": "Išči znova",
+  "discoveredContacts_scanFailed": "Zahtevka za iskanje ni bilo mogoče poslati.",
+  "discoveredContacts_scanSignal": "Signal {snr} dB · slišali so nas pri {remoteSnr} dB",
+  "discoveredContacts_scanInContacts": "Že med stiki",
+  "discoveredContacts_scanNameLater": "Ime se prikaže po naslednjem oglasu",
+  "channels_waitForSync": "Kanali se še nalagajo iz radia. Poskusite znova, ko se sinhronizacija konča.",
+  "channels_nameTooLong": "Ime je predolgo (največ {maxBytes} bajtov).",
+  "repeater_valueRequired": "{field}: vnesite vrednost",
+  "losMapDetailTooltip": "Podrobnost zemljevida",
+  "losUnitsTooltip": "Enote",
+  "losDistance": "Razdalja",
+  "losClearance": "Prosti prostor",
+  "losBlockedBy": "Blokirano",
+  "losObstruction": "Ovira",
+  "losDistanceFromA": "{distance} od A",
+  "losWorstBadge": "NAJSLABŠA",
+  "losBlockedAmount": "Blokirano {amount}",
+  "losFromA": "Od A",
+  "losFromB": "Od B",
+  "losElevation": "Višina",
+  "losCenterOnMap": "Središči na zemljevidu",
+  "losStatusClear": "Prosto",
+  "losStatusMarginal": "Mejno",
+  "losStatusBlocked": "Blokirano",
+  "losStatusCheckingShort": "Preverjanje",
+  "losStatusNoResult": "Ni rezultata",
+  "losSelectedPill": "Izbrano",
+  "gif_tapToLoad": "Tapnite za nalaganje GIF-a",
+  "gif_loadFailedRetry": "GIF-a ni mogoče naložiti\nTapnite za ponovni poskus",
+  "qr_cameraPermissionDenied": "Dovoljenje za kamero zavrnjeno.\nOmogočite dostop do kamere v nastavitvah.",
+  "qr_cameraUnsupported": "Kamera na tej napravi ni podprta.",
+  "qr_cameraStartFailed": "Kamere ni bilo mogoče zagnati.\n{details}",
+  "imageMessages_downloadFailedWithError": "Slikovnega modela ni bilo mogoče prenesti: {error}",
+  "map_nodeId": "ID",
+  "map_markerHideHint": "Skrij: skrito, dokler ne zapustite zemljevida.",
+  "map_markerRemoveHint": "Odstrani: ostane skrito, dokler ga ne obnovite v meniju filtra.",
+  "map_markerRemoved": "Oznaka odstranjena",
+  "map_restoreRemovedMarkers": "Obnovi odstranjene oznake",
+  "map_restoreRemovedMarkersSubtitle": "Odstranjenih: {count}",
+  "map_markersRestored": "Obnovljenih oznak: {count}",
+  "map_setLocationConfirmTitle": "Nastavim kot vašo lokacijo?",
+  "map_setLocationConfirmBody": "Vaše vozlišče bo oglaševalo ta položaj:\n{lat}, {lon}",
+  "map_setLocationAction": "Nastavi lokacijo",
+  "map_locationSetSuccess": "Lokacija vozlišča posodobljena",
+  "map_locationSetFailed": "Naprava ni potrdila nove lokacije. Poskusite znova.",
+  "map_poiClusterTitle": "Oznak tukaj: {count}",
+  "map_poiClusterSemantics": "Deljenih oznak: {count}. Tapnite za prikaz seznama.",
+  "map_youWithMarkers": "Vi in oznak: {count}",
+  "map_sharedMarkerSemantics": "Deljena oznaka: {label}",
+  "map_nodeMarkerSemantics": "{name}, {type}, {status}",
+  "mapCache_zoomLevel": "Povečava {zoom}",
+  "mapCache_sizeBytes": "{size} B",
+  "mapCache_sizeKilobytes": "{size} KB",
+  "mapCache_sizeMegabytes": "{size} MB",
+  "mapCache_sizeGigabytes": "{size} GB",
+  "mapCache_downloadCancelled": "Prenos preklican. V predpomnilniku je {count} ploščic.",
+  "mapCache_tooManyTilesTitle": "Območje je preveliko",
+  "mapCache_tooManyTiles": "To območje potrebuje {count} ploščic, kar presega omejitev {max}. Izberite manjše območje ali zmanjšajte največjo povečavo.",
+  "chat_clearChatConfirm": "S te naprave bodo izbrisana vsa sporočila v tem pogovoru. Dejanja ni mogoče razveljaviti.",
+  "channels_clearChatConfirm": "S te naprave bodo izbrisana vsa sporočila v tem kanalu, vključno s prejetimi slikami. Dejanja ni mogoče razveljaviti.",
+  "channels_timeNow": "zdaj",
+  "channels_timeMinutes": "{minutes} min",
+  "channels_timeHours": "{hours} h",
+  "channels_timeDays": "{days} d",
+  "channels_indexChip": "KAN {index}",
+  "reaction_unknownSender": "Neznano",
+  "pathMap_noSelfGpsFix": "Lokalno vozlišče nima GPS-a",
+  "pathTrace_sendFailed": "Poti ni bilo mogoče poslati: {error}",
+  "losErrorNoInternet": "Podatki o nadmorski višini zahtevajo internetno povezavo",
+  "losResultStale": "Zastarelo: višina antene se je spremenila",
+  "losSnrValue": "{snr} dB",
+  "losFrequencyValue": "{frequency} MHz",
+  "losKFactorValue": "k={kFactor}",
+  "losEndpointA": "A",
+  "losEndpointB": "B",
+  "units_km": "km",
+  "units_mi": "mi",
+  "units_m": "m",
+  "units_ft": "ft",
+  "telemetry_loading": "Nalaganje telemetrije…",
+  "telemetry_axisValue": "X: {x}, Y: {y}, Z: {z}",
+  "telemetry_colourValue": "R: {red}, G: {green}, B: {blue}",
+  "telemetry_altitudeValueFeet": "{feet} ft",
+  "telemetry_distanceValueFeet": "{feet} ft",
+  "settings_notConnectedError": "Ni povezave z radiem. Povežite se in poskusite znova.",
+  "settings_requiresConnection": "Za to se povežite z radiem",
+  "settings_txPowerInvalidRange": "Neveljavna moč TX ({min} do {max} dBm)",
+  "settings_contactSettingsSaved": "Nastavitve stika shranjene",
+  "settings_batteryToggleHint": "Tapnite za preklop med odstotki in napetostjo",
+  "settings_publicKeyCopyHint": "Kopiraj javni ključ",
+  "settings_locationClearHelper": "Obe polji pustite prazni, če želite odstraniti svojo lokacijo.",
+  "settings_locationCleared": "Lokacija odstranjena",
+  "settings_regionFetchDiscovering": "Iskanje bližnjih ponovitelj…",
+  "settings_regionFetchProgress": "Spraševanje ponovitelja {current} od {total}…",
+  "settings_regionFetchNoRepeaters": "Zaenkrat ni znanih ponovitelj. Dodajte ponovitelj kot stik ali počakajte, da se oglasi, nato poskusite znova.",
+  "settings_regionFetchNoneResponded": "Noben bližnji ponovitelj ni odgovoril. Približajte se ponovitelju in poskusite znova.",
+  "appSettings_sourceSummary": "{label} - {description}",
+  "appSettings_routingSection": "Usmerjanje",
+  "appSettings_imageMessagesSection": "Sporočila s slikami",
+  "appSettings_showApiKey": "Pokaži API ključ",
+  "appSettings_hideApiKey": "Skrij API ključ",
+  "translation_defaultModelName": "Model",
+  "translation_downloadProgressBytes": "{fileName}: {current} MB",
+  "translation_downloadProgressTotal": "{fileName}: {current} / {total} MB ({percent}%)",
+  "translation_downloadedModelDetails": "{size} MB • {source}",
+  "repeater_radioDisconnected": "Radio odklopljen",
+  "repeater_radioDisconnectedHint": "Znova se povežite z radiem, da pošljete ukaze, osvežite ali shranite spremembe.",
+  "repeater_cliSend": "Pošlji ukaz",
+  "repeater_cliCopyTranscript": "Kopiraj prepis",
+  "repeater_cliShareTranscript": "Deli prepis",
+  "repeater_cliTranscriptCopied": "Prepis kopiran",
+  "repeater_cliClearHistoryConfirm": "Počistim zgodovino ukazov? Dejanja ni mogoče razveljaviti.",
+  "repeater_cliSearchCommands": "Išči ukaze",
+  "repeater_cliNoMatchingCommands": "Ni ustreznih ukazov",
+  "debugLog_clearConfirm": "Počistim vse vnose dnevnika? Dejanja ni mogoče razveljaviti.",
+  "repeater_unsavedChangesTitle": "Neshranjene spremembe",
+  "repeater_unsavedChangesMessage": "Imate spremembe, ki niso shranjene v ponovitelju.",
+  "repeater_discardChanges": "Zavrzi",
+  "repeater_actionSentNoReply": "{action}: ukaz poslan. Ponovitelj na ta ukaz ne odgovori.",
+  "repeater_invalidSettingValue": "{setting}: {value} ni veljavno",
+  "repeater_txPowerOutOfRange": "Moč TX {value} je izven območja ({min} do {max} dBm)",
+  "repeater_prvKeyLengthError": "Zasebni ključ mora imeti točno {length} šestnajstiških znakov",
+  "contacts_advertFailed": "Oglasa ni bilo mogoče poslati",
+  "contacts_manageGroups": "Upravljaj skupine",
+  "community_shortId": "ID: {id}…",
+  "tcpSectionTitle": "TCP / IP",
+  "tcpConnectedToHeader": "Povezano z",
+  "usbChooseSerialPort": "Izberite serijska vrata",
+  "neighbors_durationSeconds": "{seconds} s",
+  "neighbors_durationMinutes": "{minutes} min {seconds} s",
+  "neighbors_durationHours": "{hours} h {minutes} min",
+  "scanner_getNodeTitle": "Potrebujete nov node?",
+  "scanner_getNodeBody": "Velikosti denarnice, poganja MeshCore, dvopasovni GPS, vodoodporen, baterija za 5 dni.",
+  "scanner_getNodeAction": "Oglejte si ga tukaj",
+  "scanner_getNodeDisclosure": "Partnerska povezava: vsak nakup podpira MeshCore Open.",
+  "networkMap_settingsSection": "Omrežni zemljevid",
+  "networkMap_uploadTitle": "Deli, kaj sliši moj radio",
+  "networkMap_uploadExplanation": "Ko je to vklopljeno in je radio povezan, aplikacija na omrežni zemljevid MeshCore Open pošlje kratek povzetek paketov, ki jih sliši vaš radio, tako da vsi vidijo, kateri repeaterji obstajajo in kako so povezani. Pošlje vrsto, pot, število skokov, moč signala in velikost vsakega paketa ter imena in približne lokacije repeaterjev iz njihovih lastnih advertov. Nikoli ne pošlje besedila sporočil, kdo se s kom pogovarja, imen kanalov, vaših stikov ali vašega natančnega položaja: lokacije so zaokrožene na približno 2 km, aplikacija pa vsak dan dobi nov naključni ID.",
+  "networkMap_whatWeCollect": "Kaj zbiramo",
+  "networkMap_promptTitle": "Pomagate graditi omrežni zemljevid?",
+  "networkMap_promptBody": "MeshCore Open lahko deli, kaj sliši vaš radio, z javnim omrežnim zemljevidom na map.meshcoreopen.org, tako da vsi vidijo, kateri repeaterji obstajajo in kako so povezani.\n\nNikoli ne pošlje besedila sporočil, kdo se s kom pogovarja, imen kanalov, vaših stikov ali vašega natančnega položaja. Lokacije so zaokrožene na približno 2 km.",
+  "networkMap_promptSettingsHint": "To lahko kadar koli spremenite v Nastavitve → Nastavitve aplikacije → Omrežni zemljevid.",
+  "networkMap_promptAccept": "Deli",
+  "networkMap_promptDecline": "Ne, hvala",
+  "networkMap_statusOff": "Izklopljeno. Nič se ne pošilja.",
+  "networkMap_statusWaiting": "Vklopljeno. Čakanje na povezavo z radiem.",
+  "networkMap_statusNothingSent": "Vklopljeno. Še nič poslanega.",
+  "networkMap_statusLastSent": "Nazadnje poslano {time}. Paketov danes: {count}.",
+  "@networkMap_statusLastSent": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "networkMap_sourceLocal": "Lokalno",
+  "networkMap_sourceOnline": "Na spletu",
+  "networkMap_sourceBoth": "Oboje",
+  "networkMap_zoomInHint": "Povečajte, da vidite spletni omrežni zemljevid",
+  "networkMap_loadFailed": "Spletnega omrežnega zemljevida ni bilo mogoče naložiti",
+  "networkMap_inYourContacts": "V vaših stikih",
+  "networkMap_status": "Stanje",
+  "networkMap_statusActive": "Aktiven v zadnji uri",
+  "networkMap_statusRecent": "Slišan v zadnjem dnevu",
+  "networkMap_statusStale": "V zadnjem času ni bil slišan",
+  "networkMap_confirmed": "Potrjeno",
+  "networkMap_singleSource": "En vir, še ni potrjeno",
+  "networkMap_reports": "Poročila",
+  "networkMap_locationEstimated": "Približna lokacija, ocenjena glede na to, kdo ga je slišal",
+  "networkMap_locationAdvertised": "Približna lokacija, iz njegovega lastnega adverta",
+  "networkMap_heardByRadio": "Sliši ga vaš radio",
+  "networkMap_inYourArea": "V vaši bližini",
+  "networkMap_farAway": "Daleč stran. Upravljanje ne bo doseglo.",
+  "networkMap_addToContacts": "Dodaj med stike",
+  "networkMap_manage": "Upravljaj",
+  "networkMap_addedToContacts": "Dodano med stike",
+  "networkMap_addFailed": "Dodajanje med stike ni uspelo",
+  "networkMap_unnamed": "Repeater brez imena"
 }

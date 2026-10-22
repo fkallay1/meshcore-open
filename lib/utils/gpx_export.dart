@@ -1,3 +1,5 @@
+import 'dart:ui' show Rect;
+
 import 'package:flutter/foundation.dart';
 import 'package:gpx/gpx.dart';
 import 'package:meshcore_open/connector/meshcore_connector.dart';
@@ -7,6 +9,7 @@ import 'dart:io';
 import '../utils/platform_info.dart';
 
 import 'package:share_plus/share_plus.dart';
+import 'package:file_selector/file_selector.dart';
 
 class ContactExport {
   final String name;
@@ -121,8 +124,9 @@ class GpxExport {
     String description,
     String filename,
     String shareText,
-    String subject,
-  ) async {
+    String subject, {
+    Rect? sharePositionOrigin,
+  }) async {
     if (PlatformInfo.isWeb) {
       debugPrint("GPX export is not supported on Web.");
       return gpxExportNotAvailable;
@@ -161,7 +165,6 @@ class GpxExport {
       final xml = GpxWriter().asString(gpx, pretty: true);
 
       // 2. Save to file
-      final dir = await getApplicationDocumentsDirectory();
       final timestamp = DateTime.now()
           .toUtc()
           .toIso8601String()
@@ -169,14 +172,40 @@ class GpxExport {
           .replaceAll('.', '-')
           .split('T')
           .join('_');
+      final suggestedName = '$filename$timestamp.gpx';
 
-      final path = '${dir.path}/$filename$timestamp.gpx';
+      // share_plus cannot share files on desktop: Linux throws outright
+      // ("Sharing files not supported on Linux") and Windows only supports it
+      // from build 10.0.17763 up. Desktops have a real file system and a save
+      // dialog, so write the file where the user asks instead of sharing it.
+      if (PlatformInfo.isDesktop) {
+        final location = await getSaveLocation(
+          suggestedName: suggestedName,
+          acceptedTypeGroups: const [
+            XTypeGroup(label: 'GPX', extensions: ['gpx']),
+          ],
+        );
+        if (location == null) {
+          debugPrint('Save dialog was dismissed / cancelled by user.');
+          return gpxExportCancelled;
+        }
+        await File(location.path).writeAsString(xml);
+        return gpxExportSuccess;
+      }
+
+      final dir = await getApplicationDocumentsDirectory();
+      final path = '${dir.path}/$suggestedName';
 
       final file = File(path);
       await file.writeAsString(xml);
 
       final result = await SharePlus.instance.share(
-        ShareParams(text: shareText, subject: subject, files: [XFile(path)]),
+        ShareParams(
+          text: shareText,
+          subject: subject,
+          files: [XFile(path)],
+          sharePositionOrigin: sharePositionOrigin,
+        ),
       );
 
       await file.delete();

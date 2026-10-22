@@ -111,6 +111,46 @@ class AppLocalizationsFr extends AppLocalizations {
   String get messageStatus_repeated => 'Reçu plusieurs fois';
 
   @override
+  String get messageStatus_failedChannel =>
+      'Votre radio n\'a pas pu envoyer ce message.';
+
+  @override
+  String messageStatus_resending(int resends, int maxResends) {
+    return 'Pas encore entendu par assez de répéteurs. Renvoyé $resends fois sur $maxResends.';
+  }
+
+  @override
+  String messageStatus_hopsNotReached(int hops, int required) {
+    return 'Envoyé, mais entendu en retour via seulement $hops répéteurs sur $required. Le message a pu aller plus loin que ce que votre radio peut entendre.';
+  }
+
+  @override
+  String get messageStatus_sentChannel =>
+      'Envoyé. Les canaux ne confirment pas la livraison : cela signifie seulement que votre radio l\'a envoyé.';
+
+  @override
+  String get messageStatus_sentDirect =>
+      'Envoyé. En attente de la confirmation du contact.';
+
+  @override
+  String messageStatus_heardRepeatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fois',
+      one: 'une fois',
+    );
+    return 'Entendu $_temp0. Les répéteurs proches l\'ont relayé.';
+  }
+
+  @override
+  String get urlImage_enable => 'Activer les images URL';
+
+  @override
+  String get urlImage_possible =>
+      'Image URL possible ; activez-la dans les Paramètres.';
+
+  @override
   String get common_reboot => 'Redémarrer';
 
   @override
@@ -322,6 +362,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get scanner_enableBluetooth => 'Activer le Bluetooth';
 
   @override
+  String get scanner_getNodeTitle => 'Besoin d\'un nouveau nœud ?';
+
+  @override
+  String get scanner_getNodeBody =>
+      'Format portefeuille, fonctionne avec MeshCore, GPS bi-bande, étanche, 5 jours d\'autonomie.';
+
+  @override
+  String get scanner_getNodeAction => 'Obtenez-le ici';
+
+  @override
+  String get scanner_getNodeDisclosure =>
+      'Lien d\'affiliation : chaque achat soutient MeshCore Open.';
+
+  @override
   String get scanner_bluetoothWebUnsupported =>
       'La fonctionnalité Bluetooth n\'est pas disponible dans le navigateur. Veuillez vous connecter via USB à la place.';
 
@@ -370,42 +424,89 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_radioSettingsUpdated => 'Paramètres radio mis à jour';
 
   @override
-  String get settings_regionSettings => 'Regions';
+  String get settings_radioSettingsNotApplied =>
+      'La radio n\'a pas appliqué ces paramètres';
 
   @override
-  String get settings_regionSettingsSubtitle => 'Manage stored regions';
+  String get settings_regionSettings => 'Régions';
 
   @override
-  String get settings_regionManagement_screenTitle => 'Region Management';
+  String get settings_regionSettingsSubtitle => 'Gérer les régions stockées';
 
   @override
-  String get settings_regionNameHint => 'Enter region name';
+  String get settings_regionEmptyExplanation =>
+      'Les régions limitent les messages flood aux répéteurs d\'une zone. Récupérez-les à partir des répéteurs proches ou ajoutez-en une par son nom.';
 
   @override
-  String get settings_regionAddRegion => 'Add region';
+  String get settings_regionFetchFromRepeaters =>
+      'Récupérer depuis les répéteurs';
 
   @override
-  String get settings_regionFetchRegions => 'Fetch regions from repeaters';
+  String get settings_regionDefault => 'Région par défaut';
 
   @override
-  String get settings_regionFetchRegionsFail => 'No regions were found';
+  String get settings_regionDefaultSubtitle =>
+      'Utilisée par les canaux qui n\'ont pas leur propre région';
+
+  @override
+  String get settings_regionDefaultNone => 'Aucune';
+
+  @override
+  String settings_regionUseRadioDefault(String region) {
+    return 'Par défaut de la radio ($region)';
+  }
+
+  @override
+  String get settings_regionNoRegion => 'Aucune région (sans portée)';
+
+  @override
+  String get settings_regionRadioDefault => 'Région par défaut de la radio';
+
+  @override
+  String get settings_regionRadioDefaultSubtitle =>
+      'Enregistrée sur la radio. Les floods envoyés sans région l\'utilisent, depuis cette application et toute autre application connectée à la radio.';
+
+  @override
+  String get settings_regionRadioDefaultUpdated =>
+      'Région par défaut de la radio mise à jour';
+
+  @override
+  String get settings_regionRadioDefaultFailed =>
+      'Impossible de mettre à jour la région par défaut de la radio';
+
+  @override
+  String get settings_regionManagement_screenTitle => 'Gestion de région';
+
+  @override
+  String get settings_regionNameHint => 'Entrer le nom de la région';
+
+  @override
+  String get settings_regionAddRegion => 'Ajouter une région';
+
+  @override
+  String get settings_regionFetchRegions =>
+      'Récupérer les régions à partir des répéteurs';
+
+  @override
+  String get settings_regionFetchRegionsFail =>
+      'Aucune région n\'a été trouvée';
 
   @override
   String get settings_regionFetchRegionsAlreadyExists =>
-      'This region has already been added';
+      'Cette région a déjà été ajoutée';
 
   @override
-  String get settings_regionName => 'Region Name';
+  String get settings_regionName => 'Nom de la région';
 
   @override
-  String get settings_regionDeleted => 'Region deleted';
+  String get settings_regionDeleted => 'Région supprimée';
 
   @override
-  String get settings_deleteRegion => 'Delete Region';
+  String get settings_deleteRegion => 'Supprimer la région';
 
   @override
   String settings_deleteRegionConfirm(String region) {
-    return 'Remove \"$region\" from region list?';
+    return 'Supprimez $region de la liste des régions ?';
   }
 
   @override
@@ -501,6 +602,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Mode d\'environnement de la télémétrie';
 
   @override
+  String get settings_telemetryPerContactHint =>
+      'Pour autoriser un contact, ouvrez son chat et choisissez Paramètres de contact dans le menu.';
+
+  @override
   String get settings_advertLocation => 'Localisation de l\'annonce';
 
   @override
@@ -517,6 +622,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_multiAck => 'Plusieurs accusés de réception';
+
+  @override
+  String get settings_multiAckSubtitle =>
+      'Envoyer des ACK supplémentaires pour une meilleure livraison ; utilise plus de temps d\'antenne';
 
   @override
   String get settings_telemetryModeUpdated =>
@@ -621,13 +730,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_infoPublicKey => 'Clé publique';
 
   @override
+  String get settings_publicKeyCopied => 'Clé publique copiée';
+
+  @override
   String get settings_infoContactsCount => 'Nombre de contacts';
 
   @override
   String get settings_infoChannelCount => 'Nombre de canaux';
 
   @override
+  String get settings_infoHardware => 'Matériel';
+
+  @override
+  String get settings_infoFirmware => 'Firmware';
+
+  @override
   String get settings_presets => 'Préréglages';
+
+  @override
+  String get settings_presetCustom => 'Personnalisé';
+
+  @override
+  String get settings_radioMatchWarning =>
+      'Tous les nœuds avec lesquels vous communiquez doivent utiliser la même fréquence, la même bande passante et le même SF. Le taux de codage (CR) peut être différent.';
 
   @override
   String get settings_frequency => 'Fréquence (MHz)';
@@ -651,13 +776,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_txPower => 'Puissance TX (dBm)';
 
   @override
-  String get settings_txPowerHelper => '0 - 22';
+  String settings_txPowerRangeHelper(int min, int max) {
+    return '$min à $max dBm';
+  }
 
   @override
   String get settings_txPowerInvalid => 'Puissance TX invalide (0-22 dBm)';
 
   @override
   String get settings_clientRepeat => 'Répétition hors réseau';
+
+  @override
+  String settings_clientRepeatFrequencyNote(String freq) {
+    return 'Fréquence réglée sur $freq MHz pour la répétition hors réseau';
+  }
 
   @override
   String get settings_clientRepeatSubtitle =>
@@ -742,12 +874,79 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appSettings_languageUk => 'Ukrainien';
 
   @override
+  String get repeater_pathHashModeOption0 => '0 - 1 octet';
+
+  @override
+  String get repeater_pathHashModeOption1 => '1 à 2 octets';
+
+  @override
+  String get repeater_pathHashModeOption2 => '2 à 3 octets';
+
+  @override
+  String get repeater_pathHashModeOption3 => '3 à 4 octets';
+
+  @override
+  String get settings_pathHashModeHelper =>
+      'Taille de chaque ID de nœud enregistré dans le chemin des paquets flood envoyés par cette radio : 1 octet (256 ID, jusqu\'à 64 sauts), 2 octets (65 000 ID, jusqu\'à 32 sauts), 3 octets (16 millions d\'ID, jusqu\'à 21 sauts). Des ID plus grands réduisent les collisions, mais les répéteurs exécutant un firmware antérieur à la v1.14 ignorent les paquets avec des ID de 2 ou 3 octets.';
+
+  @override
+  String settings_requiresFirmware(String version) {
+    return 'Nécessite le firmware $version ou une version ultérieure';
+  }
+
+  @override
+  String get appSettings_channelMinHops =>
+      'Renvoyer les messages de canal jusqu\'à ce qu\'ils passent par assez de répéteurs';
+
+  @override
+  String get appSettings_channelMinHopsSubtitle =>
+      'Si votre message n\'est pas entendu au retour via assez de répéteurs, renvoyez-le. Utilise plus de temps d\'antenne.';
+
+  @override
+  String appSettings_channelMinHopsCount(int count) {
+    return 'Sauts requis : $count';
+  }
+
+  @override
+  String appSettings_channelMinHopsRetries(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fois',
+      one: '1 fois',
+    );
+    return 'Renvoyer jusqu\'à $_temp0';
+  }
+
+  @override
+  String get appSettings_channelMinHopsCountRepeaters =>
+      'Compter aussi les différents répéteurs proches';
+
+  @override
+  String appSettings_channelMinHopsCountRepeatersSubtitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count répéteurs proches différents',
+      one: '1 répéteur proche',
+    );
+    return 'Considérer le message comme envoyé quand $_temp0 le répètent, même si vous ne l\'entendez pas aller plus loin.';
+  }
+
+  @override
   String get appSettings_enableMessageTracing =>
       'Activer le traçage des messages';
 
   @override
   String get appSettings_enableMessageTracingSubtitle =>
       'Afficher les métadonnées détaillées de routage et de synchronisation des messages';
+
+  @override
+  String get appSettings_regionOnHopsLine => 'Région à côté du nombre de sauts';
+
+  @override
+  String get appSettings_regionOnHopsLineSubtitle =>
+      'Afficher la région d\'un message de canal sur la même ligne que son nombre de sauts plutôt qu\'en dessous.';
 
   @override
   String get appSettings_notifications => 'Notifications';
@@ -775,6 +974,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get appSettings_messageNotificationsSubtitle =>
       'Afficher une notification lors de la réception de nouveaux messages';
+
+  @override
+  String get appSettings_batteryOptimization => 'Activité en arrière-plan';
+
+  @override
+  String get appSettings_batteryOptimizationSubtitle =>
+      'Définissez MeshCore Open sur « Ne pas optimiser » dans les paramètres de batterie pour que les messages continuent d\'arriver en arrière-plan';
 
   @override
   String get appSettings_channelMessageNotifications =>
@@ -887,6 +1093,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get appSettings_batteryLipo => 'LiPo (3,0-4,2V)';
+
+  @override
+  String get appSettings_batteryLipoHv => 'Tension élevée LiPo (3,0-4,35 V)';
 
   @override
   String get appSettings_mapDisplay => 'Affichage de la carte';
@@ -1054,12 +1263,39 @@ class AppLocalizationsFr extends AppLocalizations {
   String get contacts_noContactsFound => 'Aucun contact ou groupe trouvé.';
 
   @override
+  String get contacts_storageFull =>
+      'Le stockage des contacts sur le nœud est plein. Impossible d\'ajouter de nouveaux nœuds tant que des contacts ne sont pas supprimés.';
+
+  @override
   String get contacts_deleteContact => 'Supprimer le contact';
 
   @override
   String contacts_removeConfirm(String contactName) {
     return 'Supprimer $contactName des contacts ?';
   }
+
+  @override
+  String get contacts_removeFromContacts => 'Retirer des contacts';
+
+  @override
+  String contacts_removeFromContactsConfirm(String contactName) {
+    return '$contactName sera déplacé vers Contacts découverts. L\'historique du chat sera supprimé.';
+  }
+
+  @override
+  String get contacts_keepChatHistory => 'Conserver l\'historique du chat';
+
+  @override
+  String get contacts_remove => 'Supprimer';
+
+  @override
+  String contacts_discoveredNearby(int count) {
+    return 'Découverts à proximité ($count)';
+  }
+
+  @override
+  String get contacts_noContactsDiscoveredHint =>
+      'Les nœuds que votre radio entend sans les avoir encore ajoutés sont listés dans Contacts découverts';
 
   @override
   String get contacts_manageRepeater => 'Gérer le répéteur';
@@ -1212,6 +1448,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get channels_private => 'Privé';
 
   @override
+  String get channels_hashtag => 'Hashtag';
+
+  @override
+  String get channels_addSectionJoin => 'Rejoindre un canal existant';
+
+  @override
+  String get channels_addSectionCreate => 'Créer un nouveau';
+
+  @override
+  String get channels_dragToReorder => 'Faites glisser pour réorganiser';
+
+  @override
   String get channels_editChannel => 'Modifier le canal';
 
   @override
@@ -1344,6 +1592,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get channels_publicChannelAdded => 'Canal public ajouté';
 
   @override
+  String get channels_noFreeSlots =>
+      'Tous les emplacements de canaux sont utilisés';
+
+  @override
   String get channels_sortBy => 'Trier par';
 
   @override
@@ -1400,17 +1652,38 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String channels_regionSetTo(String region) {
-    return 'Region: $region';
+    return 'Région : $region';
   }
 
   @override
-  String get channels_regionNotSet => 'Region: none';
+  String get channels_regionNotSet => 'Région : aucune';
 
   @override
-  String get channels_regionSelect_Title => 'Select a region';
+  String get channels_regionSelect_Title => 'Choisissez une région';
 
   @override
-  String get channels_clearRegion => 'Clear region';
+  String get channels_clearRegion => 'Zone dégagée';
+
+  @override
+  String get channels_regionDefaultSuffix => '(par défaut)';
+
+  @override
+  String get channels_regionRadioDefaultSuffix => '(défaut de la radio)';
+
+  @override
+  String channels_regionRadioDefaultApplies(String region) {
+    return 'Cette radio envoie les floods sans région dans sa région par défaut : $region.';
+  }
+
+  @override
+  String get channels_regionSelectExplanation =>
+      'Les messages flood de ce canal ne seront relayés que par les répéteurs de la région sélectionnée.';
+
+  @override
+  String get channels_regionEmpty => 'Aucune région pour le moment.';
+
+  @override
+  String get channels_manageRegions => 'Gérer les régions';
 
   @override
   String get chat_noMessages => 'Aucun message pour le moment';
@@ -1446,6 +1719,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chat_typeMessage => 'Saisir un message...';
 
   @override
+  String get chat_futureTimestampWarning =>
+      'L\'heure de ce message est dans le futur, l\'horloge de l\'expéditeur est peut-être incorrecte. Il est affiché dans l\'ordre d\'arrivée.';
+
+  @override
   String chat_messageTooLong(int maxBytes) {
     return 'Message trop long (max $maxBytes octets).';
   }
@@ -1465,7 +1742,31 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get chat_selectSendAction => 'Sélectionner une action d’envoi';
+
+  @override
   String get chat_sendGif => 'Envoyer un GIF';
+
+  @override
+  String get chat_shareMyLocation => 'Partager ma position';
+
+  @override
+  String get chat_noRadioLocation => 'Votre radio n\'a pas de position définie';
+
+  @override
+  String get chat_removeGif => 'Supprimer le GIF';
+
+  @override
+  String get chat_cancelReply => 'Annuler la réponse';
+
+  @override
+  String get chat_sendImageLora => 'Envoyer une image via MeshCore';
+
+  @override
+  String get chat_imagePickFailed => 'Je n\'ai pas pu ouvrir cette image';
+
+  @override
+  String get chat_receivedGif => 'Reçu un GIF';
 
   @override
   String get chat_reply => 'Répondre';
@@ -1475,6 +1776,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chat_me => 'Moi';
+
+  @override
+  String get reaction_report => 'Réactions emoji';
 
   @override
   String get emojiCategorySmileys => 'Émojis';
@@ -1765,6 +2069,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get chat_path => 'Chemin';
 
   @override
+  String get chat_viewPathOnMap => 'Voir le chemin sur la carte';
+
+  @override
   String get chat_publicKey => 'Clé publique';
 
   @override
@@ -1801,6 +2108,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get chat_newMessages => 'Nouveaux messages';
+
+  @override
+  String get chat_today => 'Aujourd\'hui';
+
+  @override
+  String get chat_yesterday => 'Hier';
 
   @override
   String get chat_openLink => 'Ouvrir le lien ?';
@@ -1848,6 +2161,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get map_centerOnNode => 'Centrer sur le nœud';
 
   @override
+  String get map_centerOnMe => 'Centrer sur ma localisation';
+
+  @override
   String get map_details => 'Détails';
 
   @override
@@ -1865,6 +2181,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get map_noNodesWithLocation =>
       'Aucun nœud avec des données de localisation';
+
+  @override
+  String get map_noNodesLocationHint =>
+      'Aucun nœud avec une localisation récente. Élargissez le filtre temporel ou définissez votre localisation dans Paramètres.';
 
   @override
   String get map_nodesNeedGps =>
@@ -1948,6 +2268,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get map_label => 'Étiquette';
 
   @override
+  String get map_labelUpdateHint =>
+      'Utiliser la même étiquette qu’avant mettra à jour le marqueur pour les destinataires utilisant MeshCore Open.';
+
+  @override
   String get map_pointOfInterest => 'Point d\'intérêt';
 
   @override
@@ -2009,6 +2333,16 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher les emplacements estimés des nœuds';
 
   @override
+  String get map_clusterNodes => 'Grouper les nœuds à proximité';
+
+  @override
+  String get map_groupChip => 'Grouper';
+
+  @override
+  String get map_clusterNodesSubtitle =>
+      'En zoom arrière, afficher les nœuds à proximité dans un seul cercle numéroté';
+
+  @override
   String get map_showDiscoveryContacts => 'Afficher les contacts de découverte';
 
   @override
@@ -2028,6 +2362,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get map_manageRepeater => 'Gérer le répéteur';
+
+  @override
+  String get map_manageServer => 'Gérer le room server';
 
   @override
   String get map_tapToAdd =>
@@ -2235,6 +2572,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_enterPassword => 'Entrez votre mot de passe';
 
   @override
+  String get login_showPassword => 'Afficher le mot de passe';
+
+  @override
+  String get login_hidePassword => 'Masquer le mot de passe';
+
+  @override
   String get login_savePassword => 'Sauvegarder le mot de passe';
 
   @override
@@ -2248,6 +2591,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get login_roomDescription =>
       'Entrez le mot de passe de la pièce pour accéder aux paramètres et à l\'état.';
+
+  @override
+  String get login_advanced => 'Avancé';
 
   @override
   String get login_routing => 'Redirection';
@@ -2288,6 +2634,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_clear => 'Effacer';
 
   @override
+  String get common_clearSearch => 'Effacer la recherche';
+
+  @override
   String get path_currentPathLabel => 'Chemin actuel';
 
   @override
@@ -2310,6 +2659,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get repeater_guestTools => 'Outils pour les invités';
+
+  @override
+  String get repeater_roleAdmin => 'ADMIN';
+
+  @override
+  String get repeater_roleGuest => 'INVITÉ';
 
   @override
   String get repeater_status => 'État';
@@ -2712,6 +3067,42 @@ class AppLocalizationsFr extends AppLocalizations {
       'Octets utilisés pour encoder l\'ID de ce routeur dans les balises de détection de flux/boucles. 0 = 1 octet (256 ID, jusqu\'à 64 sauts), 1 = 2 octets (65 000 ID, jusqu\'à 32 sauts), 2 = 3 octets (16 millions d\'ID, jusqu\'à 21 sauts). Les versions 1.13 et antérieures utilisent des chemins multi-octets ; à partir de la version 1.14, cela n\'est plus nécessaire.';
 
   @override
+  String get repeater_keySettings => 'Modifier les clés d\'identité';
+
+  @override
+  String get repeater_keySettingsSubtitle =>
+      'Modifier la paire de clés publique/privée';
+
+  @override
+  String get repeater_prvKey => 'Clé privée';
+
+  @override
+  String get repeater_prvKeyHelper =>
+      'Une nouvelle clé privée pour le répéteur, une chaîne hexadécimale de 128 caractères.';
+
+  @override
+  String get repeater_generatePrvKey => 'Générez une paire de clés aléatoire';
+
+  @override
+  String get repeater_stopGeneratingPrvKey =>
+      'Arrêter la recherche de la paire de clés';
+
+  @override
+  String get repeater_pubKey => 'Clé publique';
+
+  @override
+  String get repeater_pubKeyHelper =>
+      'Voici la clé publique associée à la clé privée générée. Vous ne pouvez pas la définir directement.';
+
+  @override
+  String get repeater_pubKeyPrefix => 'Préfixe souhaité';
+
+  @override
+  String repeater_pubKeyPrefixHelper(int tries) {
+    return 'Trouvez une clé publique qui commence par ces chiffres hexadécimaux. Nombre de tentatives nécessaires : $tries.';
+  }
+
+  @override
   String get repeater_txDelay => 'Délai de transmission en flood';
 
   @override
@@ -2808,6 +3199,17 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get repeater_refreshPrivacyMode =>
       'Rafraîchir le Mode Confidentialité';
+
+  @override
+  String get repeater_refreshAll => 'Tout rafraîchir';
+
+  @override
+  String get repeater_settingsNotLoaded =>
+      'Les paramètres n\'ont pas encore été chargés depuis ce répéteur.';
+
+  @override
+  String get repeater_settingsLoadIncomplete =>
+      'Certains paramètres n\'ont pas pu être chargés. Utilisez les boutons de rafraîchissement pour réessayer.';
 
   @override
   String repeater_refreshed(String label) {
@@ -2926,7 +3328,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get repeater_cliHelpSetFloodMax =>
-      'Définit le nombre maximal de sauts pour les paquets de balayage entrants (si >= max, le paquet n\'est pas acheminé).';
+      'Définit le nombre maximal de sauts pour les paquets flood entrants (si >= max, le paquet n\'est pas acheminé).';
 
   @override
   String get repeater_cliHelpSetIntThresh =>
@@ -3056,7 +3458,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get repeater_cliHelpRegionAllowf =>
-      'Définit les autorisations de \"Flot\" pour la région donnée. (\'\' pour la portée globale/héritée)';
+      'Définit les autorisations de \'F\'lood pour la région donnée. (\'\' pour la portée globale/héritée)';
 
   @override
   String get repeater_cliHelpRegionDenyf =>
@@ -3102,6 +3504,75 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get repeater_commandsListNote =>
       'NOTE : pour les diverses commandes « set »..., il existe également une commande « get »...';
+
+  @override
+  String get repeater_frequencyRangeHelper => '150-2500 MHz';
+
+  @override
+  String get repeater_frequencyInvalid => 'Fréquence invalide (150-2500 MHz)';
+
+  @override
+  String get repeater_txPowerRangeHelper => '-9 à 30 dBm';
+
+  @override
+  String get repeater_recvErrors => 'Erreurs de réception';
+
+  @override
+  String get room_postsStored => 'Publications';
+
+  @override
+  String get room_postsPushed => 'Publications envoyées';
+
+  @override
+  String get repeater_cliRegionLoadActive =>
+      'Mode de chargement des régions : envoyez un nom de région par ligne, indenté avec des espaces sous sa région parente (ajoutez F après le nom pour autoriser le flood). Les lignes ne reçoivent pas de réponse. Envoyez une ligne vide pour terminer, puis \"region save\" pour conserver le résultat.';
+
+  @override
+  String get repeater_cliRegionLoadHint =>
+      'Ligne de région, ou vide pour terminer';
+
+  @override
+  String get repeater_cliRegionLoadEnd => '(fin du chargement des régions)';
+
+  @override
+  String get repeater_cliHelpRegionDef =>
+      'Définit une chaîne de régions en une seule commande : chaque nom est ajouté sous le précédent ; \"name,parent\" ajoute le nom, puis continue sous le parent indiqué. Répond avec la liste des régions.';
+
+  @override
+  String get repeater_cliHelpSetFloodMaxUnscoped =>
+      'Définit le nombre maximal de sauts pour la retransmission des paquets flood sans portée régionale (0-64).';
+
+  @override
+  String get repeater_cliHelpSetFloodMaxAdvert =>
+      'Définit le nombre maximal de sauts pour la retransmission des annonces flood (0-64).';
+
+  @override
+  String get repeater_cliHelpGetFloodMaxUnscoped =>
+      'Affiche le nombre maximal de sauts pour les paquets flood sans portée régionale.';
+
+  @override
+  String get repeater_cliHelpGetFloodMaxAdvert =>
+      'Affiche le nombre maximal de sauts pour les annonces flood.';
+
+  @override
+  String get repeater_cliHelpSetRadioFemRxGain =>
+      'Active ou désactive le gain RX (LNA) du module frontal LoRa. Les cartes qui n\'en ont pas répondent \"Error: unsupported\".';
+
+  @override
+  String get repeater_cliHelpSetRadioFemTxGain =>
+      'Active ou désactive le gain TX (PA) du module frontal LoRa. Les cartes qui n\'en ont pas répondent \"Error: unsupported\".';
+
+  @override
+  String get repeater_cliHelpGetRadioFemRxGain =>
+      'Indique si le gain RX du module frontal LoRa est activé.';
+
+  @override
+  String get repeater_cliHelpGetRadioFemTxGain =>
+      'Indique si le gain TX du module frontal LoRa est activé.';
+
+  @override
+  String get repeater_bridgeNote =>
+      'Disponible uniquement sur un firmware compilé avec un pont (RS232 ou ESP-NOW).';
 
   @override
   String get repeater_general => 'Général';
@@ -3152,7 +3623,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get repeater_cliHelpAdvertZeroHop =>
-      'Envoie une publicité sans intermédiaire (uniquement aux voisins immédiats).';
+      'Envoie une annonce zéro saut (uniquement aux voisins immédiats).';
 
   @override
   String get repeater_cliHelpStartOta =>
@@ -3274,11 +3745,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get repeater_cliHelpGetAdvertInterval =>
-      'Indique l\'intervalle publicitaire local en minutes.';
+      'Indique l\'intervalle d\'annonce locale en minutes.';
 
   @override
   String get repeater_cliHelpGetFloodAdvertInterval =>
-      'Indique l\'intervalle publicitaire pour la diffusion de l\'annonce en heures.';
+      'Indique l\'intervalle des annonces flood, en heures.';
 
   @override
   String get repeater_cliHelpGetGuestPassword =>
@@ -3921,7 +4392,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get listFilter_all => 'Tout';
 
   @override
-  String get listFilter_favorites => 'Préférences';
+  String get listFilter_favorites => 'Favoris';
 
   @override
   String get listFilter_addToFavorites => 'Ajouter à mes favoris';
@@ -4173,6 +4644,54 @@ class AppLocalizationsFr extends AppLocalizations {
       'Échec de l\'importation du contact.';
 
   @override
+  String get discoveredContacts_export => 'Exporter les contacts découverts';
+
+  @override
+  String get discoveredContacts_import => 'Importer les contacts découverts';
+
+  @override
+  String discoveredContacts_exported(String path) {
+    return 'Contacts découverts exportés vers $path.';
+  }
+
+  @override
+  String discoveredContacts_exportFailed(String error) {
+    return 'Impossible d\'exporter les contacts découverts: $error';
+  }
+
+  @override
+  String discoveredContacts_imported(int count) {
+    return '$count contacts découverts importés.';
+  }
+
+  @override
+  String get discoveredContacts_importNoContacts =>
+      'Aucun contact trouvé dans le fichier d\'importation.';
+
+  @override
+  String discoveredContacts_importSummary(
+    int imported,
+    int skipped,
+    int invalid,
+  ) {
+    return '$imported contacts découverts importés. $skipped déjà connus et $invalid entrées illisibles ignorés.';
+  }
+
+  @override
+  String get discoveredContacts_importInvalidFile =>
+      'Le fichier n\'est pas un export de contacts découverts.';
+
+  @override
+  String discoveredContacts_importTooLarge(int maxMb) {
+    return 'Le fichier d\'importation est trop volumineux (maximum $maxMb Mo).';
+  }
+
+  @override
+  String discoveredContacts_importFailed(String error) {
+    return 'Impossible d\'importer les contacts découverts: $error';
+  }
+
+  @override
   String get contacts_zeroHopAdvert => 'Annonce Zero saut';
 
   @override
@@ -4185,6 +4704,23 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get contacts_addContactFromClipboard =>
       'Ajouter un contact depuis le presse-papiers';
+
+  @override
+  String get contacts_scanQrCode => 'Scanner un QR code';
+
+  @override
+  String get contacts_scanQrInstructions =>
+      'Pointez l\'appareil photo sur le QR code d\'un contact MeshCore';
+
+  @override
+  String get contacts_qrFromGallery => 'Scanner un QR depuis la galerie';
+
+  @override
+  String get contacts_noQrCodeFound =>
+      'Aucun QR code trouvé dans l\'image sélectionnée.';
+
+  @override
+  String get contacts_qrGalleryFailed => 'Impossible d\'ouvrir la galerie.';
 
   @override
   String get contacts_ShareContact =>
@@ -4254,6 +4790,44 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notification_receivedNewMessage => 'Nouveau message reçu';
 
   @override
+  String get notification_actionReply => 'Répondre';
+
+  @override
+  String get notification_actionMarkRead => 'Marquer comme lu';
+
+  @override
+  String get notification_actionMuteChannel => 'Désactiver le son du canal';
+
+  @override
+  String get notification_replyHint => 'Message';
+
+  @override
+  String get notification_you => 'Vous';
+
+  @override
+  String get notification_replyFailedTitle => 'Réponse non envoyée';
+
+  @override
+  String get notification_replyNotConnected =>
+      'Non connecté à une radio. Reconnectez-vous dans MeshCore Open et renvoyez votre réponse.';
+
+  @override
+  String get notification_replyTooLong =>
+      'Votre réponse est trop longue pour être envoyée depuis une notification. Envoyez-la depuis MeshCore Open.';
+
+  @override
+  String get notification_replyUnavailable =>
+      'Cette conversation n\'est plus disponible sur la radio connectée.';
+
+  @override
+  String get notification_replySendFailed =>
+      'Votre réponse n\'a peut-être pas été envoyée. Vérifiez dans MeshCore Open et réessayez.';
+
+  @override
+  String get notification_replyAppNotRunning =>
+      'MeshCore Open n\'est pas actif. Ouvrez l\'application et renvoyez votre réponse.';
+
+  @override
   String get settings_gpxExportRepeaters =>
       'Exporter les répéteurs / room servers au format GPX';
 
@@ -4317,6 +4891,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get snrIndicator_lastSeen => 'Vu pour la dernière fois';
 
   @override
+  String get snrIndicator_nearByRepeatersDescription =>
+      'Les répéteurs entendus directement par votre radio, du plus récent au plus ancien.';
+
+  @override
   String get contactsSettings_title => 'Paramètres des contacts';
 
   @override
@@ -4366,6 +4944,15 @@ class AppLocalizationsFr extends AppLocalizations {
       'Lorsque la liste de contacts est pleine, le contact le plus ancien non favori sera remplacé.';
 
   @override
+  String get contactsSettings_evictDiscoveredContactsTitle =>
+      'Évincer les contacts découverts';
+
+  @override
+  String contactsSettings_evictDiscoveredContactsSubtitle(int limit) {
+    return 'Lorsque cette option est activée, l\'application supprime les contacts découverts les plus anciens dès que la liste de découverte atteint sa limite de $limit entrées.';
+  }
+
+  @override
   String get discoveredContacts_Title => 'Contacts découverts';
 
   @override
@@ -4397,6 +4984,54 @@ class AppLocalizationsFr extends AppLocalizations {
       'Êtes-vous sûr de vouloir supprimer tous les contacts découverts ?';
 
   @override
+  String get discoveredContacts_scan => 'Rechercher les nœuds proches';
+
+  @override
+  String get discoveredContacts_scanTitle => 'Nœuds proches';
+
+  @override
+  String get discoveredContacts_scanExplanation =>
+      'Demande aux nœuds à portée radio directe de s\'identifier. Les répéteurs et les capteurs répondent. Les serveurs de salon et les compagnons généralement pas.';
+
+  @override
+  String get discoveredContacts_scanning => 'Recherche…';
+
+  @override
+  String discoveredContacts_scanFound(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nœuds trouvés',
+      one: '1 nœud trouvé',
+      zero: 'Aucun nœud trouvé',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get discoveredContacts_scanNoResults =>
+      'Aucun nœud n\'a répondu. Les répéteurs limitent la fréquence de leurs réponses, réessayez dans une minute.';
+
+  @override
+  String get discoveredContacts_scanAgain => 'Rechercher à nouveau';
+
+  @override
+  String get discoveredContacts_scanFailed =>
+      'Impossible d\'envoyer la demande de recherche.';
+
+  @override
+  String discoveredContacts_scanSignal(String snr, String remoteSnr) {
+    return 'Signal $snr dB · ils nous ont reçus à $remoteSnr dB';
+  }
+
+  @override
+  String get discoveredContacts_scanInContacts => 'Déjà dans les contacts';
+
+  @override
+  String get discoveredContacts_scanNameLater =>
+      'Le nom apparaîtra après sa prochaine annonce';
+
+  @override
   String get chat_sendCooldown =>
       'Veuillez patienter un instant avant de réessayer.';
 
@@ -4423,6 +5058,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get radioStats_screenTitle => 'Statistiques de radio';
+
+  @override
+  String get radioStats_sectionSignal => 'Signal';
+
+  @override
+  String get radioStats_sectionAirtime => 'Temps d\'antenne';
 
   @override
   String get radioStats_notConnected =>
@@ -4482,6 +5123,44 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get translation_title => 'Traduction';
+
+  @override
+  String get imageMessages_enableTitle => 'Messages avec images';
+
+  @override
+  String get imageMessages_enableSubtitle =>
+      'Envoyer des images via le maillage. Nécessite un téléchargement unique du modèle d\'image.';
+
+  @override
+  String get imageMessages_modelSectionTitle => 'Modèle d\'image';
+
+  @override
+  String get imageMessages_downloadModel => 'Télécharger';
+
+  @override
+  String get imageMessages_cancelDownload => 'Annuler';
+
+  @override
+  String get imageMessages_removeModel => 'Supprimer le modèle';
+
+  @override
+  String get imageMessages_modelReady => 'Prêt';
+
+  @override
+  String get imageMessages_modelNotPublished =>
+      'Non publié — cette version ne peut pas le télécharger.';
+
+  @override
+  String get imageMessages_downloadFailed =>
+      'Le modèle d\'image ne pouvait pas être téléchargé.';
+
+  @override
+  String get imageMessages_autoProcessTitle =>
+      'Traiter automatiquement les images';
+
+  @override
+  String get imageMessages_autoProcessSubtitle =>
+      'Reconstruisez chaque image dès son arrivée. Cela utilise environ 2 Go de mémoire pendant une seconde à chaque fois ; désactivez la reconstruction au toucher pour éviter cela.';
 
   @override
   String get translation_enableTitle => 'Activer la traduction';
@@ -4768,4 +5447,900 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get pathMap_unfollowPacket => 'Déverrouiller la vue du paquet';
+
+  @override
+  String get imageSend_title => 'Envoyer l\'image';
+
+  @override
+  String get imageSend_cropNote =>
+      'Redimensionné à 512 × 512 · le rapport d’aspect n’a pas été conservé';
+
+  @override
+  String imageSend_lossyNote(int bytes) {
+    return 'Compressé à environ $bytes octets. Le modèle du récepteur le reconstruit, les détails seront donc différents.';
+  }
+
+  @override
+  String get imageSend_viewOriginal => 'Original';
+
+  @override
+  String get imageSend_viewReconstruction => 'Ce que voient les destinataires';
+
+  @override
+  String get imageSend_reconstructionUnavailable =>
+      'Cet appareil ne peut pas prévisualiser la reconstitution.';
+
+  @override
+  String get imageSend_modelNotDownloaded =>
+      'Le modèle d\'image n\'est pas encore téléchargé. Téléchargez-le dans Paramètres pour envoyer des images.';
+
+  @override
+  String get imageSend_originalSize =>
+      'Texte original\n\nVeuillez traduire le texte suivant en français :';
+
+  @override
+  String get imageSend_onAirSize => 'En direct';
+
+  @override
+  String get imageSend_quality => 'Qualité';
+
+  @override
+  String get imageSend_qualityStandard => 'Standard';
+
+  @override
+  String get imageSend_qualityHigh => 'Haut';
+
+  @override
+  String get imageSend_packetsLabel => 'Paquets';
+
+  @override
+  String get imageSend_airtimeLabel => 'Durée de diffusion';
+
+  @override
+  String get imageSend_sizeLabel => 'Charge utile';
+
+  @override
+  String imageSend_packetsCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'paquets',
+      one: 'paquet',
+    );
+    return '$count $_temp0';
+  }
+
+  @override
+  String imageSend_range(String min, String max) {
+    return '$min–$max';
+  }
+
+  @override
+  String get imageSend_unknownValue => '—';
+
+  @override
+  String get imageSend_radioUnknownTitle => 'Réglages de la radio inconnus';
+
+  @override
+  String get imageSend_radioUnknownBody =>
+      'Connectez-vous à un appareil afin que l\'heure de diffusion puisse être calculée.';
+
+  @override
+  String get imageSend_longSendTitle => 'Longue transmission';
+
+  @override
+  String imageSend_longSendBody(String duration) {
+    return 'Cela maintiendra la chaîne pendant environ $duration.';
+  }
+
+  @override
+  String get imageSend_floodNote =>
+      'Routage flood : chaque répéteur dans la zone retransmet chaque paquet, de sorte que le canal reste occupé plus longtemps que cela.';
+
+  @override
+  String get imageSend_parityTitle => 'Paquet de récupération';
+
+  @override
+  String get imageSend_paritySubtitle =>
+      'Un paquet supplémentaire. Les messages de groupe ne sont pas reconnus, ce qui permet au destinataire de reconstruire l\'image si un seul paquet est perdu.';
+
+  @override
+  String get imageSend_send => 'Envoyer';
+
+  @override
+  String get imageSend_cancel => 'Annuler';
+
+  @override
+  String get imageSend_encodeFailed => 'Cette image ne peut pas être encodée.';
+
+  @override
+  String get imageSend_codecDownloading =>
+      'Le modèle d\'image est toujours en téléchargement.';
+
+  @override
+  String get imageSend_codecUnavailable =>
+      'L\'envoi d\'images n\'est pas disponible sur cet appareil.';
+
+  @override
+  String get imageSend_codecDisabled =>
+      'Les messages d\'images sont désactivés dans les paramètres.';
+
+  @override
+  String get imageSend_deviceUnsupported =>
+      'Cette radio ne peut pas envoyer de paquets d\'images. Connectez un appareil exécutant le firmware compagnon version 13 ou ultérieure.';
+
+  @override
+  String get imageSend_directMessagesUnsupported =>
+      'Les images se déplacent en tant que données de groupe, elles ne peuvent donc être envoyées que sur un canal — et non par message direct.';
+
+  @override
+  String get imageSend_tooLarge =>
+      'Cette image a été encodée en plus de paquets que le format de maillage ne permet.';
+
+  @override
+  String imageSend_sentConfirmation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'paquets',
+      one: 'paquet',
+    );
+    return 'Image envoyée en $count $_temp0.';
+  }
+
+  @override
+  String imageSend_sendFailed(String error) {
+    return 'L\'image n\'a pas pu être envoyée : $error';
+  }
+
+  @override
+  String imageSend_sendingProgress(int sent, int total) {
+    return 'Envoi de l\'image — paquet $sent sur $total';
+  }
+
+  @override
+  String receivedImage_senderPrefix(String prefix) {
+    return 'Nœud $prefix';
+  }
+
+  @override
+  String receivedImage_incoming(int received, int total) {
+    return '$received sur $total paquets';
+  }
+
+  @override
+  String get receivedImage_queued => 'En attendant de décoder';
+
+  @override
+  String get receivedImage_tapToDecode => 'Tapez pour décoder';
+
+  @override
+  String get receivedImage_decoding => 'Reconstitution… d’environ 1 s';
+
+  @override
+  String receivedImage_incomplete(int received, int total) {
+    return 'Image incomplète — $received sur $total paquets reçus';
+  }
+
+  @override
+  String get receivedImage_corrupt =>
+      'L\'image ne pouvait pas être reconstruite';
+
+  @override
+  String get receivedImage_decoderMissing =>
+      'Image reçue — le décodage de l\'image est interrompu';
+
+  @override
+  String get receivedImage_evicted => 'Image non stockée';
+
+  @override
+  String get receivedImage_retry => 'Réessayez';
+
+  @override
+  String get receivedImage_decodeAgain => 'Décoder à nouveau';
+
+  @override
+  String get receivedImage_openSettings => 'Mettre en place';
+
+  @override
+  String get receivedImage_tapToProcess => 'Tapez pour traiter';
+
+  @override
+  String get receivedImage_save => 'Enregistrer l\'image';
+
+  @override
+  String receivedImage_shareCaption(int bytes) {
+    return 'Reconstruit par IA à partir de $bytes octets ; les détails fins sont générés, pas transmis.';
+  }
+
+  @override
+  String get receivedImage_packetInfo => 'Informations sur le paquet';
+
+  @override
+  String get receivedImage_parityRecovered =>
+      'Un paquet a été reconstitué à partir du paquet de récupération.';
+
+  @override
+  String receivedImage_decodeTime(int ms) {
+    return 'Reconstitué en $ms ms';
+  }
+
+  @override
+  String get receivedImage_saveFailed => 'Impossible d\'enregistrer l\'image';
+
+  @override
+  String receivedImage_awaiting(int bytes, int packets) {
+    String _temp0 = intl.Intl.pluralLogic(
+      packets,
+      locale: localeName,
+      other: 'paquets',
+      one: 'paquet',
+    );
+    return '$bytes octets · $packets $_temp0';
+  }
+
+  @override
+  String imageSend_secondsValue(String seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String imageSend_minutesSecondsValue(String minutes, String seconds) {
+    return '$minutes minutes $seconds secondes';
+  }
+
+  @override
+  String chat_longMessageRetryNote(int count) {
+    return 'Plus de 158 octets : envoi au maximum $count fois';
+  }
+
+  @override
+  String get reviewMode_dialogTitle => 'Activer le mode revue ?';
+
+  @override
+  String get reviewMode_dialogBody =>
+      'Le mode revue se connecte à une radio simulée avec des contacts, canaux et messages d\'exemple. Aucune radio réelle n\'est nécessaire.';
+
+  @override
+  String get reviewMode_confirm => 'Activer';
+
+  @override
+  String get reviewMode_cancel => 'Annuler';
+
+  @override
+  String get reviewMode_banner => 'Mode revue — données simulées';
+
+  @override
+  String get reviewMode_sendTest => 'Envoyer un message test';
+
+  @override
+  String get reviewMode_testSent => 'Un message test arrivera sous peu.';
+
+  @override
+  String get reviewMode_exit => 'Quitter';
+
+  @override
+  String reviewMode_connectFailed(String error) {
+    return 'Impossible de démarrer le mode revue : $error';
+  }
+
+  @override
+  String get channels_waitForSync =>
+      'Les canaux sont encore en cours de chargement depuis la radio. Réessayez quand la synchronisation sera terminée.';
+
+  @override
+  String channels_nameTooLong(int maxBytes) {
+    return 'Le nom est trop long (max. $maxBytes octets).';
+  }
+
+  @override
+  String repeater_valueRequired(String field) {
+    return '$field : saisissez une valeur';
+  }
+
+  @override
+  String get losMapDetailTooltip => 'Détail de la carte';
+
+  @override
+  String get losUnitsTooltip => 'Unités';
+
+  @override
+  String get losDistance => 'Distance';
+
+  @override
+  String get losClearance => 'Dégagement';
+
+  @override
+  String get losBlockedBy => 'Bloqué par';
+
+  @override
+  String get losObstruction => 'Obstacle';
+
+  @override
+  String losDistanceFromA(String distance) {
+    return '$distance depuis A';
+  }
+
+  @override
+  String get losWorstBadge => 'PIRE';
+
+  @override
+  String losBlockedAmount(String amount) {
+    return 'Bloqué $amount';
+  }
+
+  @override
+  String get losFromA => 'Depuis A';
+
+  @override
+  String get losFromB => 'Depuis B';
+
+  @override
+  String get losElevation => 'Altitude';
+
+  @override
+  String get losCenterOnMap => 'Centrer sur la carte';
+
+  @override
+  String get losStatusClear => 'Dégagé';
+
+  @override
+  String get losStatusMarginal => 'Limite';
+
+  @override
+  String get losStatusBlocked => 'Bloqué';
+
+  @override
+  String get losStatusCheckingShort => 'Vérification';
+
+  @override
+  String get losStatusNoResult => 'Aucun résultat';
+
+  @override
+  String get losSelectedPill => 'Sélectionné';
+
+  @override
+  String get gif_tapToLoad => 'Touchez pour charger le GIF';
+
+  @override
+  String get gif_loadFailedRetry =>
+      'Impossible de charger le GIF\nTouchez pour réessayer';
+
+  @override
+  String get qr_cameraPermissionDenied =>
+      'Autorisation de la caméra refusée.\nVeuillez activer l\'accès à la caméra dans les réglages.';
+
+  @override
+  String get qr_cameraUnsupported =>
+      'Caméra non prise en charge sur cet appareil.';
+
+  @override
+  String qr_cameraStartFailed(String details) {
+    return 'Échec du démarrage de la caméra.\n$details';
+  }
+
+  @override
+  String imageMessages_downloadFailedWithError(String error) {
+    return 'Le modèle d\'image n\'a pas pu être téléchargé : $error';
+  }
+
+  @override
+  String get map_nodeId => 'ID';
+
+  @override
+  String get map_markerHideHint =>
+      'Masquer : masqué jusqu\'à ce que vous quittiez la carte.';
+
+  @override
+  String get map_markerRemoveHint =>
+      'Supprimer : reste masqué jusqu\'à sa restauration depuis le menu des filtres.';
+
+  @override
+  String get map_markerRemoved => 'Marqueur supprimé';
+
+  @override
+  String get map_restoreRemovedMarkers => 'Restaurer les marqueurs supprimés';
+
+  @override
+  String map_restoreRemovedMarkersSubtitle(int count) {
+    return '$count supprimé(s)';
+  }
+
+  @override
+  String map_markersRestored(int count) {
+    return '$count marqueurs restaurés';
+  }
+
+  @override
+  String get map_setLocationConfirmTitle => 'Définir comme votre position ?';
+
+  @override
+  String map_setLocationConfirmBody(String lat, String lon) {
+    return 'Votre nœud annoncera cette position :\n$lat, $lon';
+  }
+
+  @override
+  String get map_setLocationAction => 'Définir la position';
+
+  @override
+  String get map_locationSetSuccess => 'Position du nœud mise à jour';
+
+  @override
+  String get map_locationSetFailed =>
+      'L\'appareil n\'a pas confirmé la nouvelle position. Réessayez.';
+
+  @override
+  String map_poiClusterTitle(int count) {
+    return '$count marqueurs ici';
+  }
+
+  @override
+  String map_poiClusterSemantics(int count) {
+    return '$count marqueurs partagés. Touchez pour les lister.';
+  }
+
+  @override
+  String map_youWithMarkers(int count) {
+    return 'Vous et $count marqueurs';
+  }
+
+  @override
+  String map_sharedMarkerSemantics(String label) {
+    return 'Marqueur partagé : $label';
+  }
+
+  @override
+  String map_nodeMarkerSemantics(String name, String type, String status) {
+    return '$name, $type, $status';
+  }
+
+  @override
+  String mapCache_zoomLevel(int zoom) {
+    return 'Zoom $zoom';
+  }
+
+  @override
+  String mapCache_sizeBytes(String size) {
+    return '$size o';
+  }
+
+  @override
+  String mapCache_sizeKilobytes(String size) {
+    return '$size Ko';
+  }
+
+  @override
+  String mapCache_sizeMegabytes(String size) {
+    return '$size Mo';
+  }
+
+  @override
+  String mapCache_sizeGigabytes(String size) {
+    return '$size Go';
+  }
+
+  @override
+  String mapCache_downloadCancelled(int count) {
+    return 'Téléchargement annulé. $count tuiles mises en cache.';
+  }
+
+  @override
+  String get mapCache_tooManyTilesTitle => 'Zone trop grande';
+
+  @override
+  String mapCache_tooManyTiles(int count, int max) {
+    return 'Cette zone nécessite $count tuiles, soit plus que la limite de $max. Choisissez une zone plus petite ou réduisez le zoom maximal.';
+  }
+
+  @override
+  String get chat_clearChatConfirm =>
+      'Cela efface tous les messages de cette conversation sur cet appareil. Action irréversible.';
+
+  @override
+  String get channels_clearChatConfirm =>
+      'Cela efface tous les messages de ce canal sur cet appareil, y compris les images reçues. Action irréversible.';
+
+  @override
+  String get channels_timeNow => 'maint.';
+
+  @override
+  String channels_timeMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String channels_timeHours(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String channels_timeDays(int days) {
+    return '$days j';
+  }
+
+  @override
+  String channels_indexChip(int index) {
+    return 'CH $index';
+  }
+
+  @override
+  String get reaction_unknownSender => 'Inconnu';
+
+  @override
+  String get pathMap_noSelfGpsFix => 'Le nœud local n\'a pas de position GPS';
+
+  @override
+  String pathTrace_sendFailed(String error) {
+    return 'Impossible d\'envoyer la trace du chemin : $error';
+  }
+
+  @override
+  String get losErrorNoInternet =>
+      'Les données d\'altitude nécessitent une connexion Internet';
+
+  @override
+  String get losResultStale => 'Obsolète : la hauteur de l\'antenne a changé';
+
+  @override
+  String losSnrValue(String snr) {
+    return '$snr dB';
+  }
+
+  @override
+  String losFrequencyValue(String frequency) {
+    return '$frequency MHz';
+  }
+
+  @override
+  String losKFactorValue(String kFactor) {
+    return 'k=$kFactor';
+  }
+
+  @override
+  String get losEndpointA => 'A';
+
+  @override
+  String get losEndpointB => 'B';
+
+  @override
+  String get units_km => 'km';
+
+  @override
+  String get units_mi => 'mi';
+
+  @override
+  String get units_m => 'm';
+
+  @override
+  String get units_ft => 'ft';
+
+  @override
+  String get telemetry_loading => 'Chargement de la télémétrie…';
+
+  @override
+  String telemetry_axisValue(String x, String y, String z) {
+    return 'X : $x, Y : $y, Z : $z';
+  }
+
+  @override
+  String telemetry_colourValue(String red, String green, String blue) {
+    return 'R : $red, V : $green, B : $blue';
+  }
+
+  @override
+  String telemetry_altitudeValueFeet(String feet) {
+    return '$feet ft';
+  }
+
+  @override
+  String telemetry_distanceValueFeet(String feet) {
+    return '$feet ft';
+  }
+
+  @override
+  String get settings_notConnectedError =>
+      'Non connecté à une radio. Connectez-vous et réessayez.';
+
+  @override
+  String get settings_requiresConnection =>
+      'Connectez-vous à une radio pour l\'utiliser';
+
+  @override
+  String settings_txPowerInvalidRange(int min, int max) {
+    return 'Puissance TX invalide ($min à $max dBm)';
+  }
+
+  @override
+  String get settings_contactSettingsSaved =>
+      'Paramètres du contact enregistrés';
+
+  @override
+  String get settings_batteryToggleHint =>
+      'Touchez pour basculer entre pourcentage et tension';
+
+  @override
+  String get settings_publicKeyCopyHint => 'Copier la clé publique';
+
+  @override
+  String get settings_locationClearHelper =>
+      'Laissez les deux champs vides pour supprimer votre position.';
+
+  @override
+  String get settings_locationCleared => 'Position supprimée';
+
+  @override
+  String get settings_regionFetchDiscovering =>
+      'Recherche de répéteurs à proximité…';
+
+  @override
+  String settings_regionFetchProgress(int current, int total) {
+    return 'Interrogation du répéteur $current sur $total…';
+  }
+
+  @override
+  String get settings_regionFetchNoRepeaters =>
+      'Aucun répéteur connu pour le moment. Ajoutez un répéteur comme contact ou attendez qu\'un répéteur s\'annonce, puis réessayez.';
+
+  @override
+  String get settings_regionFetchNoneResponded =>
+      'Aucun répéteur à proximité n\'a répondu. Rapprochez-vous d\'un répéteur et réessayez.';
+
+  @override
+  String appSettings_sourceSummary(String label, String description) {
+    return '$label - $description';
+  }
+
+  @override
+  String get appSettings_routingSection => 'Routage';
+
+  @override
+  String get appSettings_imageMessagesSection => 'Messages image';
+
+  @override
+  String get appSettings_showApiKey => 'Afficher la clé API';
+
+  @override
+  String get appSettings_hideApiKey => 'Masquer la clé API';
+
+  @override
+  String get translation_defaultModelName => 'Modèle';
+
+  @override
+  String translation_downloadProgressBytes(String fileName, String current) {
+    return '$fileName : $current Mo';
+  }
+
+  @override
+  String translation_downloadProgressTotal(
+    String fileName,
+    String current,
+    String total,
+    String percent,
+  ) {
+    return '$fileName : $current / $total Mo ($percent %)';
+  }
+
+  @override
+  String translation_downloadedModelDetails(String size, String source) {
+    return '$size Mo • $source';
+  }
+
+  @override
+  String get repeater_radioDisconnected => 'Radio déconnectée';
+
+  @override
+  String get repeater_radioDisconnectedHint =>
+      'Reconnectez-vous à votre radio pour envoyer des commandes, actualiser ou enregistrer les modifications.';
+
+  @override
+  String get repeater_cliSend => 'Envoyer la commande';
+
+  @override
+  String get repeater_cliCopyTranscript => 'Copier la transcription';
+
+  @override
+  String get repeater_cliShareTranscript => 'Partager la transcription';
+
+  @override
+  String get repeater_cliTranscriptCopied => 'Transcription copiée';
+
+  @override
+  String get repeater_cliClearHistoryConfirm =>
+      'Effacer l\'historique des commandes ? Action irréversible.';
+
+  @override
+  String get repeater_cliSearchCommands => 'Rechercher des commandes';
+
+  @override
+  String get repeater_cliNoMatchingCommands => 'Aucune commande correspondante';
+
+  @override
+  String get debugLog_clearConfirm =>
+      'Effacer toutes les entrées du journal ? Action irréversible.';
+
+  @override
+  String get repeater_unsavedChangesTitle => 'Modifications non enregistrées';
+
+  @override
+  String get repeater_unsavedChangesMessage =>
+      'Vous avez des modifications non enregistrées sur le répéteur.';
+
+  @override
+  String get repeater_discardChanges => 'Abandonner';
+
+  @override
+  String repeater_actionSentNoReply(String action) {
+    return '$action : commande envoyée. Le répéteur ne répond pas à cette commande.';
+  }
+
+  @override
+  String repeater_invalidSettingValue(String setting, String value) {
+    return '$setting : $value n\'est pas valide';
+  }
+
+  @override
+  String repeater_txPowerOutOfRange(String value, int min, int max) {
+    return 'Puissance TX $value hors plage ($min à $max dBm)';
+  }
+
+  @override
+  String repeater_prvKeyLengthError(int length) {
+    return 'La clé privée doit comporter exactement $length caractères hexadécimaux';
+  }
+
+  @override
+  String get contacts_advertFailed => 'Impossible d\'envoyer l\'annonce';
+
+  @override
+  String get contacts_manageGroups => 'Gérer les groupes';
+
+  @override
+  String community_shortId(String id) {
+    return 'ID : $id…';
+  }
+
+  @override
+  String get tcpSectionTitle => 'TCP / IP';
+
+  @override
+  String get tcpConnectedToHeader => 'Connecté à';
+
+  @override
+  String get usbChooseSerialPort => 'Choisir le port série';
+
+  @override
+  String neighbors_durationSeconds(String seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String neighbors_durationMinutes(int minutes, String seconds) {
+    return '$minutes min $seconds s';
+  }
+
+  @override
+  String neighbors_durationHours(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get networkMap_settingsSection => 'Carte du réseau';
+
+  @override
+  String get networkMap_uploadTitle => 'Partager ce que ma radio entend';
+
+  @override
+  String get networkMap_uploadExplanation =>
+      'Lorsque cette option est activée et que votre radio est connectée, l\'application envoie un court résumé des paquets entendus par votre radio à la carte du réseau MeshCore Open, afin que chacun puisse voir quels répéteurs existent et comment ils sont reliés. Elle envoie le type, la route, les sauts, la puissance du signal et la taille de chaque paquet, ainsi que les noms et les positions approximatives des répéteurs issus de leurs propres adverts. Elle n\'envoie jamais le texte des messages, qui parle à qui, les noms des canaux, vos contacts ni votre position exacte : les positions sont arrondies à environ 2 km, et votre application reçoit chaque jour un nouvel identifiant aléatoire.';
+
+  @override
+  String get networkMap_whatWeCollect => 'Ce que nous collectons';
+
+  @override
+  String get networkMap_promptTitle =>
+      'Aider à construire la carte du réseau ?';
+
+  @override
+  String get networkMap_promptBody =>
+      'MeshCore Open peut partager ce que votre radio entend avec la carte publique du réseau sur map.meshcoreopen.org, afin que chacun puisse voir quels répéteurs existent et comment ils sont reliés.\n\nElle n\'envoie jamais le texte des messages, qui parle à qui, les noms des canaux, vos contacts ni votre position exacte. Les positions sont arrondies à environ 2 km.';
+
+  @override
+  String get networkMap_promptSettingsHint =>
+      'Vous pouvez modifier cela à tout moment dans Paramètres → Paramètres de l\'application → Carte du réseau.';
+
+  @override
+  String get networkMap_promptAccept => 'Partager';
+
+  @override
+  String get networkMap_promptDecline => 'Non merci';
+
+  @override
+  String get networkMap_statusOff => 'Désactivé. Rien n\'est envoyé.';
+
+  @override
+  String get networkMap_statusWaiting =>
+      'Activé. En attente d\'une connexion radio.';
+
+  @override
+  String get networkMap_statusNothingSent =>
+      'Activé. Rien n\'a encore été envoyé.';
+
+  @override
+  String networkMap_statusLastSent(String time, int count) {
+    return 'Dernier envoi $time. $count paquets aujourd\'hui.';
+  }
+
+  @override
+  String get networkMap_sourceLocal => 'Local';
+
+  @override
+  String get networkMap_sourceOnline => 'En ligne';
+
+  @override
+  String get networkMap_sourceBoth => 'Les deux';
+
+  @override
+  String get networkMap_zoomInHint =>
+      'Zoomez pour voir la carte du réseau en ligne';
+
+  @override
+  String get networkMap_loadFailed =>
+      'Impossible de charger la carte du réseau en ligne';
+
+  @override
+  String get networkMap_inYourContacts => 'Dans vos contacts';
+
+  @override
+  String get networkMap_status => 'Statut';
+
+  @override
+  String get networkMap_statusActive => 'Actif durant la dernière heure';
+
+  @override
+  String get networkMap_statusRecent => 'Entendu durant le dernier jour';
+
+  @override
+  String get networkMap_statusStale => 'Pas entendu récemment';
+
+  @override
+  String get networkMap_confirmed => 'Confirmé';
+
+  @override
+  String get networkMap_singleSource => 'Source unique, pas encore confirmé';
+
+  @override
+  String get networkMap_reports => 'Rapports';
+
+  @override
+  String get networkMap_locationEstimated =>
+      'Position approximative, estimée d\'après ceux qui l\'ont entendu';
+
+  @override
+  String get networkMap_locationAdvertised =>
+      'Position approximative, issue de son propre advert';
+
+  @override
+  String get networkMap_heardByRadio => 'Entendu par votre radio';
+
+  @override
+  String get networkMap_inYourArea => 'Dans votre zone';
+
+  @override
+  String get networkMap_farAway =>
+      'Trop loin. La gestion ne pourra pas l\'atteindre.';
+
+  @override
+  String get networkMap_addToContacts => 'Ajouter aux contacts';
+
+  @override
+  String get networkMap_manage => 'Gérer';
+
+  @override
+  String get networkMap_addedToContacts => 'Ajouté aux contacts';
+
+  @override
+  String get networkMap_addFailed => 'Impossible d\'ajouter aux contacts';
+
+  @override
+  String get networkMap_unnamed => 'Répéteur sans nom';
 }

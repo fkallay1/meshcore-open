@@ -99,7 +99,10 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
     final override = contact.pathOverride;
     final initial = override != null && override > 0
         ? (contact.pathOverrideBytes ?? Uint8List(0))
-        : (contact.pathLength > 0 ? contact.path : Uint8List(0));
+        : (contact.pathLength > 0 &&
+                  contact.pathHashWidth == connector.pathHashByteWidth
+              ? contact.path
+              : Uint8List(0));
     final available = connector.allContacts
         .where((c) => c.publicKeyHex != contact.publicKeyHex)
         .toList();
@@ -107,11 +110,13 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
       context,
       availableContacts: available,
       initialPath: initial,
+      pathHashByteWidth: connector.pathHashByteWidth,
     );
     if (result == null || !mounted) return;
+    final hopCount = result.length ~/ connector.pathHashByteWidth;
     await connector.setPathOverride(
       contact,
-      pathLen: result.length,
+      pathLen: hopCount,
       pathBytes: result,
     );
     await _verifyPath(connector, contact, result);
@@ -123,9 +128,10 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
     PathRecord record,
   ) async {
     final bytes = Uint8List.fromList(record.pathBytes);
+    final hopCount = bytes.length ~/ connector.pathHashByteWidth;
     await connector.setPathOverride(
       contact,
-      pathLen: bytes.length,
+      pathLen: hopCount,
       pathBytes: bytes,
     );
     await _verifyPath(connector, contact, bytes);
@@ -157,11 +163,17 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
     setState(() => _syncStatus = context.l10n.chat_pathCleared);
   }
 
-  _PathQuality _qualityOf(PathRecord record, List<DirectRepeater> ranked) {
+  _PathQuality _qualityOf(
+    MeshCoreConnector connector,
+    PathRecord record,
+    List<DirectRepeater> ranked,
+  ) {
     if (record.pathBytes.isNotEmpty) {
-      final first = record.pathBytes.first;
       for (var i = 0; i < ranked.length && i < 3; i++) {
-        if (ranked[i].pubkeyFirstByte == first) {
+        if (ranked[i].matchesPathStart(
+          record.pathBytes,
+          _recordPathHashWidth(record),
+        )) {
           return switch (i) {
             0 => _PathQuality.strong,
             1 => _PathQuality.good,
@@ -229,14 +241,22 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
       case _RoutingMode.manual:
         final bytes = contact.pathOverrideBytes ?? Uint8List(0);
         if (bytes.isEmpty) return l10n.routing_directNoHops;
-        return PathHelper.resolvePathNames(bytes, connector.allContacts);
+        return PathHelper.resolvePathNames(
+          bytes,
+          connector.allContacts,
+          connector.pathHashByteWidth,
+        );
       case _RoutingMode.auto:
         if (contact.pathLength < 0) return l10n.routing_noPathYet;
         if (contact.pathLength == 0) return l10n.routing_directNoHops;
         if (contact.path.isEmpty) {
           return l10n.chat_hopsCount(contact.pathLength);
         }
-        return PathHelper.resolvePathNames(contact.path, connector.allContacts);
+        return PathHelper.resolvePathNames(
+          contact.path,
+          connector.allContacts,
+          contact.pathHashWidth,
+        );
     }
   }
 
@@ -268,17 +288,26 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
     );
   }
 
+  int _recordPathHashWidth(PathRecord record) =>
+      Contact.inferPathHashWidth(record.hopCount, record.pathBytes.length);
+
   void _showPathDetail(
     BuildContext context,
     MeshCoreConnector connector,
     Contact contact,
-    List<int> pathBytes,
+    PathRecord record,
   ) {
     final l10n = context.l10n;
-    final formattedPath = PathHelper.formatPathHex(pathBytes);
+    final pathBytes = record.pathBytes;
+    final width = _recordPathHashWidth(record);
+    final formattedPath = PathHelper.splitPathBytes(
+      pathBytes,
+      width,
+    ).map(PathHelper.formatHopHex).join(',');
     final resolvedNames = PathHelper.resolvePathNames(
       pathBytes,
       connector.allContacts,
+      width,
     );
 
     showDialog(
@@ -463,7 +492,7 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
         title: Text(l10n.routing_floodDelivery),
         subtitle: Text(
           _floodStatsLine(context, stats),
-          style: const TextStyle(fontSize: 11),
+          style: const TextStyle(fontSize: 12),
         ),
         trailing: mode == _RoutingMode.flood
             ? Icon(
@@ -521,11 +550,21 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
                 listEquals(record.pathBytes, contact.path)));
 
     final title = hasBytes
-        ? PathHelper.resolvePathNames(record.pathBytes, connector.allContacts)
+        ? PathHelper.resolvePathNames(
+            record.pathBytes,
+            connector.allContacts,
+            _recordPathHashWidth(record),
+          )
         : l10n.chat_hopsCount(record.hopCount);
+    final displayHopCount = hasBytes
+        ? PathHelper.splitPathBytes(
+            record.pathBytes,
+            _recordPathHashWidth(record),
+          ).length
+        : record.hopCount;
 
     final line1 =
-        '${l10n.chat_hopsCount(record.hopCount)} • ${_qualityLabel(context, quality)}';
+        '${l10n.chat_hopsCount(displayHopCount)} • ${_qualityLabel(context, quality)}';
     final line2Parts = <String>[
       record.timestamp != null
           ? l10n.routing_lastWorked(_relativeTime(context, record.timestamp!))
@@ -538,8 +577,7 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onSecondaryTapUp: PlatformInfo.isDesktop && hasBytes
-          ? (_) =>
-                _showPathDetail(context, connector, contact, record.pathBytes)
+          ? (_) => _showPathDetail(context, connector, contact, record)
           : null,
       child: Card(
         margin: const EdgeInsets.symmetric(vertical: 4),
@@ -558,7 +596,7 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
           title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
           subtitle: Text(
             '$line1\n${line2Parts.join(' • ')}',
-            style: const TextStyle(fontSize: 11),
+            style: const TextStyle(fontSize: 12),
           ),
           isThreeLine: true,
           trailing: Row(
@@ -588,12 +626,7 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
               ? () => _applyHistoryPath(connector, contact, record)
               : null,
           onLongPress: hasBytes
-              ? () => _showPathDetail(
-                  context,
-                  connector,
-                  contact,
-                  record.pathBytes,
-                )
+              ? () => _showPathDetail(context, connector, contact, record)
               : null,
         ),
       ),
@@ -621,7 +654,10 @@ class _RoutingSheetBodyState extends State<_RoutingSheetBody> {
             pathService
                 .getRecentPaths(contact.publicKeyHex)
                 .map(
-                  (r) => (quality: _qualityOf(r, rankedRepeaters), record: r),
+                  (r) => (
+                    quality: _qualityOf(connector, r, rankedRepeaters),
+                    record: r,
+                  ),
                 )
                 .toList()
               ..sort((a, b) {

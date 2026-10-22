@@ -201,7 +201,7 @@
   "appSettings_pathsWillBeCleared": "Ścieżka zostanie wyczyszczona po 5 nieudanych próbach.",
   "appSettings_pathsWillNotBeCleared": "Ścieżka nie zostanie automatycznie wyczyszczona.",
   "appSettings_autoRouteRotation": "Automatyczna rotacja trasy",
-  "appSettings_autoRouteRotationSubtitle": "Przełączaj się między najlepszymi ścieżkami a trybem zalewowym.",
+  "appSettings_autoRouteRotationSubtitle": "Przełączaj się między najlepszymi ścieżkami a trybem flood.",
   "appSettings_autoRouteRotationEnabled": "Automatyczne obracanie tras włączone",
   "appSettings_autoRouteRotationDisabled": "Automatyczne obracanie tras wyłączone",
   "appSettings_battery": "Bateria",
@@ -464,6 +464,8 @@
     }
   },
   "chat_location": "Lokalizacja",
+  "chat_noRadioLocation": "Twoje radio nie ma ustawionej lokalizacji",
+  "chat_shareMyLocation": "Udostępnij moją lokalizację",
   "chat_sendMessageTo": "Wyślij wiadomość do {contactName}",
   "@chat_sendMessageTo": {
     "placeholders": {
@@ -495,6 +497,7 @@
       }
     }
   },
+  "chat_selectSendAction": "Wybierz czynność wysyłania",
   "chat_sendGif": "Wyślij GIF",
   "chat_reply": "Odpowiedz",
   "chat_addReaction": "Dodaj Reakcję",
@@ -587,7 +590,7 @@
   "chat_pathManagement": "Zarządzanie ścieżkami",
   "chat_routingMode": "Tryb routingu",
   "chat_autoUseSavedPath": "Automatyczne (użyj zapisanej ścieżki)",
-  "chat_forceFloodMode": "Wymuś tryb zalewowy",
+  "chat_forceFloodMode": "Wymuś tryb flood",
   "chat_recentAckPaths": "Ostatnie ścieżki ACK (naciśnij, aby użyć):",
   "chat_pathHistoryFull": "Historia ścieżek jest pełna. Usuń wpisy, aby dodać nowe.",
   "chat_hopSingular": "skok",
@@ -610,7 +613,7 @@
   "chat_clearPathSubtitle": "Wymuś ponowne wyznaczenie trasy przy następnym wysłaniu",
   "chat_pathCleared": "Ścieżka wyczyszczona. Następna wiadomość odnajdzie trasę.",
   "chat_floodModeSubtitle": "Użyj przełącznika routingu w pasku narzędzi.",
-  "chat_floodModeEnabled": "Tryb zalewowy włączony. Przełącz z powrotem ikoną routingu w pasku aplikacji.",
+  "chat_floodModeEnabled": "Tryb flood włączony. Przełącz z powrotem ikoną routingu w pasku aplikacji.",
   "chat_fullPath": "Pełna ścieżka",
   "chat_pathDetailsNotAvailable": "Szczegóły ścieżki jeszcze niedostępne. Spróbuj wysłać wiadomość, aby odświeżyć.",
   "chat_pathSetHops": "Ścieżka ustawiona: {hopCount} {hopCount, plural, =1{hop} other{hops}} - {status}",
@@ -631,7 +634,7 @@
   "chat_path": "Ścieżka",
   "chat_publicKey": "Klucz Publiczny",
   "chat_compressOutgoingMessages": "Kompresuj wychodzące wiadomości",
-  "chat_floodForced": "Zalew (wymuszony)",
+  "chat_floodForced": "Flood (wymuszony)",
   "chat_directForced": "Bezpośrednio (wymuszono)",
   "chat_hopsForced": "{count} skoków (wymuszonych)",
   "@chat_hopsForced": {
@@ -641,7 +644,7 @@
       }
     }
   },
-  "chat_floodAuto": "Zalew (automatyczny)",
+  "chat_floodAuto": "Flood (automatyczny)",
   "chat_direct": "Bezpośrednio",
   "chat_poiShared": "Wspólny POI",
   "chat_unread": "Nieprzeczytane: {count}",
@@ -698,6 +701,7 @@
   "map_shareMarkerHere": "Udostępnij znacznik tutaj",
   "map_pinLabel": "Etykieta pinezki",
   "map_label": "Etykieta",
+  "map_labelUpdateHint": "Użycie tej samej etykiety co wcześniej zaktualizuje znacznik u odbiorców korzystających z MeshCore Open.",
   "map_pointOfInterest": "Punkt zainteresowań",
   "map_sendToContact": "Wyślij do kontaktu",
   "map_sendToChannel": "Wyślij do kanału",
@@ -909,7 +913,7 @@
   "login_routing": "Trasowanie",
   "login_routingMode": "Tryb routingu",
   "login_autoUseSavedPath": "Automatycznie (użyj zapisanej ścieżki)",
-  "login_forceFloodMode": "Wymuś tryb zalewowy",
+  "login_forceFloodMode": "Wymuś tryb flood",
   "login_managePaths": "Zarządzaj Ścieżkami",
   "login_login": "Zaloguj się",
   "login_attempt": "Próba {current}/{max}",
@@ -982,7 +986,7 @@
   "repeater_statusTitle": "Status przekaźnika",
   "repeater_routingMode": "Tryb routingu",
   "repeater_autoUseSavedPath": "Automatycznie (użyj zapisanej ścieżki)",
-  "repeater_forceFloodMode": "Wymuś tryb zalewowy",
+  "repeater_forceFloodMode": "Wymuś tryb flood",
   "repeater_pathManagement": "Zarządzanie ścieżkami",
   "repeater_refresh": "Odśwież",
   "repeater_statusRequestTimeout": "Przekroczono czas oczekiwania na status.",
@@ -1027,7 +1031,7 @@
       }
     }
   },
-  "repeater_packetTxTotal": "Razem: {total}, Zalew: {flood}, Bezpośrednio: {direct}",
+  "repeater_packetTxTotal": "Razem: {total}, Flood: {flood}, Bezpośrednio: {direct}",
   "@repeater_packetTxTotal": {
     "placeholders": {
       "total": {
@@ -1041,7 +1045,7 @@
       }
     }
   },
-  "repeater_packetRxTotal": "Razem: {total}, Zalew: {flood}, Bezpośrednio: {direct}",
+  "repeater_packetRxTotal": "Razem: {total}, Flood: {flood}, Bezpośrednio: {direct}",
   "@repeater_packetRxTotal": {
     "placeholders": {
       "total": {
@@ -1055,7 +1059,7 @@
       }
     }
   },
-  "repeater_duplicatesFloodDirect": "Zalew: {flood}, Bezpośrednie: {direct}",
+  "repeater_duplicatesFloodDirect": "Flood: {flood}, Bezpośrednie: {direct}",
   "@repeater_duplicatesFloodDirect": {
     "placeholders": {
       "flood": {
@@ -1112,7 +1116,7 @@
       }
     }
   },
-  "repeater_floodAdvertInterval": "Interwał rozgłoszenia zalewowego",
+  "repeater_floodAdvertInterval": "Interwał rozgłoszenia flood",
   "repeater_floodAdvertIntervalHours": "{hours} godzin",
   "@repeater_floodAdvertIntervalHours": {
     "placeholders": {
@@ -1177,14 +1181,14 @@
   "repeater_ownerInfo": "Informacje o operatorze",
   "repeater_ownerInfoHelper": "Publiczne metadane dla tego urządzenia powielającego",
   "repeater_refreshOwnerInfo": "Aktualizacja danych dotyczących operatora",
-  "repeater_floodMax": "Maksymalna liczba skoków podczas powodzi",
+  "repeater_floodMax": "Maksymalna liczba skoków flood",
   "repeater_floodMaxHelper": "Maksymalna liczba pakietów, które mogą przemieszczać się w jednym strumieniu (0-64)",
   "repeater_advancedSettings": "Zaawansowany",
   "repeater_advancedSettingsSubtitle": "Regulowane pokrętła dla doświadczonych operatorów",
   "repeater_pathHashMode": "Tryb haszujący ścieżkę",
-  "repeater_pathHashModeHelper": "Bity wykorzystywane do kodowania identyfikatora tego urządzenia w tagach ścieżek/detekcji pętli. 0=1 bity (256 identyfikatorów, do 64 skoków), 1=2 bity (65 000 identyfikatorów, do 32 skoków), 2=3 bity (1 600 000 identyfikatorów, do 21 skoków). Wersje 1.13 i wcześniejsze nie obsługują ścieżek wielobitowych – wykrywają tylko jedną, gdy sieć jest w wersji 1.14 lub nowszej.",
+  "repeater_pathHashModeHelper": "Bajty używane do kodowania identyfikatora tego repeatera w tagach ścieżki flood/wykrywania pętli. 0=1 bajt (256 identyfikatorów, do 64 skoków), 1=2 bajty (65 000 identyfikatorów, do 32 skoków), 2=3 bajty (16 milionów identyfikatorów, do 21 skoków). Firmware sprzed v1.14 zawsze używał ścieżek 1-bajtowych; v1.14 i nowsze można skonfigurować na ścieżki 2- lub 3-bajtowe.",
   "repeater_txDelay": "Opóźnienie w Flood, TX",
-  "repeater_txDelayHelper": "Ustawienie odstępu dla ruchu związanego z powodzią, jako mnożnik czasu przesyłania pakietu (0-2, domyślnie 0,5). Wyższe wartości oznaczają mniejszą liczbę kolizji, ale wolniejszą prędkość przesyłania.",
+  "repeater_txDelayHelper": "Ustawienie odstępu dla ruchu flood, jako mnożnik czasu przesyłania pakietu (0-2, domyślnie 0,5). Wyższe wartości oznaczają mniejszą liczbę kolizji, ale wolniejszą prędkość przesyłania.",
   "repeater_directTxDelay": "Bezpośrednie opóźnienie sygnału TX",
   "repeater_directTxDelayHelper": "Ustawienie odstępu dla ruchu bezpośredniego (bez rozgłaszania), jako mnożnika czasu przesyłania pakietu (0-2, domyślnie 0,3).",
   "repeater_intThresh": "Próg zakłóceń",
@@ -1192,10 +1196,10 @@
   "repeater_agcResetInterval": "Interwał resetowania AGC",
   "repeater_agcResetIntervalHelper": "Jak często należy resetować automatyczną regulację głośności radia, aby odzyskać z sytuacji, w której głośność jest ustawiona na stałe. Ustawienie \"0\" dezaktywuje okresowe resetowanie.",
   "repeater_actionsTitle": "Działania",
-  "repeater_sendAdvert": "Wysłać reklamę dotyczącą powodzi",
-  "repeater_sendAdvertSubtitle": "Wyemituj reklamę dotyczącą powodzi w sieci.",
-  "repeater_sendAdvertZeroHop": "Wysłać reklamę bez pośrednictwa",
-  "repeater_sendAdvertZeroHopSubtitle": "Napisz reklamę, która będzie transmitowana bezpośrednio (bez powtarzania).",
+  "repeater_sendAdvert": "Wysłać rozgłoszenie flood",
+  "repeater_sendAdvertSubtitle": "Wyemituj rozgłoszenie flood w sieci.",
+  "repeater_sendAdvertZeroHop": "Wysłać rozgłoszenie zero-hop",
+  "repeater_sendAdvertZeroHopSubtitle": "Wyemituj rozgłoszenie jednoskokowe (bez pośredników).",
   "repeater_clockSync": "Synchronizuj zegar",
   "repeater_clockSyncSubtitle": "Przekaż czas z telefonu do urządzenia powielającego",
   "repeater_actionSucceeded": "{action} zakończyło się pomyślnie",
@@ -1292,7 +1296,7 @@
   "repeater_cliHelpSetTx": "Ustawia moc transmisji LoRa w dBm. (zrestartuj, aby zastosować)",
   "repeater_cliHelpSetRepeat": "Włącza lub wyłącza rolę przekaźnika dla tego węzła.",
   "repeater_cliHelpSetAllowReadOnly": "(Serwer pokoju) Jeśli 'włączone', to logowanie z pustym hasłem będzie dozwolone, ale nie można publikować w pokoju (tylko czytać).",
-  "repeater_cliHelpSetFloodMax": "Ustawia maksymalną liczbę skoków pakietu zalewowego (jeśli >= max, pakiet nie jest przekierowywany)",
+  "repeater_cliHelpSetFloodMax": "Ustawia maksymalną liczbę skoków pakietu flood (jeśli >= max, pakiet nie jest przekierowywany)",
   "repeater_cliHelpSetIntThresh": "Ustawia Próg Interferencji (w dB). Domyślnie wynosi 14. Ustaw na 0, aby wyłączyć wykrywanie zakłóceń kanału.",
   "repeater_cliHelpSetAgcResetInterval": "Ustawia interwał do zresetowania automatycznego wzmocnienia (AGC). Ustaw na 0, aby wyłączyć.",
   "repeater_cliHelpSetMultiAcks": "Włącza lub wyłącza funkcję 'podwójnych potwierdzeń'.",
@@ -1304,7 +1308,7 @@
   "repeater_cliHelpSetLon": "Ustawia współrzędną długościową mapy rozgłoszeń. (stopnie dziesiętne)",
   "repeater_cliHelpSetRadio": "Ustawia nowe parametry radia i zapisuje je w preferencjach. Wymaga polecenia \"reboot\" do zastosowania.",
   "repeater_cliHelpSetRxDelay": "Ustawienia (eksperymentalne) bazowe (muszą być > 1, aby działać) do stosowania lekkiego opóźnienia dla odebranych pakietów, w oparciu o siłę sygnału/wynik. Ustaw na 0, aby wyłączyć.",
-  "repeater_cliHelpSetTxDelay": "Ustawia czynnik mnożony przez czas utrzymania w trybie zalewowym dla pakietu oraz z wykorzystaniem losowego systemu slotów, aby opóźnić jego przesyłanie (zmniejszając prawdopodobieństwo kolizji).",
+  "repeater_cliHelpSetTxDelay": "Ustawia czynnik mnożony przez czas utrzymania w trybie flood dla pakietu oraz z wykorzystaniem losowego systemu slotów, aby opóźnić jego przesyłanie (zmniejszając prawdopodobieństwo kolizji).",
   "repeater_cliHelpSetDirectTxDelay": "Taki sam jak txdelay, ale dla stosowania losowej opóźnienia przy przekazywaniu pakietów w trybie bezpośrednim.",
   "repeater_cliHelpSetBridgeEnabled": "Włącz/Wyłącz mostek.",
   "repeater_cliHelpSetBridgeDelay": "Ustaw czas opóźnienia przed ponownym wysyłaniem pakietów.",
@@ -1320,13 +1324,13 @@
   "repeater_cliHelpLogErase": "Usuwa logi pakietów z systemu plików.",
   "repeater_cliHelpNeighbors": "Wyświetla listę innych węzłów przekaźnikowych usłyszanych przez rozgłoszenia zero-hop. Każda linia to: id-prefix-hex:timestamp:snr-times-4",
   "repeater_cliHelpNeighborRemove": "Usuwa pierwszy pasujący wpis (z prefiksem pubkey (hex)) z listy sąsiadów.",
-  "repeater_cliHelpRegion": "(tylko port szeregowy) Wyświetla wszystkie zdefiniowane regiony i aktualne uprawnienia do zalewu.",
+  "repeater_cliHelpRegion": "(tylko port szeregowy) Wyświetla wszystkie zdefiniowane regiony i aktualne uprawnienia flood.",
   "repeater_cliHelpRegionLoad": "UWAGA: to jest specjalne wywołanie wielokomendowe. Każda następna komenda jest nazwą regionu (wcięta spacjami, aby wskazywać hierarchię nadrzędną, z minimum jedną spacją). Zakończona wysłaniem pustej linii/komendy.",
   "repeater_cliHelpRegionGet": "Wyszukuje region o podanej nazwie prefiksu (lub \"\" dla zakresu globalnego). Odpowiada \"-> region-name (parent-name) 'F'\"",
   "repeater_cliHelpRegionPut": "Dodaje lub aktualizuje definicję regionu z podaną nazwą.",
   "repeater_cliHelpRegionRemove": "Usuwa definicję regionu o podanej nazwie. (musi się dokładnie zgadzać i nie może mieć podregionów).",
-  "repeater_cliHelpRegionAllowf": "Ustawia uprawnienia 'F' (zalewowe) dla podanego regionu. ('' dla zakresu globalnego/starszego)",
-  "repeater_cliHelpRegionDenyf": "Usuwa uprawnienie 'F' (zalewowe) dla podanej strefy. (ZALECANE: na tym etapie NIE zaleca się używania tego na globalnym/starszym zakresie!!).",
+  "repeater_cliHelpRegionAllowf": "Ustawia uprawnienia 'F' (flood) dla podanego regionu. ('' dla zakresu globalnego/starszego)",
+  "repeater_cliHelpRegionDenyf": "Usuwa uprawnienie 'F' (flood) dla podanej strefy. (ZALECANE: na tym etapie NIE zaleca się używania tego na globalnym/starszym zakresie!!).",
   "repeater_cliHelpRegionHome": "Odpowiada z aktualnej 'home' region. (Uwaga: nie zostało jeszcze zastosowane, zarezerwowane na przyszłość).",
   "repeater_cliHelpRegionHomeSet": "Ustawia region 'domowe'.",
   "repeater_cliHelpRegionSave": "Zapisuje listę/mapę regionów do pamięci.",
@@ -1492,7 +1496,7 @@
     }
   },
   "channelPath_unknownPath": "Nieznane",
-  "channelPath_floodPath": "Zalew",
+  "channelPath_floodPath": "Flood",
   "channelPath_directPath": "Bezpośrednio",
   "channelPath_observedZeroOf": "0 z {total} skoków",
   "@channelPath_observedZeroOf": {
@@ -1767,7 +1771,7 @@
   "appSettings_enableMessageTracingSubtitle": "Pokaż szczegółowe metadane trasowania i czasu dla wiadomości",
   "contacts_contactImportFailed": "Kontakt nie został zaimportowany.",
   "contacts_zeroHopAdvert": "Rozgłoszenie zero-hop",
-  "contacts_floodAdvert": "Rozgłoszenie zalewowe",
+  "contacts_floodAdvert": "Rozgłoszenie flood",
   "contacts_copyAdvertToClipboard": "Kopiuj rozgłoszenie do schowka",
   "contacts_clipboardEmpty": "Schowek jest pusty.",
   "contacts_invalidAdvertFormat": "Nieprawidłowe dane kontaktowe",
@@ -1828,7 +1832,7 @@
   "settings_gpxExportChat": "Lokalizacje towarzyszy",
   "settings_gpxExportShareText": "Dane mapy wyeksportowane z meshcore-open",
   "settings_gpxExportShareSubject": "Eksport danych mapy GPX meshcore-open",
-  "pathTrace_someHopsNoLocation": "Jeden lub więcej z chmieli nie ma określonej lokalizacji!",
+  "pathTrace_someHopsNoLocation": "Jeden lub więcej skoków nie ma określonej lokalizacji!",
   "map_pathTraceCancelled": "Śledzenie ścieżki anulowano.",
   "map_runTrace": "Uruchom ślad ścieżki",
   "pathTrace_clearTooltip": "Wyczyść ścieżkę",
@@ -2054,7 +2058,54 @@
   "contactsSettings_autoAddSensorsSubtitle": "Zezwól towarzyszowi na automatyczne dodawanie wykrytych czujników.",
   "discoveredContacts_noMatching": "Brak pasujących kontaktów",
   "discoveredContacts_deleteContact": "Usuń kontakt",
+  "discoveredContacts_export": "Eksportuj odkryte kontakty",
+  "discoveredContacts_import": "Importuj odkryte kontakty",
+  "discoveredContacts_exported": "Wyeksportowano odkryte kontakty do {path}.",
+  "@discoveredContacts_exported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveredContacts_exportFailed": "Nie udało się wyeksportować odkrytych kontaktów: {error}",
+  "@discoveredContacts_exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveredContacts_imported": "Zaimportowano {count} odkrytych kontaktów.",
+  "@discoveredContacts_imported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "discoveredContacts_importNoContacts": "Nie znaleziono kontaktów w pliku importu.",
+  "discoveredContacts_importFailed": "Nie udało się zaimportować odkrytych kontaktów: {error}",
+  "@discoveredContacts_importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveredContacts_importInvalidFile": "Ten plik nie jest eksportem odkrytych kontaktów.",
+  "discoveredContacts_importSummary": "Zaimportowano: {imported}, pominięto już znane: {skipped}, nieczytelne wpisy: {invalid}.",
+  "discoveredContacts_importTooLarge": "Plik importu jest zbyt duży (maksymalnie {maxMb} MB).",
   "contactsSettings_overwriteOldestSubtitle": "Gdy lista kontaktów jest pełna, najstarszy nieulubiony kontakt zostanie zastąpiony.",
+  "contactsSettings_evictDiscoveredContactsTitle": "Usuwaj odkryte kontakty",
+  "contactsSettings_evictDiscoveredContactsSubtitle": "Gdy ta opcja jest włączona, aplikacja usuwa najstarsze odkryte kontakty, gdy lista odkrytych osiągnie limit {limit} wpisów.",
+  "@contactsSettings_evictDiscoveredContactsSubtitle": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "common_deleteAll": "Usuń wszystko",
   "discoveredContacts_deleteContactAllContent": "Czy na pewno chcesz usunąć wszystkie znalezione kontakty?",
   "discoveredContacts_deleteContactAll": "Usuń wszystkie odkryte kontakty",
@@ -2134,7 +2185,7 @@
   "settings_allowAll": "Zezwalaj na wszystko",
   "settings_telemetryLocationMode": "Tryb położenia telemetrycznego",
   "settings_telemetryEnvironmentMode": "Tryb środowiska telemetrycznego",
-  "settings_advertLocation": "Lokalizacja reklamowa",
+  "settings_advertLocation": "Lokalizacja rozgłoszenia",
   "settings_advertLocationSubtitle": "Uwzględnij lokalizację w ogłoszeniu",
   "settings_denyAll": "Odmów wszystkim",
   "settings_privacySubtitle": "Kontroluj jakie informacje są udostępniane.",
@@ -2287,12 +2338,6 @@
   "scanner_linuxPairingPinTitle": "Kod PIN parowania Bluetooth",
   "repeater_cliQuickClockSync": "Synchronizacja zegara",
   "repeater_cliQuickDiscovery": "Odkryj Sąsiadów",
-  "@repeater_clockSyncAfterLogin": {
-    "description": "Repeater setting: auto sync device clock after successful login"
-  },
-  "@repeater_clockSyncAfterLoginSubtitle": {
-    "description": "Repeater setting subtitle: describes the clock sync after login behavior"
-  },
   "repeater_clockSyncAfterLogin": "Synchronizacja zegara po zalogowaniu",
   "repeater_clockSyncAfterLoginSubtitle": "Automatycznie wysyłaj powiadomienie \"synchronizacja zegara\" po pomyślnym zalogowaniu.",
   "chat_sendMessage": "Wyślij wiadomość",
@@ -2304,7 +2349,7 @@
   "repeater_sensors": "Czujniki",
   "repeater_cliHelpPowerOff": "Wyłącza urządzenie. (oczekiwanie na brak reakcji)",
   "repeater_cliHelpClkReboot": "Przywraca zegar do znanego punktu odniesienia i resetuje urządzenie.",
-  "repeater_cliHelpAdvertZeroHop": "Wysyła reklamę, która dociera bezpośrednio do sąsiadów (bez pośrednictwa).",
+  "repeater_cliHelpAdvertZeroHop": "Wysyła rozgłoszenie, które dociera bezpośrednio do sąsiadów (bez pośrednictwa).",
   "repeater_cliHelpStartOta": "Rozpoczyna aktualizację oprogramowania przez sieć (bezpośrednio z urządzenia).",
   "repeater_cliHelpTime": "Ustawia zegar urządzenia na określone sekundy od epoki Unix. Zegar nie może się cofać.",
   "repeater_cliHelpBoard": "Wyświetla informacje o producencie płyty głównej / identyfikator sprzętu.",
@@ -2335,15 +2380,15 @@
   "repeater_cliHelpGetAgcResetInterval": "Pokazuje interwał resetowania AGC w sekundach.",
   "repeater_cliHelpGetMultiAcks": "Pokazuje, czy tryb podwójnego potwierdzania jest włączony (1) czy wyłączony (0).",
   "repeater_cliHelpGetAllowReadOnly": "Pokazuje, czy dostęp dla gości jest ograniczony do odczytu tylko.",
-  "repeater_cliHelpGetAdvertInterval": "Pokazuje czas trwania lokalnej reklamy w minutach.",
-  "repeater_cliHelpGetFloodAdvertInterval": "Pokazuje interwał reklamowy dotyczący powodzi w godzinach.",
+  "repeater_cliHelpGetAdvertInterval": "Pokazuje interwał lokalnego rozgłoszenia w minutach.",
+  "repeater_cliHelpGetFloodAdvertInterval": "Pokazuje interwał rozgłoszenia flood w godzinach.",
   "repeater_cliHelpGetGuestPassword": "Wyświetla ustawione hasło dla gościa.",
   "repeater_cliHelpGetLat": "Pokazuje ustawioną szerokość geograficzną.",
   "repeater_cliHelpGetLon": "Pokazuje ustawioną długość geograficzną.",
   "repeater_cliHelpGetRxDelay": "Pokazuje bazową wartość opóźnienia RX.",
-  "repeater_cliHelpGetTxDelay": "Pokazuje współczynnik opóźnienia transmisji w trybie zalewowym.",
+  "repeater_cliHelpGetTxDelay": "Pokazuje współczynnik opóźnienia transmisji w trybie flood.",
   "repeater_cliHelpGetDirectTxDelay": "Pokazuje współczynnik opóźnienia w trybie bezpośrednim.",
-  "repeater_cliHelpGetFloodMax": "Pokazuje maksymalną liczbę skoków spowodowanych powodzią.",
+  "repeater_cliHelpGetFloodMax": "Pokazuje maksymalną liczbę skoków flood.",
   "repeater_cliHelpGetOwnerInfo": "Wyświetla ciąg znaków zawierający dane kontaktowe właściciela.",
   "repeater_cliHelpGetPathHashMode": "Pokazuje tryb haszujący ścieżkę (0/1/2).",
   "repeater_cliHelpGetLoopDetect": "Pokazuje czułość detekcji pętli.",
@@ -2365,8 +2410,8 @@
   "repeater_cliHelpSensorList": "Wyświetla wszystkie ustawienia dla niestandardowych czujników, podzielone na strony, z opcjonalnym indeksem początkowym.",
   "repeater_cliHelpRegionDefault": "Pokazuje aktualny domyślny zakres regionu.",
   "repeater_cliHelpRegionDefaultSet": "Ustawia domyślny zakres regionu. Użyj wartości \"<null>\", aby go zresetować.",
-  "repeater_cliHelpRegionListAllowed": "Wymienia regiony, w których dopuszczony jest ruch związany z powodzami.",
-  "repeater_cliHelpRegionListDenied": "Wymienia regiony, w których ruch związany z powodziami jest ograniczony.",
+  "repeater_cliHelpRegionListAllowed": "Wymienia regiony, w których dozwolony jest ruch flood.",
+  "repeater_cliHelpRegionListDenied": "Wymienia regiony, w których ruch flood jest zabroniony.",
   "repeater_cliHelpStatsPackets": "(Tylko dla serialu) Prezentuje statystyki na poziomie pakietów.",
   "repeater_cliHelpStatsRadio": "(Tylko serial) Prezentuje statystyki dotyczące nadawania radiowego.",
   "repeater_cliHelpStatsCore": "(Tylko wersja serialowa) Wyświetla podstawowe statystyki o oprogramowaniu.",
@@ -2506,7 +2551,7 @@
   "contacts_searchClose": "Zaawansowane wyszukiwanie",
   "routing_title": "Planowanie tras",
   "routing_modeAuto": "Samochód",
-  "routing_modeFlood": "Powódź",
+  "routing_modeFlood": "Flood",
   "routing_modeManual": "Instrukcja obsługi",
   "routing_modeAutoHint": "Automatycznie wybiera najpopularniejszą ścieżkę, a w przypadku braku znanej, przechodzi do trybu \"przepływu\".",
   "routing_modeFloodHint": "Transmisje za pośrednictwem każdego repeatera. Najbardziej niezawodna metoda, ale zużywa więcej czasu transmisji.",
@@ -2528,11 +2573,11 @@
   "routing_qualityUntested": "Nieużywany",
   "routing_lastWorked": "pracował {when}",
   "routing_neverWorked": "nigdy nie zostało potwierdzone",
-  "routing_floodDelivery": "Dostawa w przypadku powodzi",
+  "routing_floodDelivery": "Dostawa flood",
   "pathEditor_title": "Stworzenie ścieżki",
-  "pathEditor_hopCounter": "{count} z 64 rodzajów chmielu",
-  "pathEditor_noHops": "Na razie nie dodano żadnych chmielu. Aby dodać je w odpowiedniej kolejności, kliknij w odpowiednie przyciski poniżej, lub zapisz przepis bez chmielu, aby wysłać go bezpośrednio.",
-  "pathEditor_addHops": "Dodawaj chmiel zgodnie z kolejnością.",
+  "pathEditor_hopCounter": "{count} z 64 skoków",
+  "pathEditor_noHops": "Nie dodano jeszcze żadnych skoków. Stuknij przekaźniki poniżej, aby dodać je w kolejności, lub zapisz bez skoków, aby wysłać bezpośrednio.",
+  "pathEditor_addHops": "Dodawaj skoki w kolejności.",
   "pathEditor_searchRepeaters": "Funkcje powtarzania",
   "pathEditor_advancedHex": "Zaawansowane: ścieżka w formacie szesnastkowym",
   "pathEditor_hexLabel": "Prefiksy heksadecymalne",
@@ -2540,7 +2585,7 @@
   "pathEditor_invalidTokens": "Nieprawidłowe: {tokens}",
   "pathEditor_tooManyHops": "Maksymalnie 64 hopów",
   "pathEditor_usePath": "Użyj tej ścieżki.",
-  "pathEditor_removeHop": "Usuń dziką psiankę",
+  "pathEditor_removeHop": "Usuń skok",
   "pathEditor_unknownHop": "Nieznany repeater",
   "map_zoomIn": "Przybliż",
   "routing_deliveryCounts": "{successes} delivered, {failures} failed",
@@ -2643,5 +2688,660 @@
   "pathMap_noLocation": "Brak lokalizacji",
   "pathMap_followPacket": "Śledź pakiet",
   "pathMap_unfollowPacket": "Przestań śledzić pakiet",
-  "pathMap_gpsCount": "{confirmed}/{total} GPS"
+  "pathMap_gpsCount": "{confirmed}/{total} GPS",
+  "@settings_deleteRegionConfirm": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "@channels_regionSetTo": {
+    "placeholders": {
+      "region": {
+        "type": "String",
+        "example": "de-mitte"
+      }
+    }
+  },
+  "@chat_imagePickFailed": {
+    "description": "Shown when picking or reading a photo to send fails"
+  },
+  "@repeater_pubKeyPrefixHelper": {
+    "placeholders": {
+      "tries": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_packetsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_range": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_longSendBody": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_sentConfirmation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_sendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_sendingProgress": {
+    "placeholders": {
+      "sent": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_senderPrefix": {
+    "placeholders": {
+      "prefix": {
+        "type": "String"
+      }
+    }
+  },
+  "@receivedImage_incoming": {
+    "placeholders": {
+      "received": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_incomplete": {
+    "placeholders": {
+      "received": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_awaiting": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      },
+      "packets": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_secondsValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_minutesSecondsValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_regionSettings": "Regiony",
+  "settings_regionSettingsSubtitle": "Zarządzanie zapisanymi regionami",
+  "settings_regionManagement_screenTitle": "Zarządzanie Regionami",
+  "settings_regionNameHint": "Wprowadź nazwę regionu",
+  "settings_regionAddRegion": "Dodaj region",
+  "settings_regionFetchRegions": "Pobierz regiony z repeaterów",
+  "settings_regionFetchRegionsFail": "Nie znaleziono żadnych regionów",
+  "settings_regionFetchRegionsAlreadyExists": "Ten region został już dodany",
+  "settings_regionName": "Nazwa Regionu",
+  "settings_regionDeleted": "Region usunięto",
+  "settings_deleteRegion": "Usuń Region",
+  "settings_deleteRegionConfirm": "Czy usunąć \"{region}\" z listy regionów?",
+  "settings_infoHardware": "Sprzęt",
+  "settings_infoFirmware": "Oprogramowanie wbudowane",
+  "repeater_pathHashModeOption0": "0 - 1 bajt",
+  "repeater_pathHashModeOption1": "1 - 2 bity",
+  "repeater_pathHashModeOption2": "2 - 3 bajty",
+  "repeater_pathHashModeOption3": "3 - 4 bajty",
+  "appSettings_batteryLipoHv": "Bateria LiPo HV (3,0-4,35 V)",
+  "channels_regionSetTo": "Region: {region}",
+  "channels_regionNotSet": "Region: brak",
+  "channels_regionSelect_Title": "Wybierz region",
+  "channels_clearRegion": "Przejrzyste obszar",
+  "chat_sendImageLora": "Wyślij obraz przez MeshCore",
+  "chat_imagePickFailed": "Nie mogłem otworzyć tego obrazu",
+  "chat_receivedGif": "Otrzymano GIF",
+  "repeater_keySettings": "Zmiana kluczy tożsamości",
+  "repeater_keySettingsSubtitle": "Zmień parę kluczy publiczną/prywatną",
+  "repeater_prvKey": "Klucz prywatny",
+  "repeater_prvKeyHelper": "Nowy klucz prywatny dla wzmacniacza, 128-znakowa string hexadecyimalny.",
+  "repeater_generatePrvKey": "Wygeneruj losowy klucz parowy",
+  "repeater_stopGeneratingPrvKey": "Przerwij wyszukiwanie kluczowego paru",
+  "repeater_pubKey": "Klucz publiczny",
+  "repeater_pubKeyHelper": "To jest klucz publiczny, który odpowiada wygenerowanemu kluczowi prywatnemu. Nie można go ustawić bezpośrednio.",
+  "repeater_pubKeyPrefix": "Pożądane przedrostek",
+  "repeater_pubKeyPrefixHelper": "Znajdź klucz publiczny, który zaczyna się od tych cyfr hex. Oczekiwana liczba prób: {tries}.",
+  "imageMessages_enableTitle": "Włącz wiadomości ze zdjęciami",
+  "imageMessages_enableSubtitle": "Przesyłaj zdjęcia przez siatkę. Wymaga jednorazowego pobrania modelu obrazu.",
+  "imageMessages_modelSectionTitle": "Model obrazowy",
+  "imageMessages_downloadModel": "Pobierz",
+  "imageMessages_cancelDownload": "Anuluj",
+  "imageMessages_removeModel": "Usuń model",
+  "imageMessages_modelReady": "Gotowy",
+  "imageMessages_modelNotPublished": "Nie opublikowane — ten build nie może tego pobrać.",
+  "imageMessages_downloadFailed": "Model obrazowy nie mógł zostać pobrany.",
+  "imageMessages_autoProcessTitle": "Obrazki są przetwarzane automatycznie.",
+  "imageMessages_autoProcessSubtitle": "Odbuduj każde zdjęcie, jak tylko przyjdzie. Zużywa około 2 GB pamięci za każdą drugą sekundę; wyłącz odbudowywanie jednym dotknięciem.",
+  "imageSend_title": "Wyślij obraz",
+  "imageSend_cropNote": "Zmniejszone do 512 × 512 · proporcje nie zostały zachowane",
+  "imageSend_originalSize": "Oryginalny",
+  "imageSend_onAirSize": "W eterze",
+  "imageSend_quality": "Jakość",
+  "imageSend_qualityStandard": "Standard",
+  "imageSend_qualityHigh": "Wysoko",
+  "imageSend_packetsLabel": "Pakiet",
+  "imageSend_airtimeLabel": "Czas w eterze",
+  "imageSend_sizeLabel": "Payload",
+  "imageSend_packetsCount": "{count} {count, plural, =1{pakiet} other{pakietów}}",
+  "imageSend_range": "{min}–{max}",
+  "imageSend_unknownValue": "—",
+  "imageSend_radioUnknownTitle": "Ustawienia radia nieznane",
+  "imageSend_radioUnknownBody": "Połącz urządzenie, aby można było obliczyć czas trwania transmisji.",
+  "imageSend_longSendTitle": "Długa transmisja",
+  "imageSend_longSendBody": "Ten kanał będzie dostępny przez około {duration}.",
+  "imageSend_floodNote": "Przepływ pakietów: każdy retransmitujący w zasięgu przekazuje każdy pakiet, przez co kanał pozostaje zajęty dłużej niż ten czas.",
+  "imageSend_parityTitle": "Pakiet odzysku",
+  "imageSend_paritySubtitle": "Jedna dodatkowa paczka. Wiadomości grupowe nie są potwierdzane, dzięki czemu odbiorca może odbudować obraz, jeśli zostanie utracona pojedyncza paczka.",
+  "imageSend_send": "Wyślij",
+  "imageSend_cancel": "Anuluj",
+  "imageSend_encodeFailed": "Ten obraz nie mógł zostać zakodowany.",
+  "imageSend_codecDownloading": "Model obrazowy jest nadal pobierany.",
+  "imageSend_codecUnavailable": "Wysyłanie obrazu nie jest dostępne na tym urządzeniu.",
+  "imageSend_codecDisabled": "Wiadomości ze zdjęciami są wyłączone w ustawieniach.",
+  "imageSend_deviceUnsupported": "Ten radiodysk nie może wysyłać pakietów obrazu. Podłącz urządzenie z oprogramowaniem firmware 13 lub nowszym.",
+  "imageSend_directMessagesUnsupported": "Obrazy są przesyłane jako dane grupowe, więc można je wysłać tylko do kanału — nie w wiadomości prywatnej.",
+  "imageSend_tooLarge": "Obraz zakodowany do więcej pakietów niż pozwala format siatki.",
+  "imageSend_sentConfirmation": "Obraz wysłany jako {count} {count, plural, =1{pakiet} other{pakietów}}.",
+  "imageSend_sendFailed": "Obraz nie mogł zostać wysłany: {error}",
+  "imageSend_sendingProgress": "Wysyłanie obrazu — pakiet {sent} z {total}",
+  "receivedImage_senderPrefix": "Węzeł {prefix}",
+  "receivedImage_incoming": "Otrzymano: {received} z {total} pakietów",
+  "receivedImage_queued": "Oczekiwanie na rozszyfrowanie",
+  "receivedImage_tapToDecode": "Kliknij, aby odszyfrować",
+  "receivedImage_decoding": "Odtwarzanie… około 1 sekundy",
+  "receivedImage_incomplete": "Obraz niepełny — {received} z {total} pakietów dotarło",
+  "receivedImage_corrupt": "Obraz nie może zostać zrekonstruowany",
+  "receivedImage_decoderMissing": "Otrzymano obraz — dekodowanie obrazu jest nieprawidłowe.",
+  "receivedImage_evicted": "Obraz nie jest już przechowywany",
+  "receivedImage_retry": "Spróbuj ponownie",
+  "receivedImage_decodeAgain": "Zdekoduj ponownie",
+  "receivedImage_openSettings": "Ustaw",
+  "receivedImage_tapToProcess": "Kliknij, aby przetworzyć",
+  "receivedImage_awaiting": "{bytes} bajtów · {packets} {packets, plural, =1{pakiet} other{pakiety}}",
+  "imageSend_secondsValue": "{seconds} sekund",
+  "imageSend_minutesSecondsValue": "{minutes} minut {seconds} sekundy",
+  "channels_noFreeSlots": "Wszystkie miejsca na kanały są zajęte",
+  "chat_longMessageRetryNote": "Powyżej 158 bajtów: wysyłane maksymalnie {count} razy",
+  "reaction_report": "Reakcje Emoji",
+  "repeater_bridgeNote": "Dostępne tylko w firmware zbudowanym z mostkiem (RS232 lub ESP-NOW).",
+  "repeater_cliHelpGetFloodMaxAdvert": "Pokazuje maksymalną liczbę skoków dla rozgłoszeń flood.",
+  "repeater_cliHelpGetFloodMaxUnscoped": "Pokazuje maksymalną liczbę skoków dla pakietów flood bez przypisanego regionu.",
+  "repeater_cliHelpGetRadioFemRxGain": "Pokazuje, czy wzmocnienie RX modułu front-end LoRa jest włączone.",
+  "repeater_cliHelpGetRadioFemTxGain": "Pokazuje, czy wzmocnienie TX modułu front-end LoRa jest włączone.",
+  "repeater_cliHelpRegionDef": "Definiuje łańcuch regionów w jednej komendzie: każda nazwa jest dodawana pod poprzednią; \"name,parent\" dodaje nazwę, a następnie kontynuuje pod podanym regionem nadrzędnym. Odpowiada listą regionów.",
+  "repeater_cliHelpSetFloodMaxAdvert": "Ustawia maksymalną liczbę skoków przy przekazywaniu rozgłoszeń flood (0-64).",
+  "repeater_cliHelpSetFloodMaxUnscoped": "Ustawia maksymalną liczbę skoków przy przekazywaniu pakietów flood bez przypisanego regionu (0-64).",
+  "repeater_cliHelpSetRadioFemRxGain": "Przełącza wzmocnienie RX (LNA) modułu front-end LoRa. Płytki bez tej funkcji odpowiadają \"Error: unsupported\".",
+  "repeater_cliHelpSetRadioFemTxGain": "Przełącza wzmocnienie TX (PA) modułu front-end LoRa. Płytki bez tej funkcji odpowiadają \"Error: unsupported\".",
+  "repeater_cliRegionLoadActive": "Tryb wczytywania regionów: wysyłaj po jednej nazwie regionu w linii, wcięte spacjami pod regionem nadrzędnym (dodaj F po nazwie, aby zezwolić na flood). Linie nie otrzymują odpowiedzi. Wyślij pustą linię, aby zakończyć, a następnie \"region save\", aby zachować wynik.",
+  "repeater_cliRegionLoadEnd": "(koniec wczytywania regionów)",
+  "repeater_cliRegionLoadHint": "Linia regionu lub pusta, aby zakończyć",
+  "repeater_frequencyInvalid": "Nieprawidłowa częstotliwość (150-2500 MHz)",
+  "repeater_frequencyRangeHelper": "150-2500 MHz",
+  "repeater_recvErrors": "Błędy Odbioru",
+  "repeater_txPowerRangeHelper": "-9 do 30 dBm",
+  "room_postsPushed": "Wysłane Posty",
+  "room_postsStored": "Posty",
+  "settings_publicKeyCopied": "Skopiowano klucz publiczny",
+  "settings_radioSettingsNotApplied": "Radio nie zastosowało tych ustawień",
+  "urlImage_enable": "Włącz obrazy z URL",
+  "urlImage_possible": "Możliwy obraz z URL; włącz go w Ustawieniach.",
+  "@chat_longMessageRetryNote": {
+    "description": "Shown under the DM composer when the message is too long for the firmware's later retry attempts",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_failedChannel": "Twoje radio nie mogło wysłać tej wiadomości.",
+  "messageStatus_resending": "Za mało przekaźników jeszcze nie usłyszało. Wysłano ponownie {resends} z {maxResends} razy.",
+  "@messageStatus_resending": {
+    "placeholders": {
+      "resends": {
+        "type": "int"
+      },
+      "maxResends": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_hopsNotReached": "Wysłane, ale odpowiedź usłyszano tylko przez {hops} z {required} przekaźników. Mogła jednak dotrzeć dalej, niż Twoje radio jest w stanie usłyszeć.",
+  "@messageStatus_hopsNotReached": {
+    "placeholders": {
+      "hops": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_sentChannel": "Wysłane. Kanały nie potwierdzają dostarczenia, więc to oznacza tylko, że Twoje radio je wysłało.",
+  "messageStatus_sentDirect": "Wysłane. Oczekiwanie na potwierdzenie od kontaktu.",
+  "messageStatus_heardRepeatedCount": "Usłyszano powtórnie {count, plural, =1{1 raz} few{{count} razy} many{{count} razy} other{{count} razy}}. Pobliskie przekaźniki przekazały je dalej.",
+  "@messageStatus_heardRepeatedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_regionEmptyExplanation": "Regiony ograniczają wiadomości flood do przekaźników z danego obszaru. Pobierz je z pobliskich przekaźników lub dodaj region po nazwie.",
+  "settings_regionFetchFromRepeaters": "Pobierz z przekaźników",
+  "settings_regionDefault": "Domyślny region",
+  "settings_regionDefaultSubtitle": "Używany przez kanały bez własnego regionu",
+  "settings_regionDefaultNone": "Brak",
+  "settings_telemetryPerContactHint": "Aby zezwolić kontaktowi, otwórz jego czat i wybierz Ustawienia kontaktów z menu.",
+  "settings_multiAckSubtitle": "Wysyłaj dodatkowe potwierdzenia ACK dla lepszego dostarczenia; zużywa więcej czasu w eterze",
+  "settings_presetCustom": "Niestandardowy",
+  "settings_radioMatchWarning": "Wszystkie węzły, z którymi rozmawiasz, muszą używać tej samej częstotliwości, przepustowości i SF. Współczynnik kodowania (CR) może się różnić.",
+  "settings_txPowerRangeHelper": "{min} do {max} dBm",
+  "@settings_txPowerRangeHelper": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_clientRepeatFrequencyNote": "Częstotliwość ustawiona na {freq} MHz dla powtórzeń poza siecią",
+  "@settings_clientRepeatFrequencyNote": {
+    "placeholders": {
+      "freq": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_pathHashModeHelper": "Rozmiar identyfikatora węzła zapisywanego w ścieżce wysyłanych pakietów flood: 1 bajt (256 identyfikatorów, do 64 skoków), 2 bajty (65 tys., do 32 skoków), 3 bajty (16 mln, do 21 skoków). Większe identyfikatory zmniejszają kolizje, ale przekaźniki z oprogramowaniem starszym niż v1.14 odrzucają pakiety z identyfikatorami 2- lub 3-bajtowymi.",
+  "settings_requiresFirmware": "Wymaga oprogramowania w wersji {version} lub nowszej",
+  "@settings_requiresFirmware": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appSettings_channelMinHops": "Wysyłaj ponownie wiadomości kanału, aż przejdą wystarczająco daleko",
+  "appSettings_channelMinHopsSubtitle": "Jeśli Twoja wiadomość nie wraca przez wystarczającą liczbę przekaźników, wyślij ją ponownie. Zużywa więcej czasu w eterze.",
+  "appSettings_channelMinHopsCount": "Wymagane skoki: {count}",
+  "@appSettings_channelMinHopsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appSettings_channelMinHopsRetries": "Wyślij ponownie maksymalnie {count, plural, =1{1 raz} few{{count} razy} many{{count} razy} other{{count} razy}}",
+  "@appSettings_channelMinHopsRetries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appSettings_batteryOptimization": "Działanie w tle",
+  "appSettings_batteryOptimizationSubtitle": "Ustaw w ustawieniach baterii aplikacji MeshCore Open opcję „Nie optymalizuj”, aby wiadomości przychodziły w tle",
+  "contacts_storageFull": "Pamięć kontaktów w węźle jest pełna. Nowe węzły nie mogą być dodane, dopóki nie usuniesz kontaktów.",
+  "contacts_removeFromContacts": "Usuń z kontaktów",
+  "contacts_removeFromContactsConfirm": "{contactName} trafi do Odkrytych kontaktów. Historia czatu zostanie usunięta.",
+  "@contacts_removeFromContactsConfirm": {
+    "placeholders": {
+      "contactName": {
+        "type": "String"
+      }
+    }
+  },
+  "contacts_keepChatHistory": "Zachowaj historię czatu",
+  "contacts_remove": "Usuń",
+  "contacts_discoveredNearby": "Odkryte w pobliżu ({count})",
+  "@contacts_discoveredNearby": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "contacts_noContactsDiscoveredHint": "Węzły, które słyszy Twoje radio, ale nie zostały jeszcze dodane, znajdziesz w Odkrytych kontaktach",
+  "channels_hashtag": "Hashtag",
+  "channels_addSectionJoin": "Dołącz do istniejącego",
+  "channels_addSectionCreate": "Utwórz nowy",
+  "channels_dragToReorder": "Przeciągnij, aby zmienić kolejność",
+  "channels_regionDefaultSuffix": "(domyślny)",
+  "channels_regionSelectExplanation": "Wiadomości flood na tym kanale będą przekazywane tylko przez przekaźniki z wybranego regionu.",
+  "channels_regionEmpty": "Nie ma jeszcze regionów.",
+  "channels_manageRegions": "Zarządzaj regionami",
+  "chat_removeGif": "Usuń GIF",
+  "chat_cancelReply": "Anuluj odpowiedź",
+  "chat_viewPathOnMap": "Pokaż ścieżkę na mapie",
+  "chat_today": "Dzisiaj",
+  "chat_yesterday": "Wczoraj",
+  "map_centerOnMe": "Wyśrodkuj na mojej lokalizacji",
+  "map_noNodesLocationHint": "Brak węzłów z ostatnią lokalizacją. Poszerz filtr czasu lub ustaw własną lokalizację w Ustawieniach.",
+  "map_clusterNodes": "Grupuj pobliskie węzły",
+  "map_groupChip": "Grupy",
+  "map_clusterNodesSubtitle": "Przy małym powiększeniu pobliskie węzły są pokazywane jako jedno numerowane kółko",
+  "map_manageServer": "Zarządzaj serwerem",
+  "login_showPassword": "Pokaż hasło",
+  "login_hidePassword": "Ukryj hasło",
+  "login_advanced": "Zaawansowany",
+  "common_clearSearch": "Wyczyść wyszukiwanie",
+  "repeater_roleAdmin": "ADMIN",
+  "repeater_roleGuest": "GOŚĆ",
+  "repeater_refreshAll": "Odśwież wszystko",
+  "repeater_settingsNotLoaded": "Ustawienia nie zostały jeszcze wczytane z tego przekaźnika.",
+  "repeater_settingsLoadIncomplete": "Nie udało się wczytać niektórych ustawień. Użyj przycisków odświeżania, aby spróbować ponownie.",
+  "contacts_scanQrCode": "Skanuj kod QR",
+  "contacts_scanQrInstructions": "Skieruj kamerę na kod QR kontaktu MeshCore",
+  "contacts_qrFromGallery": "Skanuj kod QR z galerii",
+  "contacts_noQrCodeFound": "Nie znaleziono kodu QR na wybranym obrazie.",
+  "contacts_qrGalleryFailed": "Nie udało się otworzyć galerii.",
+  "notification_actionReply": "Odpowiedz",
+  "notification_actionMarkRead": "Oznacz jako przeczytane",
+  "notification_actionMuteChannel": "Wycisz kanał",
+  "notification_replyHint": "Wiadomość",
+  "notification_you": "Ty",
+  "notification_replyFailedTitle": "Odpowiedź nie została wysłana",
+  "notification_replyNotConnected": "Brak połączenia z radiem. Połącz się ponownie w MeshCore Open i wyślij odpowiedź jeszcze raz.",
+  "notification_replyTooLong": "Twoja odpowiedź jest za długa, aby wysłać ją z powiadomienia. Wyślij ją zamiast tego z MeshCore Open.",
+  "notification_replyUnavailable": "Tej rozmowy nie ma już na podłączonym radiu.",
+  "notification_replySendFailed": "Twoja odpowiedź mogła nie zostać wysłana. Sprawdź w MeshCore Open i spróbuj ponownie.",
+  "notification_replyAppNotRunning": "MeshCore Open nie jest uruchomiony. Otwórz go i wyślij odpowiedź jeszcze raz.",
+  "snrIndicator_nearByRepeatersDescription": "Przekaźniki usłyszane bezpośrednio przez Twoje radio, najpierw te ostatnio usłyszane.",
+  "radioStats_sectionSignal": "Sygnał",
+  "radioStats_sectionAirtime": "Czas w eterze",
+  "imageSend_lossyNote": "Skompresowano do około {bytes} bajtów. Model odbiorcy odtworzy obraz, więc szczegóły będą się różnić.",
+  "@imageSend_lossyNote": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "imageSend_viewOriginal": "Oryginał",
+  "imageSend_viewReconstruction": "Co widzą odbiorcy",
+  "imageSend_reconstructionUnavailable": "To urządzenie nie może wyświetlić podglądu rekonstrukcji.",
+  "imageSend_modelNotDownloaded": "Model obrazowy nie jest jeszcze pobrany. Pobierz go w Ustawieniach, aby wysyłać obrazy.",
+  "receivedImage_save": "Zapisz obraz",
+  "receivedImage_shareCaption": "Odtworzony przez AI z {bytes} bajtów; drobne szczegóły są generowane, a nie przesyłane.",
+  "@receivedImage_shareCaption": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "receivedImage_packetInfo": "Informacje o pakiecie",
+  "receivedImage_parityRecovered": "Jeden pakiet został odtworzony z pakietu odzysku.",
+  "receivedImage_decodeTime": "Odtworzono w {ms} ms",
+  "@receivedImage_decodeTime": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "receivedImage_saveFailed": "Nie udało się zapisać obrazu",
+  "reviewMode_dialogTitle": "Włączyć tryb recenzji?",
+  "reviewMode_dialogBody": "Tryb recenzji łączy się z symulowanym radiem z przykładowymi kontaktami, kanałami i wiadomościami. Prawdziwe radio nie jest potrzebne.",
+  "reviewMode_confirm": "Włącz",
+  "reviewMode_cancel": "Anuluj",
+  "reviewMode_banner": "Tryb recenzji — dane symulowane",
+  "reviewMode_sendTest": "Wyślij wiadomość testową",
+  "reviewMode_testSent": "Wiadomość testowa wkrótce nadejdzie.",
+  "reviewMode_exit": "Wyjdź",
+  "reviewMode_connectFailed": "Nie udało się uruchomić trybu recenzji: {error}",
+  "settings_regionUseRadioDefault": "Domyślny region radia ({region})",
+  "settings_regionNoRegion": "Brak regionu (bez ograniczenia)",
+  "settings_regionRadioDefault": "Domyślny region radia",
+  "settings_regionRadioDefaultSubtitle": "Zapisany w radiu. Używają go floody wysłane bez regionu, z tej aplikacji i z każdej innej aplikacji połączonej z radiem.",
+  "settings_regionRadioDefaultUpdated": "Zaktualizowano domyślny region radia",
+  "settings_regionRadioDefaultFailed": "Nie udało się zaktualizować domyślnego regionu radia",
+  "appSettings_channelMinHopsCountRepeaters": "Licz także różne pobliskie przekaźniki",
+  "appSettings_channelMinHopsCountRepeatersSubtitle": "Uznaj wiadomość za wysłaną, gdy powtórzy ją {count, plural, =1{1 pobliski przekaźnik} few{{count} różne pobliskie przekaźniki} many{{count} różnych pobliskich przekaźników} other{{count} różnego pobliskiego przekaźnika}}, nawet jeśli nie słyszysz, jak idzie dalej.",
+  "appSettings_regionOnHopsLine": "Region obok liczby hopów",
+  "appSettings_regionOnHopsLineSubtitle": "Pokaż region wiadomości kanału w tym samym wierszu co liczba hopów, zamiast pod nią.",
+  "channels_regionRadioDefaultSuffix": "(domyślny radia)",
+  "channels_regionRadioDefaultApplies": "To radio wysyła floody bez regionu w swoim regionie domyślnym: {region}.",
+  "chat_futureTimestampWarning": "Czas tej wiadomości jest w przyszłości, więc zegar nadawcy może być błędny. Wiadomość jest pokazana w kolejności odbioru.",
+  "discoveredContacts_scan": "Skanuj pobliskie węzły",
+  "discoveredContacts_scanTitle": "Pobliskie węzły",
+  "discoveredContacts_scanExplanation": "Prosi węzły w bezpośrednim zasięgu radia o zgłoszenie się. Odpowiadają przekaźniki i czujniki. Serwery pokoi i companiony zwykle nie.",
+  "discoveredContacts_scanning": "Skanowanie…",
+  "discoveredContacts_scanFound": "{count, plural, =1{Znaleziono 1 węzeł} few{Znaleziono {count} węzły} many{Znaleziono {count} węzłów} other{Znaleziono {count} węzła}}",
+  "discoveredContacts_scanNoResults": "Żaden węzeł nie odpowiedział. Przekaźniki ograniczają częstotliwość odpowiedzi, więc spróbuj ponownie za minutę.",
+  "discoveredContacts_scanAgain": "Skanuj ponownie",
+  "discoveredContacts_scanFailed": "Nie udało się wysłać żądania skanowania.",
+  "discoveredContacts_scanSignal": "Sygnał {snr} dB · usłyszeli nas z {remoteSnr} dB",
+  "discoveredContacts_scanInContacts": "Już w kontaktach",
+  "discoveredContacts_scanNameLater": "Nazwa pojawi się po następnym ogłoszeniu",
+  "channels_waitForSync": "Kanały są jeszcze wczytywane z radia. Spróbuj ponownie po zakończeniu synchronizacji.",
+  "channels_nameTooLong": "Nazwa jest za długa (maks. {maxBytes} bajtów).",
+  "repeater_valueRequired": "{field}: wpisz wartość",
+  "losMapDetailTooltip": "Szczegóły mapy",
+  "losUnitsTooltip": "Jednostki",
+  "losDistance": "Odległość",
+  "losClearance": "Prześwit",
+  "losBlockedBy": "Zablokowane przez",
+  "losObstruction": "Przeszkoda",
+  "losDistanceFromA": "{distance} od A",
+  "losWorstBadge": "NAJGORSZA",
+  "losBlockedAmount": "Zablokowane {amount}",
+  "losFromA": "Od A",
+  "losFromB": "Od B",
+  "losElevation": "Wysokość",
+  "losCenterOnMap": "Wyśrodkuj na mapie",
+  "losStatusClear": "Wolne",
+  "losStatusMarginal": "Graniczne",
+  "losStatusBlocked": "Zablokowane",
+  "losStatusCheckingShort": "Sprawdzanie",
+  "losStatusNoResult": "Brak wyniku",
+  "losSelectedPill": "Wybrano",
+  "gif_tapToLoad": "Dotknij, aby wczytać GIF",
+  "gif_loadFailedRetry": "Nie można wczytać GIF-a\nDotknij, aby spróbować ponownie",
+  "qr_cameraPermissionDenied": "Odmowa dostępu do aparatu.\nWłącz dostęp do aparatu w ustawieniach.",
+  "qr_cameraUnsupported": "Aparat nie jest obsługiwany na tym urządzeniu.",
+  "qr_cameraStartFailed": "Nie udało się uruchomić aparatu.\n{details}",
+  "imageMessages_downloadFailedWithError": "Nie udało się pobrać modelu obrazów: {error}",
+  "map_nodeId": "ID",
+  "map_markerHideHint": "Ukryj: ukryty do czasu opuszczenia mapy.",
+  "map_markerRemoveHint": "Usuń: pozostaje ukryty, dopóki nie przywrócisz go z menu filtrów.",
+  "map_markerRemoved": "Znacznik usunięty",
+  "map_restoreRemovedMarkers": "Przywróć usunięte znaczniki",
+  "map_restoreRemovedMarkersSubtitle": "Usunięto: {count}",
+  "map_markersRestored": "Przywrócono znaczniki: {count}",
+  "map_setLocationConfirmTitle": "Ustawić jako Twoją lokalizację?",
+  "map_setLocationConfirmBody": "Twój węzeł będzie ogłaszał tę pozycję:\n{lat}, {lon}",
+  "map_setLocationAction": "Ustaw lokalizację",
+  "map_locationSetSuccess": "Zaktualizowano lokalizację węzła",
+  "map_locationSetFailed": "Urządzenie nie potwierdziło nowej lokalizacji. Spróbuj ponownie.",
+  "map_poiClusterTitle": "Znaczniki tutaj: {count}",
+  "map_poiClusterSemantics": "Udostępnione znaczniki: {count}. Dotknij, aby je wyświetlić.",
+  "map_youWithMarkers": "Ty i znaczniki: {count}",
+  "map_sharedMarkerSemantics": "Udostępniony znacznik: {label}",
+  "map_nodeMarkerSemantics": "{name}, {type}, {status}",
+  "mapCache_zoomLevel": "Zoom {zoom}",
+  "mapCache_sizeBytes": "{size} B",
+  "mapCache_sizeKilobytes": "{size} KB",
+  "mapCache_sizeMegabytes": "{size} MB",
+  "mapCache_sizeGigabytes": "{size} GB",
+  "mapCache_downloadCancelled": "Pobieranie anulowane. Zapisano w pamięci podręcznej kafelki: {count}.",
+  "mapCache_tooManyTilesTitle": "Obszar zbyt duży",
+  "mapCache_tooManyTiles": "Ten obszar wymaga {count} kafelków, co przekracza limit {max}. Wybierz mniejszy obszar lub zmniejsz maksymalny zoom.",
+  "chat_clearChatConfirm": "Spowoduje to usunięcie z tego urządzenia wszystkich wiadomości w tej rozmowie. Tej operacji nie można cofnąć.",
+  "channels_clearChatConfirm": "Spowoduje to usunięcie z tego urządzenia wszystkich wiadomości w tym kanale, w tym odebranych obrazów. Tej operacji nie można cofnąć.",
+  "channels_timeNow": "teraz",
+  "channels_timeMinutes": "{minutes} min",
+  "channels_timeHours": "{hours} godz.",
+  "channels_timeDays": "{days} d",
+  "channels_indexChip": "KN {index}",
+  "reaction_unknownSender": "Nieznany",
+  "pathMap_noSelfGpsFix": "Lokalny węzeł nie ma pozycji GPS",
+  "pathTrace_sendFailed": "Nie udało się wysłać śledzenia trasy: {error}",
+  "losErrorNoInternet": "Dane wysokościowe wymagają połączenia z internetem",
+  "losResultStale": "Nieaktualne: zmieniono wysokość anteny",
+  "losSnrValue": "{snr} dB",
+  "losFrequencyValue": "{frequency} MHz",
+  "losKFactorValue": "k={kFactor}",
+  "losEndpointA": "A",
+  "losEndpointB": "B",
+  "units_km": "km",
+  "units_mi": "mi",
+  "units_m": "m",
+  "units_ft": "ft",
+  "telemetry_loading": "Wczytywanie telemetrii…",
+  "telemetry_axisValue": "X: {x}, Y: {y}, Z: {z}",
+  "telemetry_colourValue": "R: {red}, G: {green}, B: {blue}",
+  "telemetry_altitudeValueFeet": "{feet} ft",
+  "telemetry_distanceValueFeet": "{feet} ft",
+  "settings_notConnectedError": "Brak połączenia z radiem. Połącz się i spróbuj ponownie.",
+  "settings_requiresConnection": "Połącz się z radiem, aby z tego korzystać",
+  "settings_txPowerInvalidRange": "Nieprawidłowa moc TX (od {min} do {max} dBm)",
+  "settings_contactSettingsSaved": "Zapisano ustawienia kontaktu",
+  "settings_batteryToggleHint": "Dotknij, aby przełączyć między procentami a napięciem",
+  "settings_publicKeyCopyHint": "Kopiuj klucz publiczny",
+  "settings_locationClearHelper": "Pozostaw oba pola puste, aby usunąć swoją lokalizację.",
+  "settings_locationCleared": "Lokalizacja usunięta",
+  "settings_regionFetchDiscovering": "Wyszukiwanie pobliskich przekaźników…",
+  "settings_regionFetchProgress": "Odpytywanie przekaźnika {current} z {total}…",
+  "settings_regionFetchNoRepeaters": "Nie są jeszcze znane żadne przekaźniki. Dodaj przekaźnik jako kontakt lub poczekaj, aż któryś się ogłosi, a następnie spróbuj ponownie.",
+  "settings_regionFetchNoneResponded": "Żaden pobliski przekaźnik nie odpowiedział. Zbliż się do przekaźnika i spróbuj ponownie.",
+  "appSettings_sourceSummary": "{label} - {description}",
+  "appSettings_routingSection": "Routing",
+  "appSettings_imageMessagesSection": "Wiadomości z obrazami",
+  "appSettings_showApiKey": "Pokaż klucz API",
+  "appSettings_hideApiKey": "Ukryj klucz API",
+  "translation_defaultModelName": "Model",
+  "translation_downloadProgressBytes": "{fileName}: {current} MB",
+  "translation_downloadProgressTotal": "{fileName}: {current} / {total} MB ({percent}%)",
+  "translation_downloadedModelDetails": "{size} MB • {source}",
+  "repeater_radioDisconnected": "Radio rozłączone",
+  "repeater_radioDisconnectedHint": "Połącz się ponownie z radiem, aby wysyłać polecenia, odświeżać lub zapisywać zmiany.",
+  "repeater_cliSend": "Wyślij polecenie",
+  "repeater_cliCopyTranscript": "Kopiuj zapis",
+  "repeater_cliShareTranscript": "Udostępnij zapis",
+  "repeater_cliTranscriptCopied": "Skopiowano zapis",
+  "repeater_cliClearHistoryConfirm": "Wyczyścić historię poleceń? Tej operacji nie można cofnąć.",
+  "repeater_cliSearchCommands": "Szukaj poleceń",
+  "repeater_cliNoMatchingCommands": "Brak pasujących poleceń",
+  "debugLog_clearConfirm": "Wyczyścić wszystkie wpisy dziennika? Tej operacji nie można cofnąć.",
+  "repeater_unsavedChangesTitle": "Niezapisane zmiany",
+  "repeater_unsavedChangesMessage": "Masz zmiany, które nie zostały zapisane w przekaźniku.",
+  "repeater_discardChanges": "Odrzuć",
+  "repeater_actionSentNoReply": "{action}: polecenie wysłane. Przekaźnik nie odpowiada na to polecenie.",
+  "repeater_invalidSettingValue": "{setting}: {value} jest nieprawidłowe",
+  "repeater_txPowerOutOfRange": "Moc TX {value} jest poza zakresem (od {min} do {max} dBm)",
+  "repeater_prvKeyLengthError": "Klucz prywatny musi mieć dokładnie {length} znaków szesnastkowych",
+  "contacts_advertFailed": "Nie udało się wysłać ogłoszenia",
+  "contacts_manageGroups": "Zarządzaj grupami",
+  "community_shortId": "ID: {id}…",
+  "tcpSectionTitle": "TCP / IP",
+  "tcpConnectedToHeader": "Połączono z",
+  "usbChooseSerialPort": "Wybierz port szeregowy",
+  "neighbors_durationSeconds": "{seconds} s",
+  "neighbors_durationMinutes": "{minutes} min {seconds} s",
+  "neighbors_durationHours": "{hours} godz. {minutes} min",
+  "scanner_getNodeTitle": "Potrzebujesz nowego węzła?",
+  "scanner_getNodeBody": "Wielkości portfela, z MeshCore, dwuzakresowy GPS, wodoodporny, bateria na 5 dni.",
+  "scanner_getNodeAction": "Kup tutaj",
+  "scanner_getNodeDisclosure": "Link partnerski: każdy zakup wspiera MeshCore Open.",
+  "networkMap_settingsSection": "Mapa sieci",
+  "networkMap_uploadTitle": "Udostępniaj to, co słyszy moje radio",
+  "networkMap_uploadExplanation": "Gdy ta opcja jest włączona, a radio połączone, aplikacja wysyła krótkie podsumowanie pakietów słyszanych przez radio do mapy sieci MeshCore Open, aby każdy mógł zobaczyć, jakie repeatery istnieją i jak się łączą. Wysyłany jest typ, trasa, liczba skoków, siła sygnału i rozmiar każdego pakietu oraz nazwy repeaterów i przybliżone lokalizacje z ich własnych rozgłoszeń. Nigdy nie wysyła treści wiadomości, informacji o tym, kto z kim rozmawia, nazw kanałów, Twoich kontaktów ani Twojej dokładnej pozycji: lokalizacje są zaokrąglane do około 2 km, a aplikacja co dzień dostaje nowy losowy identyfikator.",
+  "networkMap_whatWeCollect": "Co zbieramy",
+  "networkMap_promptTitle": "Pomóc w budowie mapy sieci?",
+  "networkMap_promptBody": "MeshCore Open może udostępniać to, co słyszy Twoje radio, publicznej mapie sieci na map.meshcoreopen.org, aby każdy mógł zobaczyć, jakie repeatery istnieją i jak się łączą.\n\nNigdy nie wysyła treści wiadomości, informacji o tym, kto z kim rozmawia, nazw kanałów, Twoich kontaktów ani Twojej dokładnej pozycji. Lokalizacje są zaokrąglane do około 2 km.",
+  "networkMap_promptSettingsHint": "Możesz to zmienić w dowolnym momencie w Ustawienia → Ustawienia aplikacji → Mapa sieci.",
+  "networkMap_promptAccept": "Udostępnij",
+  "networkMap_promptDecline": "Nie, dziękuję",
+  "networkMap_statusOff": "Wyłączone. Nic nie jest wysyłane.",
+  "networkMap_statusWaiting": "Włączone. Oczekiwanie na połączenie z radiem.",
+  "networkMap_statusNothingSent": "Włączone. Nic jeszcze nie wysłano.",
+  "networkMap_statusLastSent": "Ostatnio wysłano {time}. Pakiety dzisiaj: {count}.",
+  "@networkMap_statusLastSent": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "networkMap_sourceLocal": "Lokalna",
+  "networkMap_sourceOnline": "Online",
+  "networkMap_sourceBoth": "Obie",
+  "networkMap_zoomInHint": "Przybliż, aby zobaczyć mapę sieci online",
+  "networkMap_loadFailed": "Nie udało się wczytać mapy sieci online",
+  "networkMap_inYourContacts": "W Twoich kontaktach",
+  "networkMap_status": "Stan",
+  "networkMap_statusActive": "Aktywny w ostatniej godzinie",
+  "networkMap_statusRecent": "Słyszany w ostatniej dobie",
+  "networkMap_statusStale": "Dawno niesłyszany",
+  "networkMap_confirmed": "Potwierdzony",
+  "networkMap_singleSource": "Jedno źródło, jeszcze niepotwierdzone",
+  "networkMap_reports": "Raporty",
+  "networkMap_locationEstimated": "Przybliżona lokalizacja, oszacowana na podstawie tego, kto go słyszał",
+  "networkMap_locationAdvertised": "Przybliżona lokalizacja, z jego własnego rozgłoszenia",
+  "networkMap_heardByRadio": "Słyszany przez Twoje radio",
+  "networkMap_inYourArea": "W Twojej okolicy",
+  "networkMap_farAway": "Daleko. Zarządzanie tam nie dotrze.",
+  "networkMap_addToContacts": "Dodaj do kontaktów",
+  "networkMap_manage": "Zarządzaj",
+  "networkMap_addedToContacts": "Dodano do kontaktów",
+  "networkMap_addFailed": "Nie udało się dodać do kontaktów",
+  "networkMap_unnamed": "Repeater bez nazwy"
 }

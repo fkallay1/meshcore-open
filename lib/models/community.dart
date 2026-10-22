@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto;
+import 'package:meshcore_open/utils/keys.dart';
 
 import 'channel.dart';
 
@@ -37,11 +37,7 @@ class Community {
 
   /// Generate a new community with a random 32-byte secret
   factory Community.create({required String id, required String name}) {
-    final random = Random.secure();
-    final secret = Uint8List(32);
-    for (int i = 0; i < 32; i++) {
-      secret[i] = random.nextInt(256);
-    }
+    final secret = randomBytes(32);
     return Community(
       id: id,
       name: name,
@@ -80,12 +76,14 @@ class Community {
   factory Community.fromJson(Map<String, dynamic> json) {
     return Community(
       id: json['id'] as String,
-      name: json['name'] as String,
+      name: json['name'] as String? ?? '',
       secret: base64Decode(json['secret'] as String),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(json['created_at'] as int),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        json['created_at'] as int? ?? 0,
+      ),
       hashtagChannels:
           (json['hashtag_channels'] as List<dynamic>?)
-              ?.map((e) => e as String)
+              ?.whereType<String>()
               .toList() ??
           [],
     );
@@ -161,7 +159,7 @@ class Community {
   /// Normalize a hashtag name for consistent PSK derivation.
   /// Strips leading #, converts to lowercase, trims whitespace.
   static String _normalizeCommunityHashtag(String hashtag) {
-    return hashtag.replaceFirst(RegExp(r'^#'), '').toLowerCase().trim();
+    return hashtag.trim().replaceFirst(RegExp(r'^#'), '').toLowerCase().trim();
   }
 
   /// Returns true if this is the community's public channel
@@ -210,12 +208,7 @@ class Community {
 
   /// Create a copy of this community with a regenerated random secret
   Community withRegeneratedSecret() {
-    final random = Random.secure();
-    final newSecret = Uint8List(32);
-    for (int i = 0; i < 32; i++) {
-      newSecret[i] = random.nextInt(256);
-    }
-    return withNewSecret(newSecret);
+    return withNewSecret(randomBytes(32));
   }
 
   /// Extract secret from QR data (for updating existing community)

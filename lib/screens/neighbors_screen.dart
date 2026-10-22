@@ -14,6 +14,9 @@ import '../widgets/empty_state.dart';
 import '../widgets/mesh_ui.dart';
 import '../widgets/routing_sheet.dart';
 import '../helpers/snack_bar_builder.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/repeater_login_dialog.dart';
+import 'repeater_hub_screen.dart';
 
 class NeighborsScreen extends StatefulWidget {
   final Contact repeater;
@@ -31,12 +34,16 @@ class NeighborsScreen extends StatefulWidget {
 
 class _NeighborsScreenState extends State<NeighborsScreen> {
   static const int _reqNeighborsKeyLen = 4;
+  // Firmware packs results into a 130-byte buffer (simple_repeater/MyMesh.cpp).
+  static const int _reqNeighborsPageSize = 130 ~/ (_reqNeighborsKeyLen + 5);
   static const int _statusPayloadOffset = 8;
   static const int _statusStatsSize = 52;
   static const int _statusResponseBytes =
       _statusPayloadOffset + _statusStatsSize;
   Uint8List _tagData = Uint8List(4);
+  bool _awaitingSent = false;
   int _neighborCount = 0;
+  int _pageOffset = 0;
 
   bool _isLoading = false;
   bool _isLoaded = false;
@@ -82,34 +89,36 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
     _frameSubscription = connector.receivedFrames.listen((frame) {
       if (frame.isEmpty) return;
 
-      if (frame[0] == respCodeSent) {
+      if (frame[0] == respCodeSent && _awaitingSent && frame.length >= 6) {
+        _awaitingSent = false;
         _tagData = frame.sublist(2, 6);
       }
 
       // Check if it's a binary response
       if (frame[0] == pushCodeBinaryResponse &&
+          frame.length >= 6 &&
           listEquals(frame.sublist(2, 6), _tagData)) {
         _handleNeighborsResponse(connector, frame.sublist(6));
       }
     });
   }
 
-  String fmtDuration(double seconds) {
+  static String fmtDuration(AppLocalizations l10n, double seconds) {
     if (seconds < 60) {
-      return '${seconds.toStringAsFixed(1)}s';
+      return l10n.neighbors_durationSeconds(seconds.toStringAsFixed(1));
     }
 
     final int m = (seconds ~/ 60).toInt();
     final double s = seconds - (60 * m);
 
     if (m < 60) {
-      return '${m}m ${s.toStringAsFixed(0)}s';
+      return l10n.neighbors_durationMinutes(m, s.toStringAsFixed(0));
     }
 
     final int h = m ~/ 60;
     final int m2 = m % 60;
 
-    return '${h}h ${m2}m';
+    return l10n.neighbors_durationHours(h, m2);
   }
 
   static List<Map<String, dynamic>> parseNeighborsData(
@@ -148,7 +157,11 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
     final contacts = connector.allContactsUnfiltered;
     try {
       final neighborCount = buffer.readUInt16LE();
-      final parsedNeighbors = parseNeighborsData(buffer, buffer.readUInt16LE());
+      final page = parseNeighborsData(buffer, buffer.readUInt16LE());
+      final parsedNeighbors = [
+        if (_pageOffset > 0) ...?_parsedNeighbors,
+        ...page,
+      ];
       contacts.where((c) => c.type == advTypeRepeater).forEach((repeater) {
         for (var neighborData in parsedNeighbors) {
           final publicKey = neighborData['publicKey'];
@@ -166,13 +179,14 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
         _neighborCount = neighborCount;
       });
 
-      showDismissibleSnackBar(
-        context,
-        content: Text(context.l10n.neighbors_receivedData),
-        backgroundColor: Theme.of(context).colorScheme.tertiary,
-      );
+      _tagData = Uint8List(4);
       _statusTimeout?.cancel();
+      _recordStatusResult(true);
       if (!mounted) return;
+      if (page.isNotEmpty && parsedNeighbors.length < neighborCount) {
+        _loadNeighbors(offset: parsedNeighbors.length);
+        return;
+      }
       setState(() {
         _isLoading = false;
         _isLoaded = true;
@@ -183,9 +197,10 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
     }
   }
 
-  Future<void> _loadNeighbors() async {
+  Future<void> _loadNeighbors({int offset = 0}) async {
     if (_commandService == null) return;
 
+    _pageOffset = offset;
     setState(() {
       _isLoading = true;
       _isLoaded = false;
@@ -202,13 +217,14 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
         payload: Uint8List.fromList([
           reqTypeGetNeighbors,
           0x00,
-          0x0F,
-          0x00,
-          0x00,
+          _reqNeighborsPageSize,
+          offset & 0xFF,
+          (offset >> 8) & 0xFF,
           0x00,
           _reqNeighborsKeyLen,
         ]),
       );
+      _awaitingSent = true;
       await connector.sendFrame(frame);
 
       final pathLengthValue = selection.useFlood ? -1 : selection.hopCount;
@@ -234,6 +250,7 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
         _recordStatusResult(false);
       });
     } catch (e) {
+      _awaitingSent = false;
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -276,7 +293,7 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
@@ -296,7 +313,7 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
             ),
           ],
         ),
-        centerTitle: false,
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(isFloodMode ? Icons.waves : Icons.route),
@@ -324,7 +341,22 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
-              if (!_isLoaded &&
+              // First request still in flight: show progress, not "no data".
+              if (_isLoading && _parsedNeighbors == null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 64),
+                  child: Column(
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.common_loading,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                )
+              else if (!_isLoaded &&
                   !_hasData &&
                   (_parsedNeighbors == null || _parsedNeighbors!.isEmpty))
                 EmptyState(icon: Icons.wifi_find, title: l10n.neighbors_noData),
@@ -372,12 +404,15 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
 
     final snrColor = MeshTheme.snrColor(snr, blocked: false);
     final heardLabel = l10n.neighbors_heardAgo(
-      fmtDuration(lastHeardSeconds + 0.0),
+      fmtDuration(l10n, lastHeardSeconds + 0.0),
     );
+    // Only repeaters saved on the radio can be logged into.
+    final canOpen = contact != null && contact.isActive;
 
     return MeshCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       margin: const EdgeInsets.symmetric(vertical: 4),
+      onTap: canOpen ? () => _openNeighbor(contact) : null,
       child: Row(
         children: [
           AvatarCircle(
@@ -407,7 +442,7 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 13,
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -424,14 +459,42 @@ class _NeighborsScreenState extends State<NeighborsScreen> {
               Text(
                 '${snr.toStringAsFixed(1)} dB',
                 style: MeshTheme.mono(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: snrColor,
                 ),
               ),
             ],
           ),
+          if (canOpen) ...[
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, size: 24, color: scheme.onSurfaceVariant),
+          ],
         ],
+      ),
+    );
+  }
+
+  /// Opens a resolved neighbor the same way the contacts list does:
+  /// repeaters go through the login dialog to the repeater hub.
+  void _openNeighbor(Contact contact) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => RepeaterLoginDialog(
+        repeater: contact,
+        onLogin: (password, isAdmin) {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RepeaterHubScreen(
+                repeater: contact,
+                password: password,
+                isAdmin: isAdmin,
+              ),
+            ),
+          );
+        },
       ),
     );
   }

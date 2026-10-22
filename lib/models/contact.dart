@@ -10,6 +10,7 @@ class Contact {
   final int flags;
   final int pathLength; // -1 = flood, 0+ = direct hops (from device)
   final Uint8List path; // Path bytes from device
+  final int pathHashWidth; // Bytes per hop in [path], as learned by the device
   final int?
   pathOverride; // User's path override: -1 = force flood, null = auto
   final Uint8List? pathOverrideBytes; // User's path override bytes
@@ -19,7 +20,6 @@ class Contact {
   final DateTime lastMessageAt;
   final DateTime? lastModified;
   final bool isActive;
-  final bool wasPulled;
   final Uint8List? rawPacket;
 
   Contact({
@@ -29,6 +29,7 @@ class Contact {
     this.flags = 0,
     required this.pathLength,
     required this.path,
+    this.pathHashWidth = 1,
     this.pathOverride,
     this.pathOverrideBytes,
     this.latitude,
@@ -37,7 +38,6 @@ class Contact {
     this.lastModified,
     DateTime? lastMessageAt,
     this.isActive = true,
-    this.wasPulled = false,
     this.rawPacket,
   }) : lastMessageAt = lastMessageAt ?? lastSeen;
 
@@ -81,6 +81,7 @@ class Contact {
     int? flags,
     int? pathLength,
     Uint8List? path,
+    int? pathHashWidth,
     int? pathOverride,
     Uint8List? pathOverrideBytes,
     bool clearPathOverride = false,
@@ -99,6 +100,7 @@ class Contact {
       flags: flags ?? this.flags,
       pathLength: pathLength ?? this.pathLength,
       path: path ?? this.path,
+      pathHashWidth: pathHashWidth ?? this.pathHashWidth,
       pathOverride: clearPathOverride
           ? null
           : (pathOverride ?? this.pathOverride),
@@ -119,7 +121,7 @@ class Contact {
   String pathFormattedIdList(int hashByteWidth) {
     final pathBytes = pathBytesForDisplay;
     if (pathBytes.isEmpty) return '';
-    final w = hashByteWidth.clamp(1, 8);
+    final w = hashByteWidth.clamp(1, 4);
     final parts = <String>[];
     for (int i = 0; i < pathBytes.length; i += w) {
       final end = (i + w) <= pathBytes.length ? (i + w) : pathBytes.length;
@@ -138,6 +140,13 @@ class Contact {
 
   String get shortPubKeyHex {
     return "<${publicKeyHex.substring(0, 8)}...${publicKeyHex.substring(publicKeyHex.length - 8)}>";
+  }
+
+  /// Infers bytes per hop for stored paths that predate [pathHashWidth].
+  static int inferPathHashWidth(int hopCount, int byteLen) {
+    if (hopCount <= 0 || byteLen % hopCount != 0) return 1;
+    final width = byteLen ~/ hopCount;
+    return width >= 1 && width <= 3 ? width : 1;
   }
 
   Uint8List get pathBytesForDisplay {
@@ -166,8 +175,18 @@ class Contact {
       final type = reader.readByte();
       final flags = reader.readByte();
       final pathLen = reader.readByte();
-      final safePathLen = pathLen > 0
-          ? (pathLen > maxPathSize ? maxPathSize : pathLen)
+      int hopCount = 0;
+      int byteLen = 0;
+      int width = 1;
+      if (pathLen == 0xFF) {
+        hopCount = -1;
+      } else {
+        width = ((pathLen & 0xC0) >> 6) + 1;
+        hopCount = pathLen & 0x3F;
+        byteLen = hopCount * width;
+      }
+      final safePathLen = byteLen > 0
+          ? (byteLen > maxPathSize ? maxPathSize : byteLen)
           : 0;
       final pathBytes = reader.readBytes(maxPathSize).sublist(0, safePathLen);
       final name = reader.readCStringGreedy(maxNameSize);
@@ -213,8 +232,9 @@ class Contact {
         name: name.isEmpty ? 'Unknown' : name,
         type: type,
         flags: flags,
-        pathLength: (pathLen == 0xFF || pathLen > maxPathSize) ? -1 : pathLen,
+        pathLength: hopCount,
         path: pathBytes,
+        pathHashWidth: width,
         latitude: lat,
         longitude: lon,
         lastSeen: DateTime.fromMillisecondsSinceEpoch(

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:meshcore_open/connector/meshcore_protocol.dart';
+import 'package:meshcore_open/services/image_chunk_transport.dart' show buildSendChannelDataFrame;
 
 void main() {
   test('buildSendChannelDataFrame matches python META frame (zerohop, idx=1)', () {
@@ -12,7 +12,8 @@ void main() {
     final data = BytesBuilder()
       ..add(_u32le(ts))
       ..add(meta);
-    final frame = buildSendChannelDataFrame(1, 0, Uint8List(0), 0x07A0, data.toBytes());
+    final frame = buildSendChannelDataFrame(
+        channelIndex: 1, pathLen: 0, path: Uint8List(0), dataType: 0x07A0, payload: data.toBytes());
     expect(_toHex(frame), g['channel_data_frame_hex'] as String);
   });
 }

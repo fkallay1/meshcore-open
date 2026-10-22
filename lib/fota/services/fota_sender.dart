@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart' as c;
-import '../../connector/meshcore_protocol.dart';
+// CMD_SEND_CHANNEL_DATA (62) builder lives upstream now (image transfer);
+// same wire format as test_nrf-fota/fota_sender_mcpy.py companion_chan_data_frame.
+import '../../services/image_chunk_transport.dart' show buildSendChannelDataFrame;
 import 'fota_ed25519_expanded.dart';
 import 'fota_payload_builder.dart';
 import '../models/fota_types.dart';
@@ -119,7 +121,12 @@ class FotaSender {
         throw StateError('GRP_DATA data_len ${data.length} > $kGrpDataMaxLen');
       }
       await _sink.sendFrame(
-          buildSendChannelDataFrame(cfg.channelIdx, pathLen, path, kFotaMagic, data));
+          buildSendChannelDataFrame(
+              channelIndex: cfg.channelIdx,
+              pathLen: pathLen,
+              path: path,
+              dataType: kFotaMagic,
+              payload: data));
       if (cfg.delayMs > 0) await Future.delayed(Duration(milliseconds: cfg.delayMs));
     }
 

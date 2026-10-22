@@ -110,7 +110,7 @@
   "settings_actions": "Ações",
   "settings_deleteAllPaths": "Delete All Paths",
   "settings_deleteAllPathsSubtitle": "Clear all path data from contacts.",
-  "settings_sendAdvertisement": "Enviar Publicidade",
+  "settings_sendAdvertisement": "Enviar Anúncio",
   "settings_sendAdvertisementSubtitle": "Presença de transmissão agora",
   "settings_advertisementSent": "Anúncio enviado",
   "settings_syncTime": "Tempo de Sincronização",
@@ -453,6 +453,8 @@
       }
     }
   },
+  "chat_noRadioLocation": "O seu rádio não tem localização definida",
+  "chat_shareMyLocation": "Compartilhar minha localização",
   "chat_location": "Localização",
   "chat_sendMessageTo": "Enviar uma mensagem para {contactName}",
   "@chat_sendMessageTo": {
@@ -485,6 +487,7 @@
       }
     }
   },
+  "chat_selectSendAction": "Selecionar ação de envio",
   "chat_sendGif": "Enviar GIF",
   "chat_reply": "Responder",
   "chat_addReaction": "Adicionar Reação",
@@ -580,8 +583,8 @@
   "chat_forceFloodMode": "Modo de Inundação Forçado",
   "chat_recentAckPaths": "Rotas de ACK Recentes (toque para usar):",
   "chat_pathHistoryFull": "O histórico está cheio. Remova entradas para adicionar novas.",
-  "chat_hopSingular": "pule",
-  "chat_hopPlural": "salta",
+  "chat_hopSingular": "salto",
+  "chat_hopPlural": "saltos",
   "chat_hopsCount": "{count} {count, plural, =1{salto} other{saltos}}",
   "@chat_hopsCount": {
     "placeholders": {
@@ -688,6 +691,7 @@
   "map_shareMarkerHere": "Compartilhar marcador aqui",
   "map_pinLabel": "Rótulo de marcador",
   "map_label": "Rótulo",
+  "map_labelUpdateHint": "Usar o mesmo rótulo de antes atualizará o marcador para os destinatários do MeshCore Open.",
   "map_pointOfInterest": "Ponto de interesse",
   "map_sendToContact": "Enviar para o contato",
   "map_sendToChannel": "Enviar para o canal",
@@ -1172,7 +1176,7 @@
   "repeater_advancedSettings": "Avançado",
   "repeater_advancedSettingsSubtitle": "Controles de ajuste para operadores experientes",
   "repeater_pathHashMode": "Modo de hash de caminho",
-  "repeater_pathHashModeHelper": "Bytes utilizados para codificar o ID deste repetidor nas tags de caminho/detecção de loop. 0=1 byte (256 IDs, até 64 saltos), 1=2 bytes (65.000 IDs, até 32 saltos), 2=3 bytes (16 milhões de IDs, até 21 saltos). As versões 1.13 e anteriores do firmware não suportam caminhos multi-byte — apenas funcionam uma vez após a ativação da rede (a partir da versão 1.14+).",
+  "repeater_pathHashModeHelper": "Bytes usados para codificar o ID deste repetidor nas tags de caminho flood/detecção de loop. 0=1 byte (256 IDs, até 64 saltos), 1=2 bytes (65.000 IDs, até 32 saltos), 2=3 bytes (16 milhões de IDs, até 21 saltos). O firmware anterior à v1.14 sempre usava caminhos de 1 byte; v1.14 e versões mais recentes podem ser configuradas para caminhos de 2 ou 3 bytes.",
   "repeater_txDelay": "Atraso na entrega em Flood, TX",
   "repeater_txDelayHelper": "Ajuste de espaçamento para tráfego de inundações, como um multiplicador do tempo de transmissão (0-2, padrão 0,5). Quanto maior, menos colisões, mas uma entrega mais lenta.",
   "repeater_directTxDelay": "Atraso direto no sinal TX",
@@ -1287,7 +1291,7 @@
   "repeater_cliHelpSetAgcResetInterval": "Define o intervalo para resetar o Controlador de Ganho Automático. Defina como 0 para desativar.",
   "repeater_cliHelpSetMultiAcks": "Habilita ou desabilita a funcionalidade de \"double ACKs\".",
   "repeater_cliHelpSetAdvertInterval": "Define o intervalo do timer em minutos para enviar um pacote de anúncio local (sem salto). Defina como 0 para desativar.",
-  "repeater_cliHelpSetFloodAdvertInterval": "Define o intervalo do timer em horas para enviar um pacote de anúncio em massa. Defina como 0 para desativar.",
+  "repeater_cliHelpSetFloodAdvertInterval": "Define o intervalo do timer em horas para enviar um pacote de anúncio de inundação. Defina como 0 para desativar.",
   "repeater_cliHelpSetGuestPassword": "Define/atualiza a senha do convidado. (para repetidores, os logins de convidados podem enviar a solicitação \"Obter Estatísticas\")",
   "repeater_cliHelpSetName": "Define o nome do anúncio.",
   "repeater_cliHelpSetLat": "Define a latitude do mapa de anúncios. (graus decimais)",
@@ -1315,8 +1319,8 @@
   "repeater_cliHelpRegionGet": "Procura região com o prefixo de nome dado (ou \"\\\" para o âmbito global). Responde com \"-> nome-região (nome-pai) 'F'\"",
   "repeater_cliHelpRegionPut": "Adiciona ou atualiza uma definição de região com o nome fornecido.",
   "repeater_cliHelpRegionRemove": "Remove uma definição de região com o nome fornecido. (deve corresponder exatamente e não ter regiões filhas)",
-  "repeater_cliHelpRegionAllowf": "Define a permissão de 'F'luido para a região especificada. ('' para o escopo global/legado)",
-  "repeater_cliHelpRegionDenyf": "Remove a permissão de \"F\"luido para a região especificada. (NOTA: neste momento NÃO é aconselhável usar isso no escopo global/legado!!)",
+  "repeater_cliHelpRegionAllowf": "Define a permissão de 'F'lood para a região especificada. ('' para o escopo global/legado)",
+  "repeater_cliHelpRegionDenyf": "Remove a permissão de \"F\"lood para a região especificada. (NOTA: neste momento NÃO é aconselhável usar isso no escopo global/legado!!)",
   "repeater_cliHelpRegionHome": "Responde com a região 'home' atual. (Observação aplicada em nenhum lugar ainda, reservado para o futuro)",
   "repeater_cliHelpRegionHomeSet": "Define a região 'casa'.",
   "repeater_cliHelpRegionSave": "Persiste a lista/mapa de regiões para o armazenamento.",
@@ -1533,7 +1537,7 @@
       }
     }
   },
-  "channelPath_noHopDetailsAvailable": "Não estão disponíveis detalhes de voo para este pacote.",
+  "channelPath_noHopDetailsAvailable": "Não estão disponíveis detalhes de salto para este pacote.",
   "channelPath_unknownRepeater": "Repetidor Desconhecido",
   "listFilter_tooltip": "Filtrar e ordenar",
   "listFilter_sortBy": "Ordenar por",
@@ -1790,7 +1794,7 @@
   "settings_gpxExportAllContacts": "Todos os locais de contatos",
   "settings_gpxExportShareText": "Dados do mapa exportados do meshcore-open",
   "settings_gpxExportShareSubject": "meshcore-open exportação de dados de mapa GPX",
-  "pathTrace_someHopsNoLocation": "Um ou mais dos lúpulos estão sem localização!",
+  "pathTrace_someHopsNoLocation": "Um ou mais dos saltos estão sem localização!",
   "map_runTrace": "Executar Traçado de Caminho",
   "map_pathTraceCancelled": "Rastreamento de caminho cancelado.",
   "pathTrace_clearTooltip": "Limpar caminho",
@@ -2016,7 +2020,54 @@
   "discoveredContacts_deleteContact": "Excluir Contato",
   "discoveredContacts_contactAdded": "Contato adicionado",
   "discoveredContacts_addContact": "Adicionar Contato",
+  "discoveredContacts_export": "Exportar contatos descobertos",
+  "discoveredContacts_import": "Importar contatos descobertos",
+  "discoveredContacts_exported": "Contatos descobertos exportados para {path}.",
+  "@discoveredContacts_exported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveredContacts_exportFailed": "Falha ao exportar contatos descobertos: {error}",
+  "@discoveredContacts_exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "discoveredContacts_imported": "{count} contatos descobertos importados.",
+  "@discoveredContacts_imported": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "discoveredContacts_importNoContacts": "Nenhum contato encontrado no arquivo de importação.",
+  "discoveredContacts_importInvalidFile": "O arquivo não é uma exportação de contatos descobertos.",
+  "discoveredContacts_importSummary": "{imported} contatos descobertos importados. {skipped} já conhecidos e {invalid} entradas ilegíveis foram ignorados.",
+  "discoveredContacts_importTooLarge": "O arquivo de importação é grande demais (máximo {maxMb} MB).",
+  "discoveredContacts_importFailed": "Falha ao importar contatos descobertos: {error}",
+  "@discoveredContacts_importFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "contactsSettings_overwriteOldestSubtitle": "Quando a lista de contatos estiver cheia, o contato mais antigo não favoritado será substituído.",
+  "contactsSettings_evictDiscoveredContactsTitle": "Remover contatos descobertos",
+  "contactsSettings_evictDiscoveredContactsSubtitle": "Quando ativado, o aplicativo remove os contatos descobertos mais antigos assim que a lista de descobertos atingir o limite de {limit} entradas.",
+  "@contactsSettings_evictDiscoveredContactsSubtitle": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "common_deleteAll": "Excluir Tudo",
   "discoveredContacts_deleteContactAll": "Excluir Todos os Contatos Descobertos",
   "discoveredContacts_deleteContactAllContent": "Tem certeza de que deseja excluir todos os contatos descobertos?",
@@ -2298,8 +2349,8 @@
   "repeater_cliHelpGetAgcResetInterval": "Mostra o intervalo de reinicialização do AGC em segundos.",
   "repeater_cliHelpGetMultiAcks": "Indica se o modo de confirmação dupla está ativado (1) ou desativado (0).",
   "repeater_cliHelpGetAllowReadOnly": "Indica se o acesso somente de leitura para os convidados está habilitado.",
-  "repeater_cliHelpGetAdvertInterval": "Indica o intervalo de publicidade local em minutos.",
-  "repeater_cliHelpGetFloodAdvertInterval": "Mostra o intervalo de tempo da publicidade relacionada às inundações, em horas.",
+  "repeater_cliHelpGetAdvertInterval": "Indica o intervalo de anúncio local em minutos.",
+  "repeater_cliHelpGetFloodAdvertInterval": "Mostra o intervalo do anúncio de inundação, em horas.",
   "repeater_cliHelpGetGuestPassword": "Mostra a senha de convidado configurada.",
   "repeater_cliHelpGetLat": "Mostra a latitude configurada.",
   "repeater_cliHelpGetLon": "Mostra a longitude configurada.",
@@ -2328,8 +2379,8 @@
   "repeater_cliHelpSensorList": "Lista todas as configurações de sensores personalizadas, organizadas em páginas a partir de um índice de início opcional.",
   "repeater_cliHelpRegionDefault": "Mostra o escopo de região padrão atual.",
   "repeater_cliHelpRegionDefaultSet": "Define o escopo regional padrão. Use \"<null>\" para limpar.",
-  "repeater_cliHelpRegionListAllowed": "Lista as regiões que permitem o tráfego em áreas de risco de inundações.",
-  "repeater_cliHelpRegionListDenied": "Lista as regiões que restringem o tráfego em áreas de risco de inundações.",
+  "repeater_cliHelpRegionListAllowed": "Lista as regiões que permitem o tráfego por inundação.",
+  "repeater_cliHelpRegionListDenied": "Lista as regiões que negam o tráfego por inundação.",
   "repeater_cliHelpStatsPackets": "(Apenas para séries) Apresenta estatísticas em nível de pacotes.",
   "repeater_cliHelpStatsRadio": "(Apenas para transmissões em série) Exibe estatísticas de rádio.",
   "repeater_cliHelpStatsCore": "(Apenas para dispositivos em série) Exibe estatísticas básicas do firmware.",
@@ -2491,9 +2542,9 @@
   "routing_neverWorked": "nunca confirmado",
   "routing_floodDelivery": "Entrega em áreas afetadas por inundações",
   "pathEditor_title": "Criar Caminho",
-  "pathEditor_hopCounter": "{count} de 64 gramas de lúpulo",
-  "pathEditor_noHops": "Ainda não há lúpulos adicionados. Clique nos repetidores abaixo para adicioná-los na ordem desejada, ou salve sem adicionar lúpulos para enviar diretamente.",
-  "pathEditor_addHops": "Adicione os lúpulos na seguinte ordem.",
+  "pathEditor_hopCounter": "{count} de 64 saltos",
+  "pathEditor_noHops": "Ainda não há saltos adicionados. Clique nos repetidores abaixo para adicioná-los na ordem desejada, ou salve sem adicionar saltos para enviar diretamente.",
+  "pathEditor_addHops": "Adicione os saltos na seguinte ordem.",
   "pathEditor_searchRepeaters": "Encontrar repetidores",
   "pathEditor_advancedHex": "Avançado: caminho hexadecimal bruto",
   "pathEditor_hexLabel": "Prefixos hexadecimais",
@@ -2503,7 +2554,7 @@
   "pathEditor_tooManyHops": "Máximo de 64 saltos",
   "routing_deliveryCounts": "{successes} delivered, {failures} failed",
   "pathEditor_usePath": "Utilize este caminho.",
-  "pathEditor_removeHop": "Remova o lúpulo",
+  "pathEditor_removeHop": "Remova o salto",
   "pathEditor_unknownHop": "Repetidor desconhecido",
   "map_zoomIn": "Ampliar",
   "map_zoomOut": "Ampliar",
@@ -2605,5 +2656,659 @@
   "pathMap_noLocation": "Sem localização",
   "pathMap_followPacket": "Fixar vista no pacote",
   "pathMap_unfollowPacket": "Liberar vista do pacote",
-  "pathMap_gpsCount": "{confirmed}/{total} GPS"
+  "pathMap_gpsCount": "{confirmed}/{total} GPS",
+  "@settings_deleteRegionConfirm": {
+    "placeholders": {
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "@channels_regionSetTo": {
+    "placeholders": {
+      "region": {
+        "type": "String",
+        "example": "de-mitte"
+      }
+    }
+  },
+  "@chat_imagePickFailed": {
+    "description": "Shown when picking or reading a photo to send fails"
+  },
+  "@repeater_pubKeyPrefixHelper": {
+    "placeholders": {
+      "tries": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_packetsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_range": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_longSendBody": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_sentConfirmation": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_sendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_sendingProgress": {
+    "placeholders": {
+      "sent": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_senderPrefix": {
+    "placeholders": {
+      "prefix": {
+        "type": "String"
+      }
+    }
+  },
+  "@receivedImage_incoming": {
+    "placeholders": {
+      "received": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_incomplete": {
+    "placeholders": {
+      "received": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@receivedImage_awaiting": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      },
+      "packets": {
+        "type": "int"
+      }
+    }
+  },
+  "@imageSend_secondsValue": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageSend_minutesSecondsValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_regionSettings": "Regiões",
+  "settings_regionSettingsSubtitle": "Gerenciar regiões armazenadas",
+  "settings_regionManagement_screenTitle": "Gestão de Região",
+  "settings_regionNameHint": "Nome da região",
+  "settings_regionAddRegion": "Adicionar região",
+  "settings_regionFetchRegions": "Regiões de obtenção a partir de repetidores",
+  "settings_regionFetchRegionsFail": "Nenhuma região foi encontrada",
+  "settings_regionFetchRegionsAlreadyExists": "Esta região já foi adicionada",
+  "settings_regionName": "Nome da Região",
+  "settings_regionDeleted": "Região excluída",
+  "settings_deleteRegion": "Excluir Região",
+  "settings_deleteRegionConfirm": "Remover \"{region}\" da lista de regiões?",
+  "settings_infoHardware": "Hardware",
+  "settings_infoFirmware": "Firmware",
+  "repeater_pathHashModeOption0": "0 - 1 byte",
+  "repeater_pathHashModeOption1": "1 - 2 bytes",
+  "repeater_pathHashModeOption2": "2 - 3 bytes",
+  "repeater_pathHashModeOption3": "3 - 4 bytes",
+  "appSettings_batteryLipoHv": "LiPo HV (3,0-4,35V)",
+  "channels_regionSetTo": "Região: {region}",
+  "channels_regionNotSet": "Região: nenhuma",
+  "channels_regionSelect_Title": "Escolha uma região",
+  "channels_clearRegion": "Região desimpedida",
+  "chat_sendImageLora": "Enviar imagem via MeshCore",
+  "chat_imagePickFailed": "Não consegui abrir essa imagem",
+  "chat_receivedGif": "Recebi um GIF",
+  "repeater_keySettings": "Alterar Chaves de Identidade",
+  "repeater_keySettingsSubtitle": "Altere a chave pública/chave privada",
+  "repeater_prvKey": "Chave privada",
+  "repeater_prvKeyHelper": "Uma nova chave privada para o repetidor, uma string hexadecimal de 128 caracteres.",
+  "repeater_generatePrvKey": "Gere um par de chaves aleatório",
+  "repeater_stopGeneratingPrvKey": "Interrompa a busca por par de chaves",
+  "repeater_pubKey": "Chave pública",
+  "repeater_pubKeyHelper": "Esta é a chave pública que acompanha a chave privada gerada. Você não pode definir isso diretamente.",
+  "repeater_pubKeyPrefix": "Prefixo desejado",
+  "repeater_pubKeyPrefixHelper": "Encontre uma chave pública que comece com esses dígitos hexadecimais. Número esperado de tentativas: {tries}.",
+  "imageMessages_enableTitle": "Mensagens de imagem",
+  "imageMessages_enableSubtitle": "Envie as imagens pela malha. Requer o download de um modelo de imagem único.",
+  "imageMessages_modelSectionTitle": "Modelo de imagem",
+  "imageMessages_downloadModel": "Download",
+  "imageMessages_cancelDownload": "Cancelar",
+  "imageMessages_removeModel": "Remover modelo",
+  "imageMessages_modelReady": "Pronto",
+  "imageMessages_modelNotPublished": "Ainda não publicado — esta versão não pode baixá-lo.",
+  "imageMessages_downloadFailed": "O modelo de imagem não pôde ser baixado.",
+  "imageMessages_autoProcessTitle": "Processar imagens automaticamente",
+  "imageMessages_autoProcessSubtitle": "Reconstrua cada imagem assim que ela chegar. Utiliza cerca de 2 GB de memória por segundo; dispense a reconstrução com um toque.",
+  "imageSend_title": "Enviar imagem",
+  "imageSend_cropNote": "Redimensionado para 512 × 512 · a proporção de aspecto não foi preservada",
+  "imageSend_originalSize": "Texto Original",
+  "imageSend_onAirSize": "Ao ar",
+  "imageSend_quality": "Qualidade",
+  "imageSend_qualityStandard": "Padrão",
+  "imageSend_qualityHigh": "Alto",
+  "imageSend_packetsLabel": "Pacotes",
+  "imageSend_airtimeLabel": "Tempo em transmissão",
+  "imageSend_sizeLabel": "Carga útil",
+  "imageSend_packetsCount": "{count} {count, plural, =1{pacote} other{pacotes}}",
+  "imageSend_range": "{min}–{max}",
+  "imageSend_unknownValue": "—",
+  "imageSend_radioUnknownTitle": "Configurações de rádio desconhecidas",
+  "imageSend_radioUnknownBody": "Conecte-se a um dispositivo para que o horário de transmissão possa ser calculado.",
+  "imageSend_longSendTitle": "Transmissão longa",
+  "imageSend_longSendBody": "Isso manterá o canal por cerca de {duration}.",
+  "imageSend_floodNote": "Roteamento de inundação: cada repetidor na faixa retransmite cada pacote, fazendo com que o canal permaneça ocupado por mais tempo do que isso.",
+  "imageSend_parityTitle": "Pacote de recuperação",
+  "imageSend_paritySubtitle": "Um pacote extra. As mensagens em grupo não são reconhecidas, assim permitindo que o destinatário reconstrua a imagem caso um pacote seja perdido.",
+  "imageSend_send": "Enviar",
+  "imageSend_cancel": "Cancelar",
+  "imageSend_encodeFailed": "Esta imagem não pode ser codificada.",
+  "imageSend_codecDownloading": "O modelo de imagem ainda está baixando.",
+  "imageSend_codecUnavailable": "O envio de imagem não está disponível neste dispositivo.",
+  "imageSend_codecDisabled": "As mensagens de imagem estão desativadas nas configurações.",
+  "imageSend_deviceUnsupported": "Este rádio não pode enviar pacotes de imagem. Conecte um dispositivo com firmware companheiro versão 13 ou superior.",
+  "imageSend_directMessagesUnsupported": "As imagens viajam como dados em grupo, portanto, só podem ser enviadas para um canal — não em mensagem direta.",
+  "imageSend_tooLarge": "Essa imagem foi codificada em mais pacotes do que o formato de malha permite.",
+  "imageSend_sentConfirmation": "Imagem enviada como {count} {count, plural, =1{pacote} other{pacotes}}.",
+  "imageSend_sendFailed": "A imagem não pôde ser enviada: {error}",
+  "imageSend_sendingProgress": "Envio da imagem — pacote {sent} de {total}",
+  "receivedImage_senderPrefix": "Nó {prefix}",
+  "receivedImage_incoming": "{received} de {total} pacotes",
+  "receivedImage_queued": "Aguardando para decodificar",
+  "receivedImage_tapToDecode": "Toque para decodificar",
+  "receivedImage_decoding": "Reconstruindo… cerca de 1 segundo",
+  "receivedImage_incomplete": "Imagem incompleta — {received} de {total} pacotes chegaram",
+  "receivedImage_corrupt": "A imagem não pôde ser reconstruída",
+  "receivedImage_decoderMissing": "Imagem recebida — decodificação de imagem incorreta",
+  "receivedImage_evicted": "Imagem não armazenada",
+  "receivedImage_retry": "Tente novamente",
+  "receivedImage_decodeAgain": "Decodifique novamente",
+  "receivedImage_openSettings": "Configurar",
+  "receivedImage_tapToProcess": "Toque para processar",
+  "receivedImage_awaiting": "{bytes} bytes · {packets} {packets, plural, =1{pacote} other{pacotes}}",
+  "imageSend_secondsValue": "{seconds} segundos",
+  "imageSend_minutesSecondsValue": "{minutes} min {seconds} s",
+  "channels_noFreeSlots": "Todos os slots de canal estão em uso",
+  "chat_longMessageRetryNote": "Mais de 158 bytes: enviado no máximo {count} vezes",
+  "reaction_report": "Reações com Emoji",
+  "repeater_bridgeNote": "Disponível apenas em firmware compilado com uma ponte (RS232 ou ESP-NOW).",
+  "repeater_cliHelpGetFloodMaxAdvert": "Mostra o número máximo de saltos para os anúncios de inundação.",
+  "repeater_cliHelpGetFloodMaxUnscoped": "Mostra o número máximo de saltos para pacotes de inundação sem escopo regional.",
+  "repeater_cliHelpGetRadioFemRxGain": "Mostra se o ganho RX do módulo frontal de LoRa está ativado.",
+  "repeater_cliHelpGetRadioFemTxGain": "Mostra se o ganho TX do módulo frontal de LoRa está ativado.",
+  "repeater_cliHelpRegionDef": "Define uma cadeia de regiões em um único comando: cada nome é adicionado sob o anterior; \"name,parent\" adiciona o nome e continua sob o pai indicado. Responde com a lista de regiões.",
+  "repeater_cliHelpSetFloodMaxAdvert": "Define o número máximo de saltos para encaminhar anúncios de inundação (0-64).",
+  "repeater_cliHelpSetFloodMaxUnscoped": "Define o número máximo de saltos para encaminhar pacotes de inundação sem escopo regional (0-64).",
+  "repeater_cliHelpSetRadioFemRxGain": "Ativa ou desativa o ganho RX (LNA) do módulo frontal de LoRa. Placas sem esse módulo respondem \"Error: unsupported\".",
+  "repeater_cliHelpSetRadioFemTxGain": "Ativa ou desativa o ganho TX (PA) do módulo frontal de LoRa. Placas sem esse módulo respondem \"Error: unsupported\".",
+  "repeater_cliRegionLoadActive": "Modo de carregamento de regiões: envie um nome de região por linha, indentado com espaços sob sua região pai (adicione F após o nome para permitir inundação). As linhas não recebem resposta. Envie uma linha vazia para terminar e depois \"region save\" para salvar o resultado.",
+  "repeater_cliRegionLoadEnd": "(fim do carregamento de regiões)",
+  "repeater_cliRegionLoadHint": "Linha de região, ou vazia para terminar",
+  "repeater_frequencyInvalid": "Frequência inválida (150-2500 MHz)",
+  "repeater_frequencyRangeHelper": "150-2500 MHz",
+  "repeater_recvErrors": "Erros de Recepção",
+  "repeater_txPowerRangeHelper": "-9 a 30 dBm",
+  "room_postsPushed": "Publicações Enviadas",
+  "room_postsStored": "Publicações",
+  "settings_publicKeyCopied": "Chave pública copiada",
+  "settings_radioSettingsNotApplied": "O rádio não aplicou estas configurações",
+  "urlImage_enable": "Ativar imagens de URL",
+  "urlImage_possible": "Possível imagem de URL; ative-a em Configurações.",
+  "@chat_longMessageRetryNote": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_failedChannel": "O seu rádio não conseguiu enviar esta mensagem.",
+  "messageStatus_resending": "Ainda não foi ouvido por repetidores suficientes. Reenviado {resends} de {maxResends} vezes.",
+  "@messageStatus_resending": {
+    "placeholders": {
+      "resends": {
+        "type": "int"
+      },
+      "maxResends": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_hopsNotReached": "Enviado, mas ouvido de volta por apenas {hops} de {required} repetidores. Pode ter chegado mais longe do que o seu rádio consegue ouvir.",
+  "@messageStatus_hopsNotReached": {
+    "placeholders": {
+      "hops": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "messageStatus_sentChannel": "Enviado. Os canais não confirmam a entrega, portanto isto significa apenas que o seu rádio o enviou.",
+  "messageStatus_sentDirect": "Enviado. À espera da confirmação do contato.",
+  "messageStatus_heardRepeatedCount": "Ouvido {count, plural, =1{uma vez} other{{count} vezes}}. Os repetidores próximos repassaram-no.",
+  "@messageStatus_heardRepeatedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_regionEmptyExplanation": "As regiões limitam as mensagens de inundação aos repetidores de uma área. Obtenha-as dos repetidores próximos ou adicione uma pelo nome.",
+  "settings_regionFetchFromRepeaters": "Obter a partir de repetidores",
+  "settings_regionDefault": "Região padrão",
+  "settings_regionDefaultSubtitle": "Usada pelos canais sem região própria",
+  "settings_regionDefaultNone": "Nenhuma",
+  "settings_telemetryPerContactHint": "Para permitir um contato, abra o chat dele e escolha Configurações de Contato no menu.",
+  "settings_multiAckSubtitle": "Enviar confirmações adicionais para melhorar a entrega; usa mais tempo de transmissão",
+  "settings_presetCustom": "Personalizado",
+  "settings_radioMatchWarning": "Todos os nós com os quais você fala devem usar a mesma frequência, largura de banda e SF. A taxa de codificação (CR) pode ser diferente.",
+  "settings_txPowerRangeHelper": "{min} a {max} dBm",
+  "@settings_txPowerRangeHelper": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "settings_clientRepeatFrequencyNote": "Frequência definida em {freq} MHz para a repetição sem rede",
+  "@settings_clientRepeatFrequencyNote": {
+    "placeholders": {
+      "freq": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_pathHashModeHelper": "Tamanho de cada ID de nó registado no caminho dos pacotes de inundação que este rádio envia: 1 byte (256 IDs, até 64 saltos), 2 bytes (65.000 IDs, até 32 saltos), 3 bytes (16 milhões de IDs, até 21 saltos). IDs maiores reduzem as colisões, mas os repetidores com firmware anterior à v1.14 descartam os pacotes com IDs de 2 ou 3 bytes.",
+  "settings_requiresFirmware": "Requer o firmware {version} ou mais recente",
+  "@settings_requiresFirmware": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "appSettings_channelMinHops": "Reenviar as mensagens de canal até atravessarem repetidores suficientes",
+  "appSettings_channelMinHopsSubtitle": "Se a sua mensagem não for ouvida de volta por repetidores suficientes, envie-a de novo. Usa mais tempo de transmissão.",
+  "appSettings_channelMinHopsCount": "Saltos necessários: {count}",
+  "@appSettings_channelMinHopsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appSettings_channelMinHopsRetries": "Reenviar até {count, plural, =1{1 vez} other{{count} vezes}}",
+  "@appSettings_channelMinHopsRetries": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appSettings_batteryOptimization": "Atividade em segundo plano",
+  "appSettings_batteryOptimizationSubtitle": "Defina o MeshCore Open como \"Não otimizar\" nas configurações de bateria para que as mensagens continuem a chegar em segundo plano",
+  "contacts_storageFull": "O armazenamento de contatos no nó está cheio. Não é possível adicionar novos nós até que contatos sejam removidos.",
+  "contacts_removeFromContacts": "Remover dos contatos",
+  "contacts_removeFromContactsConfirm": "{contactName} passará para os contatos descobertos. O histórico do chat será excluído.",
+  "@contacts_removeFromContactsConfirm": {
+    "placeholders": {
+      "contactName": {
+        "type": "String"
+      }
+    }
+  },
+  "contacts_keepChatHistory": "Manter o histórico do chat",
+  "contacts_remove": "Remover",
+  "contacts_discoveredNearby": "Descobertos nas proximidades ({count})",
+  "@contacts_discoveredNearby": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "contacts_noContactsDiscoveredHint": "Os nós que o seu rádio ouve mas que ainda não adicionou estão listados em Contatos descobertos",
+  "channels_hashtag": "Hashtag",
+  "channels_addSectionJoin": "Entrar numa existente",
+  "channels_addSectionCreate": "Criar nova",
+  "channels_dragToReorder": "Arraste para reordenar",
+  "channels_regionDefaultSuffix": "(padrão)",
+  "channels_regionSelectExplanation": "As mensagens de inundação deste canal só serão encaminhadas por repetidores da região selecionada.",
+  "channels_regionEmpty": "Ainda não há regiões.",
+  "channels_manageRegions": "Gerenciar regiões",
+  "chat_removeGif": "Remover GIF",
+  "chat_cancelReply": "Cancelar resposta",
+  "chat_viewPathOnMap": "Ver o caminho no mapa",
+  "chat_today": "Hoje",
+  "chat_yesterday": "Ontem",
+  "map_centerOnMe": "Centralizar na minha localização",
+  "map_noNodesLocationHint": "Nenhum nó com uma localização recente. Amplie o filtro de tempo ou defina a sua localização nas Configurações.",
+  "map_clusterNodes": "Agrupar os nós próximos",
+  "map_groupChip": "Agrupar",
+  "map_clusterNodesSubtitle": "Ao afastar o zoom, mostrar os nós próximos como um único círculo numerado",
+  "map_manageServer": "Gerenciar o servidor",
+  "login_showPassword": "Mostrar senha",
+  "login_hidePassword": "Esconder a senha",
+  "login_advanced": "Avançado",
+  "common_clearSearch": "Limpar pesquisa",
+  "repeater_roleAdmin": "ADMIN",
+  "repeater_roleGuest": "CONVIDADO",
+  "repeater_refreshAll": "Atualizar tudo",
+  "repeater_settingsNotLoaded": "As configurações ainda não foram carregadas deste repetidor.",
+  "repeater_settingsLoadIncomplete": "Algumas configurações não puderam ser carregadas. Use os botões de atualização para tentar novamente.",
+  "contacts_scanQrCode": "Digitalizar um Código QR",
+  "contacts_scanQrInstructions": "Aponte a câmera para um código QR de contato do MeshCore",
+  "contacts_qrFromGallery": "Digitalizar QR da galeria",
+  "contacts_noQrCodeFound": "Nenhum código QR encontrado na imagem selecionada.",
+  "contacts_qrGalleryFailed": "Não foi possível abrir a galeria.",
+  "notification_actionReply": "Responder",
+  "notification_actionMarkRead": "Marcar como lido",
+  "notification_actionMuteChannel": "Silenciar canal",
+  "notification_replyHint": "Mensagem",
+  "notification_you": "Você",
+  "notification_replyFailedTitle": "Resposta não enviada",
+  "notification_replyNotConnected": "Não conectado a um rádio. Reconecte no MeshCore Open e envie a sua resposta novamente.",
+  "notification_replyTooLong": "A sua resposta é demasiado longa para ser enviada a partir de uma notificação. Envie-a pelo MeshCore Open.",
+  "notification_replyUnavailable": "Esta conversa já não está no rádio conectado.",
+  "notification_replySendFailed": "A sua resposta pode não ter sido enviada. Verifique no MeshCore Open e tente novamente.",
+  "notification_replyAppNotRunning": "O MeshCore Open não está em execução. Abra-o e envie a sua resposta novamente.",
+  "snrIndicator_nearByRepeatersDescription": "Repetidores que o seu rádio ouviu diretamente, do mais recente para o mais antigo.",
+  "radioStats_sectionSignal": "Sinal",
+  "radioStats_sectionAirtime": "Tempo de transmissão",
+  "imageSend_lossyNote": "Comprimido para cerca de {bytes} bytes. O modelo do receptor reconstrói-o, por isso os detalhes serão diferentes.",
+  "@imageSend_lossyNote": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "imageSend_viewOriginal": "Original",
+  "imageSend_viewReconstruction": "O que os destinatários veem",
+  "imageSend_reconstructionUnavailable": "Este dispositivo não pode pré-visualizar a reconstrução.",
+  "imageSend_modelNotDownloaded": "O modelo de imagem ainda não foi transferido. Transfira-o nas Configurações para enviar imagens.",
+  "receivedImage_save": "Guardar imagem",
+  "receivedImage_shareCaption": "Reconstruído por IA a partir de {bytes} bytes; os detalhes finos são gerados, não transmitidos.",
+  "@receivedImage_shareCaption": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "receivedImage_packetInfo": "Informações do pacote",
+  "receivedImage_parityRecovered": "Um pacote foi reconstruído a partir do pacote de recuperação.",
+  "receivedImage_decodeTime": "Reconstruído em {ms} ms",
+  "@receivedImage_decodeTime": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "receivedImage_saveFailed": "Não foi possível guardar a imagem",
+  "reviewMode_dialogTitle": "Entrar no modo de revisão?",
+  "reviewMode_dialogBody": "O modo de revisão conecta-se a um rádio simulado com contatos, canais e mensagens de exemplo. Não é necessário um rádio real.",
+  "reviewMode_confirm": "Entrar",
+  "reviewMode_cancel": "Cancelar",
+  "reviewMode_banner": "Modo de revisão — dados simulados",
+  "reviewMode_sendTest": "Enviar mensagem de teste",
+  "reviewMode_testSent": "Uma mensagem de teste chegará em breve.",
+  "reviewMode_exit": "Sair",
+  "reviewMode_connectFailed": "Não foi possível iniciar o modo de revisão: {error}",
+  "settings_regionUseRadioDefault": "Padrão do rádio ({region})",
+  "settings_regionNoRegion": "Sem região (sem escopo)",
+  "settings_regionRadioDefault": "Região padrão do rádio",
+  "settings_regionRadioDefaultSubtitle": "Salva no rádio. Floods enviados sem região a utilizam, a partir deste app e de qualquer outro app conectado ao rádio.",
+  "settings_regionRadioDefaultUpdated": "Região padrão do rádio atualizada",
+  "settings_regionRadioDefaultFailed": "Não foi possível atualizar a região padrão do rádio",
+  "appSettings_channelMinHopsCountRepeaters": "Contar também repetidores próximos diferentes",
+  "appSettings_channelMinHopsCountRepeatersSubtitle": "Considerar a mensagem como enviada quando {count, plural, =1{1 repetidor próximo} other{{count} repetidores próximos diferentes}} a repetirem, mesmo que você não a ouça avançar mais.",
+  "appSettings_regionOnHopsLine": "Região ao lado da contagem de saltos",
+  "appSettings_regionOnHopsLineSubtitle": "Mostra a região de uma mensagem de canal na mesma linha da contagem de saltos, em vez de abaixo dela.",
+  "channels_regionRadioDefaultSuffix": "(padrão do rádio)",
+  "channels_regionRadioDefaultApplies": "Este rádio envia floods sem região na sua região padrão: {region}.",
+  "chat_futureTimestampWarning": "O horário desta mensagem está no futuro, então o relógio do remetente pode estar errado. Ela é exibida na ordem em que chegou.",
+  "discoveredContacts_scan": "Buscar nós próximos",
+  "discoveredContacts_scanTitle": "Nós próximos",
+  "discoveredContacts_scanExplanation": "Pede aos nós ao alcance direto do rádio que se identifiquem. Repetidores e sensores respondem. Servidores de sala e companheiros geralmente não.",
+  "discoveredContacts_scanning": "Buscando…",
+  "discoveredContacts_scanFound": "{count, plural, =1{1 nó encontrado} other{{count} nós encontrados}}",
+  "discoveredContacts_scanNoResults": "Nenhum nó respondeu. Os repetidores limitam a frequência das respostas, então tente novamente em um minuto.",
+  "discoveredContacts_scanAgain": "Buscar novamente",
+  "discoveredContacts_scanFailed": "Não foi possível enviar a solicitação de busca.",
+  "discoveredContacts_scanSignal": "Sinal {snr} dB · eles nos ouviram a {remoteSnr} dB",
+  "discoveredContacts_scanInContacts": "Já está nos contatos",
+  "discoveredContacts_scanNameLater": "O nome aparece após o próximo anúncio",
+  "channels_waitForSync": "Os canais ainda estão sendo carregados do rádio. Tente novamente quando a sincronização terminar.",
+  "channels_nameTooLong": "O nome é muito longo (máx. {maxBytes} bytes).",
+  "repeater_valueRequired": "{field}: insira um valor",
+  "losMapDetailTooltip": "Detalhe do mapa",
+  "losUnitsTooltip": "Unidades",
+  "losDistance": "Distância",
+  "losClearance": "Folga",
+  "losBlockedBy": "Bloqueado por",
+  "losObstruction": "Obstrução",
+  "losDistanceFromA": "{distance} de A",
+  "losWorstBadge": "PIOR",
+  "losBlockedAmount": "Bloqueado {amount}",
+  "losFromA": "De A",
+  "losFromB": "De B",
+  "losElevation": "Elevação",
+  "losCenterOnMap": "Centralizar no mapa",
+  "losStatusClear": "Livre",
+  "losStatusMarginal": "Marginal",
+  "losStatusBlocked": "Bloqueado",
+  "losStatusCheckingShort": "Verificando",
+  "losStatusNoResult": "Sem resultado",
+  "losSelectedPill": "Selecionado",
+  "gif_tapToLoad": "Toque para carregar o GIF",
+  "gif_loadFailedRetry": "Não foi possível carregar o GIF\nToque para tentar novamente",
+  "qr_cameraPermissionDenied": "Permissão da câmera negada.\nAtive o acesso à câmera nas configurações.",
+  "qr_cameraUnsupported": "Câmera não compatível com este dispositivo.",
+  "qr_cameraStartFailed": "Falha ao iniciar a câmera.\n{details}",
+  "imageMessages_downloadFailedWithError": "Não foi possível baixar o modelo de imagem: {error}",
+  "map_nodeId": "ID",
+  "map_markerHideHint": "Ocultar: fica oculto até você sair do mapa.",
+  "map_markerRemoveHint": "Remover: continua oculto até você restaurá-lo no menu de filtros.",
+  "map_markerRemoved": "Marcador removido",
+  "map_restoreRemovedMarkers": "Restaurar marcadores removidos",
+  "map_restoreRemovedMarkersSubtitle": "{count} removidos",
+  "map_markersRestored": "{count} marcadores restaurados",
+  "map_setLocationConfirmTitle": "Definir como sua localização?",
+  "map_setLocationConfirmBody": "Seu nó vai anunciar esta posição:\n{lat}, {lon}",
+  "map_setLocationAction": "Definir localização",
+  "map_locationSetSuccess": "Localização do nó atualizada",
+  "map_locationSetFailed": "O dispositivo não confirmou a nova localização. Tente novamente.",
+  "map_poiClusterTitle": "{count} marcadores aqui",
+  "map_poiClusterSemantics": "{count} marcadores compartilhados. Toque para listá-los.",
+  "map_youWithMarkers": "Você e {count} marcadores",
+  "map_sharedMarkerSemantics": "Marcador compartilhado: {label}",
+  "map_nodeMarkerSemantics": "{name}, {type}, {status}",
+  "mapCache_zoomLevel": "Zoom {zoom}",
+  "mapCache_sizeBytes": "{size} B",
+  "mapCache_sizeKilobytes": "{size} KB",
+  "mapCache_sizeMegabytes": "{size} MB",
+  "mapCache_sizeGigabytes": "{size} GB",
+  "mapCache_downloadCancelled": "Download cancelado. {count} blocos em cache.",
+  "mapCache_tooManyTilesTitle": "Área muito grande",
+  "mapCache_tooManyTiles": "Esta área precisa de {count} blocos, mais do que o limite de {max}. Escolha uma área menor ou reduza o zoom máximo.",
+  "chat_clearChatConfirm": "Isto apaga todas as mensagens desta conversa deste dispositivo. Não é possível desfazer.",
+  "channels_clearChatConfirm": "Isto apaga todas as mensagens deste canal deste dispositivo, incluindo as imagens recebidas. Não é possível desfazer.",
+  "channels_timeNow": "agora",
+  "channels_timeMinutes": "{minutes}min",
+  "channels_timeHours": "{hours}h",
+  "channels_timeDays": "{days}d",
+  "channels_indexChip": "CH {index}",
+  "reaction_unknownSender": "Desconhecido",
+  "pathMap_noSelfGpsFix": "O nó local não tem sinal de GPS",
+  "pathTrace_sendFailed": "Não foi possível enviar o rastreamento de caminho: {error}",
+  "losErrorNoInternet": "Os dados de elevação precisam de conexão com a internet",
+  "losResultStale": "Desatualizado: a altura da antena mudou",
+  "losSnrValue": "{snr} dB",
+  "losFrequencyValue": "{frequency} MHz",
+  "losKFactorValue": "k={kFactor}",
+  "losEndpointA": "A",
+  "losEndpointB": "B",
+  "units_km": "km",
+  "units_mi": "mi",
+  "units_m": "m",
+  "units_ft": "ft",
+  "telemetry_loading": "Carregando telemetria…",
+  "telemetry_axisValue": "X: {x}, Y: {y}, Z: {z}",
+  "telemetry_colourValue": "R: {red}, G: {green}, B: {blue}",
+  "telemetry_altitudeValueFeet": "{feet} ft",
+  "telemetry_distanceValueFeet": "{feet} ft",
+  "settings_notConnectedError": "Sem conexão com um rádio. Conecte e tente novamente.",
+  "settings_requiresConnection": "Conecte-se a um rádio para usar isto",
+  "settings_txPowerInvalidRange": "Potência de TX inválida ({min} a {max} dBm)",
+  "settings_contactSettingsSaved": "Configurações do contato salvas",
+  "settings_batteryToggleHint": "Toque para alternar entre porcentagem e tensão",
+  "settings_publicKeyCopyHint": "Copiar chave pública",
+  "settings_locationClearHelper": "Deixe ambos os campos vazios para remover sua localização.",
+  "settings_locationCleared": "Localização removida",
+  "settings_regionFetchDiscovering": "Procurando repetidores próximos…",
+  "settings_regionFetchProgress": "Consultando o repetidor {current} de {total}…",
+  "settings_regionFetchNoRepeaters": "Ainda não há repetidores conhecidos. Adicione um repetidor como contato ou aguarde um anunciar, e tente novamente.",
+  "settings_regionFetchNoneResponded": "Nenhum repetidor próximo respondeu. Aproxime-se de um repetidor e tente novamente.",
+  "appSettings_sourceSummary": "{label} - {description}",
+  "appSettings_routingSection": "Roteamento",
+  "appSettings_imageMessagesSection": "Mensagens de imagem",
+  "appSettings_showApiKey": "Mostrar chave de API",
+  "appSettings_hideApiKey": "Ocultar chave de API",
+  "translation_defaultModelName": "Modelo",
+  "translation_downloadProgressBytes": "{fileName}: {current} MB",
+  "translation_downloadProgressTotal": "{fileName}: {current} / {total} MB ({percent}%)",
+  "translation_downloadedModelDetails": "{size} MB • {source}",
+  "repeater_radioDisconnected": "Rádio desconectado",
+  "repeater_radioDisconnectedHint": "Reconecte-se ao seu rádio para enviar comandos, atualizar ou salvar alterações.",
+  "repeater_cliSend": "Enviar comando",
+  "repeater_cliCopyTranscript": "Copiar transcrição",
+  "repeater_cliShareTranscript": "Compartilhar transcrição",
+  "repeater_cliTranscriptCopied": "Transcrição copiada",
+  "repeater_cliClearHistoryConfirm": "Limpar o histórico de comandos? Não é possível desfazer.",
+  "repeater_cliSearchCommands": "Pesquisar comandos",
+  "repeater_cliNoMatchingCommands": "Nenhum comando correspondente",
+  "debugLog_clearConfirm": "Limpar todas as entradas do registro? Não é possível desfazer.",
+  "repeater_unsavedChangesTitle": "Alterações não salvas",
+  "repeater_unsavedChangesMessage": "Você tem alterações que não foram salvas no repetidor.",
+  "repeater_discardChanges": "Descartar",
+  "repeater_actionSentNoReply": "{action}: comando enviado. O repetidor não responde a este comando.",
+  "repeater_invalidSettingValue": "{setting}: {value} não é válido",
+  "repeater_txPowerOutOfRange": "Potência de TX {value} fora do intervalo ({min} a {max} dBm)",
+  "repeater_prvKeyLengthError": "A chave privada deve ter exatamente {length} caracteres hexadecimais",
+  "contacts_advertFailed": "Não foi possível enviar o anúncio",
+  "contacts_manageGroups": "Gerenciar grupos",
+  "community_shortId": "ID: {id}…",
+  "tcpSectionTitle": "TCP / IP",
+  "tcpConnectedToHeader": "Conectado a",
+  "usbChooseSerialPort": "Escolher porta serial",
+  "neighbors_durationSeconds": "{seconds}s",
+  "neighbors_durationMinutes": "{minutes}m {seconds}s",
+  "neighbors_durationHours": "{hours}h {minutes}m",
+  "scanner_getNodeTitle": "Precisa de um novo nó?",
+  "scanner_getNodeBody": "Do tamanho de uma carteira, roda MeshCore, GPS dual-band, à prova d'água, bateria para 5 dias.",
+  "scanner_getNodeAction": "Compre aqui",
+  "scanner_getNodeDisclosure": "Link de afiliado: cada compra apoia o MeshCore Open.",
+  "networkMap_settingsSection": "Mapa da rede",
+  "networkMap_uploadTitle": "Compartilhar o que meu rádio ouve",
+  "networkMap_uploadExplanation": "Quando isto está ativado e o seu rádio está conectado, o app envia um breve resumo dos pacotes que o seu rádio ouve para o mapa da rede do MeshCore Open, para que todos possam ver quais repetidores existem e como se conectam. Ele envia o tipo, a rota, os saltos, a intensidade do sinal e o tamanho de cada pacote, além dos nomes e localizações aproximadas dos repetidores, obtidos dos próprios anúncios. Nunca envia o texto das mensagens, quem fala com quem, nomes de canais, seus contactos nem a sua posição exata: as localizações são arredondadas para cerca de 2 km, e o seu app recebe um novo ID aleatório todos os dias.",
+  "networkMap_whatWeCollect": "O que coletamos",
+  "networkMap_promptTitle": "Ajudar a construir o mapa da rede?",
+  "networkMap_promptBody": "O MeshCore Open pode compartilhar o que o seu rádio ouve com o mapa público da rede em map.meshcoreopen.org, para que todos possam ver quais repetidores existem e como se conectam.\n\nNunca envia o texto das mensagens, quem fala com quem, nomes de canais, seus contactos nem a sua posição exata. As localizações são arredondadas para cerca de 2 km.",
+  "networkMap_promptSettingsHint": "Você pode mudar isso a qualquer momento em Configurações → Configurações do App → Mapa da rede.",
+  "networkMap_promptAccept": "Compartilhar",
+  "networkMap_promptDecline": "Não, obrigado",
+  "networkMap_statusOff": "Desativado. Nada é enviado.",
+  "networkMap_statusWaiting": "Ativado. Aguardando conexão com o rádio.",
+  "networkMap_statusNothingSent": "Ativado. Nada enviado ainda.",
+  "networkMap_statusLastSent": "Último envio {time}. {count} pacotes hoje.",
+  "@networkMap_statusLastSent": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "networkMap_sourceLocal": "Local",
+  "networkMap_sourceOnline": "Online",
+  "networkMap_sourceBoth": "Ambos",
+  "networkMap_zoomInHint": "Aproxime o zoom para ver o mapa da rede online",
+  "networkMap_loadFailed": "Não foi possível carregar o mapa da rede online",
+  "networkMap_inYourContacts": "Nos seus contactos",
+  "networkMap_status": "Estado",
+  "networkMap_statusActive": "Ativo na última hora",
+  "networkMap_statusRecent": "Ouvido no último dia",
+  "networkMap_statusStale": "Não ouvido recentemente",
+  "networkMap_confirmed": "Confirmado",
+  "networkMap_singleSource": "Fonte única, ainda não confirmado",
+  "networkMap_reports": "Relatórios",
+  "networkMap_locationEstimated": "Localização aproximada, estimada a partir de quem o ouviu",
+  "networkMap_locationAdvertised": "Localização aproximada, do próprio anúncio",
+  "networkMap_heardByRadio": "Ouvido pelo seu rádio",
+  "networkMap_inYourArea": "Na sua área",
+  "networkMap_farAway": "Muito longe. A gestão não chegará até ele.",
+  "networkMap_addToContacts": "Adicionar aos contactos",
+  "networkMap_manage": "Gerenciar",
+  "networkMap_addedToContacts": "Adicionado aos contactos",
+  "networkMap_addFailed": "Não foi possível adicionar aos contactos",
+  "networkMap_unnamed": "Repetidor sem nome"
 }
